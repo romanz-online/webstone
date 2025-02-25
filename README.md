@@ -1,7 +1,6 @@
-Web-based vanilla Hearthstone currently in development. 
+Web-based vanilla Hearthstone currently in development.
 
 Run `npm install` and then `npm start` to run the website.
-
 
 To-do List:
 
@@ -18,12 +17,13 @@ To-do List:
 - Make individual events update the client's game state instead of sending the entire game state each time and having the client reload everything.
 
 - Do animations...
-    - Draw card https://animista.net/play/entrances/slit-in
-    - Show what card opponent is playing https://animista.net/play/entrances/tilt-in-fwd/tilt-in-fwd-tr
-    - Place minion https://animista.net/play/entrances/puff-in/puff-in-center
-    - Shuffle card back into deck https://animista.net/play/exits/slit-out
-    - Burn/overdraw card https://animista.net/play/exits/puff-out
-    - Minion dies https://animista.net/play/attention/shake
+
+  - Draw card https://animista.net/play/entrances/slit-in
+  - Show what card opponent is playing https://animista.net/play/entrances/tilt-in-fwd/tilt-in-fwd-tr
+  - Place minion https://animista.net/play/entrances/puff-in/puff-in-center
+  - Shuffle card back into deck https://animista.net/play/exits/slit-out
+  - Burn/overdraw card https://animista.net/play/exits/puff-out
+  - Minion dies https://animista.net/play/attention/shake
 
 - Figure out how things like battlecries will work between client and server. (it'll probably work the same way as spells. store whether or not the minion has a battlecry and initiate the targeting system entirely clientside)
 

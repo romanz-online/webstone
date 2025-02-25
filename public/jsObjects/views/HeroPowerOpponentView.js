@@ -1,21 +1,21 @@
 export class HeroPowerOpponentView {
-    constructor(heroPower) {
-        this.heroPower = heroPower;
-        this.update();
-    }
+  constructor(heroPower) {
+    this.heroPower = heroPower
+    this.update()
+  }
 
-    getElement() {
-        // return document.getElementById("playerHeropower");
-    }
+  getElement() {
+    // return document.getElementById("playerHeropower");
+  }
 
-    drawCard() {
-        let card = this.deck.drawCard();
-        this.update();
-        return card;
-    }
+  drawCard() {
+    let card = this.deck.drawCard()
+    this.update()
+    return card
+  }
 
-    update() {
-        // this.getElement().style.boxShadow = "0px 2px 15px 12px #0FCC00";
-        // this.getElement().classList.add("canAttack");
-    }
+  update() {
+    // this.getElement().style.boxShadow = "0px 2px 15px 12px #0FCC00";
+    // this.getElement().classList.add("canAttack");
+  }
 }

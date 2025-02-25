@@ -1,54 +1,58 @@
 export class DialogueView {
-    constructor(isPlayer) {
-        this.dialogueText = '...';
-        this.audioFileStr = '';
-        this.audio = new Audio('../media/sounds/voiceovers/jaina_tutorialbattle.mp3');
-        this.isPlayer = isPlayer;
-        this.divID = this.isPlayer ? 'playerBubble' : 'opponentBubble';
-        this.update();
+  constructor(isPlayer) {
+    this.dialogueText = '...'
+    this.audioFileStr = ''
+    this.audio = new Audio(
+      '../media/sounds/voiceovers/jaina_tutorialbattle.mp3'
+    )
+    this.isPlayer = isPlayer
+    this.divID = this.isPlayer ? 'playerBubble' : 'opponentBubble'
+    this.update()
+  }
+
+  doDialogue() {
+    this.openBubble()
+
+    if (this.audioFileStr != '') {
+      this.audio.play()
+    } else {
+      setTimeout(() => {
+        this.closeBubble()
+      }, 2 * 1000)
     }
+  }
 
-    doDialogue() {
-        this.openBubble();
+  setDialogueAudio(fileStr) {
+    this.audioFileStr = fileStr
+    this.audio = new Audio(this.audioFileStr)
+    this.update()
+  }
 
-        if (this.audioFileStr != '') {
-            this.audio.play();
-        } else {
-            setTimeout(() => { this.closeBubble(); }, 2 * 1000);
-        }
-    }
+  setDialogueText(text) {
+    this.dialogueText = text
+    this.update()
+  }
 
-    setDialogueAudio(fileStr) {
-        this.audioFileStr = fileStr;
-        this.audio = new Audio(this.audioFileStr);
-        this.update();
-    }
+  update() {
+    this.audio.addEventListener('ended', () => {
+      this.closeBubble()
+    })
+  }
 
-    setDialogueText(text) {
-        this.dialogueText = text;
-        this.update();
-    }
+  openBubble() {
+    $(`#${this.divID}`)
+      .html(this.dialogueText)
+      .css({ visibility: 'visible' })
+      .addClass('openMenuAnim')
+  }
 
-    update() {
-        this.audio.addEventListener('ended', () => { this.closeBubble(); });
-    }
+  closeBubble() {
+    $(`#${this.divID}`).addClass('easeOutAnim').removeClass('openMenuAnim')
 
-    openBubble() {
-        $(`#${this.divID}`)
-            .html(this.dialogueText)
-            .css({ 'visibility': 'visible' })
-            .addClass('openMenuAnim');
-    }
-
-    closeBubble() {
-        $(`#${this.divID}`)
-            .addClass('easeOutAnim')
-            .removeClass('openMenuAnim');
-
-        setTimeout(() => {
-            $(`#${this.divID}`)
-                .css({ 'visibility': 'hidden' })
-                .removeClass('easeOutAnim');
-        }, 0.25 * 1000);
-    }
+    setTimeout(() => {
+      $(`#${this.divID}`)
+        .css({ visibility: 'hidden' })
+        .removeClass('easeOutAnim')
+    }, 0.25 * 1000)
+  }
 }
