@@ -6,49 +6,32 @@ export class AttackController {
     // HTML dom element, not view or object
     // use .dataSet.boardIndex or id to distinguish
     this.attackerCard = null
+    this.dragOrigin = { x: 0, y: 0 }
 
-    document
-      .getElementById('board--player')
-      .addEventListener('mousedown', (e) => this.onDragStart(e))
+    $('#board--player').on('mousedown', (e) => this.onMouseDown(e))
 
-    document.body.addEventListener('mouseup', (e) => this.onMouseUp(e))
+    $('body').on('mouseup', (e) => this.onMouseUp(e))
 
     // TODO: maybe need to move the code below elsewhere
     // it will also be used for spells and hero powers
-    const onMouseOuterMove = (e) => {
-      $('#outercursor').css({
+    $(document).on('mousemove', (e) => {
+      $('#outercursor, #innercursor, #arrowcursor').css({
         left: `${e.pageX}px`,
         top: `${e.pageY}px`,
       })
-    }
-
-    const onMouseInnerMove = (e) => {
-      $('#innercursor').css({
-        left: `${e.pageX}px`,
-        top: `${e.pageY}px`,
-      })
-    }
-
-    const onMouseTriangleMove = (e) => {
-      $('#arrowcursor').css({
-        left: `${e.pageX}px`,
-        top: `${e.pageY}px`,
-      })
-    }
-
-    document.addEventListener('mousemove', onMouseOuterMove)
-    document.addEventListener('mousemove', onMouseInnerMove)
-    document.addEventListener('mousemove', onMouseTriangleMove)
+    })
   }
 
-  onDragStart(event) {
+  onMouseDown(event) {
     event.preventDefault()
     if (event.target.classList.contains('cardInPlay--player')) {
       this.attackerCard = event.target
 
-      const rect = this.attackerCard.getBoundingClientRect(),
-        x = rect.left + rect.width / 2,
-        y = rect.top + rect.height / 2
+      const rect = this.attackerCard.getBoundingClientRect()
+      this.dragOrigin = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      }
 
       $('#svg').show()
 
@@ -56,28 +39,33 @@ export class AttackController {
         visibility: 'visible',
       })
 
-      document.body.style.cursor = 'none'
+      $('body').css({ cursor: 'none' })
 
-      document.body.addEventListener('mousemove', (e) => {
-        const destX = e.clientX,
-          destY = e.clientY,
-          angleDeg = (Math.atan2(destY - y, destX - x) * 180) / Math.PI + 90
+      $('body').on('mousemove', (e) => this.onMouseDrag(e))
 
-        // TODO: fix visual bug where this arrow briefly appears on the previous card it was on
-        $('#arrowcursor').css(
-          'transform',
-          `rotate(${angleDeg}deg) translate(-50%,-110%)`
-        )
-
-        $('#svgpath').attr('d', `M${destX},${destY} ${x},${y}`)
-      })
+      this.onMouseDrag(event) // updates the svg to set its origin correctly
     } else if (true /* click on hero portrait */) {
       // do hero attack
     }
   }
 
+  onMouseDrag(event) {
+    $('#arrowcursor').css(
+      'transform',
+      `rotate(${(Math.atan2(event.clientY - this.dragOrigin.y, event.clientX - this.dragOrigin.x) * 180) / Math.PI + 90}deg) translate(-50%,-110%)`
+    )
+
+    $('#svgpath').attr(
+      'd',
+      `M${event.clientX},${event.clientY} ${this.dragOrigin.x},${this.dragOrigin.y}`
+    )
+  }
+
   onMouseUp(event) {
     event.preventDefault()
+
+    $('body').off('mousemove', this.onMouseDrag)
+    this.dragOrigin = { x: 0, y: 0 }
 
     if (!this.attackerCard) {
       return
@@ -95,7 +83,7 @@ export class AttackController {
     } else if (event.target.id == 'opponentHero') {
       GAME.triggerEvent('attack', {
         attackerID: this.attackerCard.dataset.minionid,
-        targetID: 99, // TODO: make a list of shared enums between server and client for stuff like this
+        targetID: 102, // TODO: make a list of shared enums between server and client for stuff like this
       })
     }
 

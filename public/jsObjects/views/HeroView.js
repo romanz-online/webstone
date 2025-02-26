@@ -1,7 +1,7 @@
 export class HeroView {
-  constructor(isPlayer) {
+  constructor(playerID) {
     this.health = 0
-    this.isPlayer = isPlayer
+    this.isPlayer = playerID === 1
     this.divID = this.isPlayer ? 'playerHero' : 'opponentHero'
     this.update()
   }
@@ -17,8 +17,8 @@ export class HeroView {
   }
 
   update() {
-    document.getElementById(
-      this.isPlayer ? 'playerHeroHealth' : 'opponentHeroHealth'
-    ).innerText = this.health
+    $(this.isPlayer ? '#playerHeroHealth' : '#opponentHeroHealth').text(
+      this.health
+    )
   }
 }

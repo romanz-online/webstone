@@ -1,11 +1,11 @@
 export class DialogueView {
-  constructor(isPlayer) {
+  constructor(playerID) {
     this.dialogueText = '...'
     this.audioFileStr = ''
     this.audio = new Audio(
       '../media/sounds/voiceovers/jaina_tutorialbattle.mp3'
     )
-    this.isPlayer = isPlayer
+    this.isPlayer = playerID === 1
     this.divID = this.isPlayer ? 'playerBubble' : 'opponentBubble'
     this.update()
   }

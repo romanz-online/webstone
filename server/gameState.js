@@ -150,9 +150,13 @@ class GameState {
       const index = this.playerHand.findIndex(
         (minion) => minion.minionID == minionID
       )
-      if (index !== -1) {
-        minion = this.playerHand.splice(index, 1)[0]
+
+      if (index === -1) {
+        console.error(`Could not find minion ${minionID}`)
+        return
       }
+
+      minion = this.playerHand.splice(index, 1)[0]
 
       const battlecryRet = minion.battlecry(this)
       if (battlecryRet) {
@@ -193,14 +197,18 @@ class GameState {
     }
 
     /** @type {Minion} */
-    const target = this.getMinion(targetID)
-    if (!target) {
-      console.error('Could not find target with ID', targetID, 'on board')
-      return
+    let target
+    // enemy hero
+    if (targetID !== 102) {
+      target = this.getMinion(targetID)
+      if (!target) {
+        console.error('Could not find target with ID', targetID, 'on board')
+        return
+      }
     }
 
     damageToTarget = attacker.attack
-    damageToAttacker = targetID != 99 ? target.attack : 0
+    damageToAttacker = targetID === 102 ? 0 : target.attack
 
     sendEvent(this.ws, 'attack', true, {
       // trigger animation on client
@@ -211,34 +219,48 @@ class GameState {
     })
 
     attacker.health -= damageToAttacker
-    if (targetID == 99) {
+    if (targetID === 102) {
       this.opponentHealth -= damageToTarget
     } else {
       target.health -= damageToTarget
     }
 
-    sendEvent(this.ws, 'applyDamage', true, {
-      attackerID: attackerID,
-      targetID: targetID,
-      damage: damageToTarget,
-      stats: [target.mana, target.attack, target.health],
-      baseStats: [target.baseMana, target.baseAttack, target.baseHealth],
-    })
+    if (targetID === 102) {
+    } else {
+      sendEvent(this.ws, 'applyDamage', true, {
+        attackerID: attackerID,
+        targetID: targetID,
+        damage: damageToTarget,
+        stats: [target.mana, target.attack, target.health],
+        baseStats: [target.baseMana, target.baseAttack, target.baseHealth],
+      })
 
-    sendEvent(this.ws, 'applyDamage', true, {
-      attackerID: targetID,
-      targetID: attackerID,
-      damage: damageToAttacker,
-      stats: [attacker.mana, attacker.attack, attacker.health],
-      baseStats: [attacker.baseMana, attacker.baseAttack, attacker.baseHealth],
-    })
-
-    if (target.health < 1) {
-      this.killMinion(targetID)
+      sendEvent(this.ws, 'applyDamage', true, {
+        attackerID: targetID,
+        targetID: attackerID,
+        damage: damageToAttacker,
+        stats: [attacker.mana, attacker.attack, attacker.health],
+        baseStats: [
+          attacker.baseMana,
+          attacker.baseAttack,
+          attacker.baseHealth,
+        ],
+      })
     }
 
-    if (attacker.health < 1) {
-      this.killMinion(attackerID)
+    if (targetID === 102) {
+      if (this.opponentHealth < 1) {
+        console.log('enemy hero died!')
+        // sendEvent
+      }
+    } else {
+      if (target.health < 1) {
+        this.killMinion(targetID)
+      }
+
+      if (attacker.health < 1) {
+        this.killMinion(attackerID)
+      }
     }
   }
 

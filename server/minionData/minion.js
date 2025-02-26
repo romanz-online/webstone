@@ -8,75 +8,42 @@ class Minion {
     this.minionID = minionID
     this.playedIndex = playedIndex
 
-    const baseData = MINION_DATA[minion[0]]
-    this.name = baseData.name
-    this.description = baseData.description
-    this.rarity = baseData.rarity
-    this.tribe = baseData.tribe
-    this.overload = baseData.overload
+    const { name, description, rarity, tribe, overload, stats, attributes } =
+      MINION_DATA[this.baseMinionID]
 
-    this.baseMana = baseData.stats[0]
-    this.baseAttack = baseData.stats[1]
-    this.baseHealth = baseData.stats[2]
+    Object.assign(this, {
+      name,
+      description,
+      rarity,
+      tribe,
+      overload,
+      isDamaged: false,
+    })
 
-    this.mana = baseData.stats[0]
-    this.attack = baseData.stats[1]
-    this.health = baseData.stats[2]
-    this.isDamaged = false
+    ;[this.baseMana, this.baseAttack, this.baseHealth] = stats
+    ;[this.mana, this.attack, this.health] = stats
 
-    this.hasCharge = baseData.attributes[ATTRIBUTES.CHARGE]
-    this.hasTaunt = baseData.attributes[ATTRIBUTES.TAUNT]
-    this.hasDivineShield = baseData.attributes[ATTRIBUTES.DIVINE_SHIELD]
-    this.hasStealth = baseData.attributes[ATTRIBUTES.STEALTH]
-    this.hasWindfury = baseData.attributes[ATTRIBUTES.WINDFURY]
-    this.hasElusive = baseData.attributes[ATTRIBUTES.ELUSIVE]
-    this.hasPoison = baseData.attributes[ATTRIBUTES.POISON]
+    Object.keys(ATTRIBUTES).forEach((attr) => {
+      this[attr.toLowerCase()] = attributes[ATTRIBUTES[attr]] || false
+    })
   }
 
-  battlecry(gameState) {
-    return null
-  }
-  chooseOne(gameState) {
-    return null
-  }
-  combo(gameState) {
-    return null
-  }
-  aura(gameState) {
-    return null
-  }
-  deathrattle(gameState) {
-    return null
-  }
+  battlecry(gameState) {}
+  chooseOne(gameState) {}
+  combo(gameState) {}
+  aura(gameState) {}
+  deathrattle(gameState) {}
 
-  onStartTurn(gameState) {
-    return null
-  }
-  onEndTurn(gameState) {
-    return null
-  }
+  onStartTurn(gameState) {}
+  onEndTurn(gameState) {}
 
-  onMinionPlayed(gameState, minion) {
-    return null
-  }
-  onMinionSummoned(gameState, minion) {
-    return null
-  }
-  onMinionDied(gameState, minion) {
-    return null
-  }
-  onMinionDamaged(gameState, minion) {
-    return null
-  }
-  onSpellPlayed(gameState, spell) {
-    return null
-  }
-  onAfterSpellPlayed(gameState, minion) {
-    return null
-  }
-  onCharacterHealed(gameState, minion) {
-    return null
-  }
+  onMinionPlayed(gameState, minion) {}
+  onMinionSummoned(gameState, minion) {}
+  onMinionDied(gameState, minion) {}
+  onMinionDamaged(gameState, minion) {}
+  onSpellPlayed(gameState, spell) {}
+  onAfterSpellPlayed(gameState, minion) {}
+  onCharacterHealed(gameState, minion) {}
 }
 
 module.exports = Minion

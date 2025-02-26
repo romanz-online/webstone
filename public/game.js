@@ -96,8 +96,8 @@ class GAME {
         console.log(
           `${data.minion.minionID} played on board space ${data.boardIndex}`
         )
-        this.playerBoardView.playMinion(data.minion, data.boardIndex)
-        this.playerHandView.removeCard(data.minion)
+        // this.playerBoardView.playMinion(data.minion, data.boardIndex)
+        // this.playerHandView.removeCard(data.minion)
         this.triggerEvent('getGameState')
       },
     })
@@ -108,8 +108,8 @@ class GAME {
       onSuccess: (data) => {
         console.log(`${data.minionID} stats changed to ${data.stats}`)
         // TODO: find a better way to do this. maybe have some minion pool shared between the two objects?
-        this.playerBoardView.changeStats(data.minionID, data.stats)
-        this.playerHandView.changeStats(data.minionID, data.stats)
+        // this.playerBoardView.changeStats(data.minionID, data.stats)
+        // this.playerHandView.changeStats(data.minionID, data.stats)
         this.triggerEvent('getGameState')
       },
     })
@@ -142,20 +142,20 @@ class GAME {
   }
 
   resetValues() {
-    this.playerDeckView = new DeckView(true)
-    this.opponentDeckView = new DeckView(false)
+    this.playerDeckView = new DeckView(PLAYER_ID)
+    this.opponentDeckView = new DeckView(OPPONENT_ID)
 
-    this.playerBoardView = new BoardView(true)
-    this.opponentBoardView = new BoardView(false)
+    this.playerBoardView = new BoardView(PLAYER_ID)
+    this.opponentBoardView = new BoardView(OPPONENT_ID)
 
     this.playerHandView = new HandPlayerView()
     this.opponentHandView = new HandOpponentView()
 
-    this.playerDialogueView = new DialogueView(true)
-    this.opponentDialogueView = new DialogueView(false)
+    this.playerDialogueView = new DialogueView(PLAYER_ID)
+    this.opponentDialogueView = new DialogueView(OPPONENT_ID)
 
-    this.playerHeroView = new HeroView(true)
-    this.opponentHeroView = new HeroView(false)
+    this.playerHeroView = new HeroView(PLAYER_ID)
+    this.opponentHeroView = new HeroView(OPPONENT_ID)
 
     this.playerMana = new Mana()
     this.opponentMana = new Mana()

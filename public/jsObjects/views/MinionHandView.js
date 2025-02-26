@@ -44,12 +44,11 @@ export class MinionHandView {
 
     // only in tutorial
     tutorialHintValueInHand.innerText =
-      'Mana Cost\nAttack' + '                     ' + 'Health'
+      'Mana Cost\nAttack                     Health'
 
     playerInfoValueInHand.innerText = this.minion.description
     playerNameValueInHand.innerText = this.minion.name
-    playerCardFaceInHandDiv.style.backgroundImage =
-      'url(../media/images/cardimages/' + this.minion.minionFileName + '.jpg)'
+    playerCardFaceInHandDiv.style.backgroundImage = `url(../media/images/cardimages/${this.minion.minionFileName}.jpg)`
 
     return cardDiv
   }

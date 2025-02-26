@@ -1,7 +1,7 @@
 export class DeckView {
-  constructor(isPlayer) {
+  constructor(playerID) {
     this.cardCount = 0
-    this.isPlayer = isPlayer
+    this.isPlayer = playerID === 1
     this.divID = this.isPlayer ? 'playerDeck' : 'opponentDeck'
     this.update()
   }

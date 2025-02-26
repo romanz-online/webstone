@@ -60,8 +60,6 @@ async function processEvent(ws, json) {
 }
 
 async function getGameState(ws, data) {
-  console.log(arguments.callee.name)
-
   try {
     sendEvent(ws, 'getGameState', true, gameState.toJSON())
     // sendEvent(ws, 'getGameState', true, gameState);
@@ -72,8 +70,6 @@ async function getGameState(ws, data) {
 }
 
 async function playMinion(ws, data) {
-  console.log(arguments.callee.name)
-
   try {
     const { boardIndex, minionID } = data
     gameState.setWS(ws)
@@ -84,8 +80,6 @@ async function playMinion(ws, data) {
 }
 
 async function attack(ws, data) {
-  console.log(arguments.callee.name)
-
   try {
     const { attackerID, targetID } = data
     gameState.setWS(ws)
@@ -96,8 +90,6 @@ async function attack(ws, data) {
 }
 
 async function endTurn(ws, data) {
-  console.log(arguments.callee.name)
-
   try {
     gameState.setWS(ws)
     gameState.endTurn()
@@ -112,7 +104,6 @@ const getMinionWithID = (board, id) =>
   board.find((minion) => minion.minionID === id)
 
 // async function getRecord(id) {
-//     const signature = arguments.callee.name;
 //     console.log(signature);
 
 //     try {
