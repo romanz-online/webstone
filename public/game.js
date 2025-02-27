@@ -82,7 +82,7 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
-      event: 'death',
+      event: 'minionDied',
       onSuccess: (data) => {
         console.log(`${data.minionID} died`)
         this.triggerEvent('getGameState')
@@ -91,7 +91,7 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
-      event: 'playMinion',
+      event: 'minionPlayed',
       onSuccess: (data) => {
         console.log(
           `${data.minion.minionID} played on board space ${data.boardIndex}`

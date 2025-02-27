@@ -1,5 +1,4 @@
-const engine = require('./engine')
-const { sendEvent } = require('./sendEvent.js')
+const { engine } = require('./engine.js')
 const { generateMinion } = require('./minionData/generateMinion.js')
 const {
   ATTRIBUTES,
@@ -25,8 +24,6 @@ let playedIndex = -1
 
 class GameState {
   constructor() {
-    this.ws = null
-
     this.playerDeck = []
     this.opponentDeck = []
 
@@ -79,6 +76,11 @@ class GameState {
     this.drawCard(PLAYER_ID)
     this.drawCard(PLAYER_ID)
     this.drawCard(PLAYER_ID)
+
+    engine.addGameElementListener('gameState', 'minionPlayed', (data, done) => {
+      this.onMinionPlayed(data.isPlayer, data.boardIndex, data.minionID)
+      done()
+    })
   }
 
   toJSON() {
@@ -95,21 +97,13 @@ class GameState {
     }
   }
 
-  setWS(ws) {
-    this.ws = ws
-  }
-
   startGame() {
     for (let i = 0; i < playerDeckStorage.length; i++) {
-      const minion = generateMinion(playerDeckStorage[i])
-      minion.minionID = `1-${minion.baseMinionID}-${i}`
-      this.playerDeck.push(minion)
+      this.playerDeck.push(generateMinion(playerDeckStorage[i], 1, i))
     }
 
     for (let i = 0; i < opponentDeckStorage.length; i++) {
-      const minion = generateMinion(opponentDeckStorage[i])
-      minion.minionID = `2-${minion.baseMinionID}-${i}`
-      this.opponentDeck.push(minion)
+      this.opponentDeck.push(generateMinion(opponentDeckStorage[i], 2, i))
     }
 
     this.shuffleDeck(this.playerDeck)
@@ -145,8 +139,7 @@ class GameState {
     }
   }
 
-  playMinion(isPlayer, boardIndex, minionID) {
-    let minion
+  onMinionPlayed(isPlayer, boardIndex, minionID) {
     if (isPlayer) {
       const index = this.playerHand.findIndex(
         (minion) => minion.minionID == minionID
@@ -157,33 +150,11 @@ class GameState {
         return
       }
 
-      minion = this.playerHand.splice(index, 1)[0]
-
-      const battlecryRet = minion.battlecry(this)
-      if (battlecryRet) {
-        sendEvent(this.ws, battlecryRet.event, true, battlecryRet.data)
-      }
-
-      const chooseOneRet = minion.chooseOne(this)
-      if (chooseOneRet) {
-        sendEvent(this.ws, chooseOneRet.event, true, chooseOneRet.data)
-      }
-
-      const comboRet = minion.combo(this)
-      if (comboRet) {
-        sendEvent(this.ws, comboRet.event, true, comboRet.data)
-      }
-
+      /** @type {Minion} */
+      const minion = this.playerHand.splice(index, 1)[0]
       minion.playedIndex = ++playedIndex
       this.playerBoard.splice(boardIndex, 0, minion)
     }
-
-    this.triggerEffect('onMinionPlayed', { minion: minion })
-
-    sendEvent(this.ws, 'playMinion', true, {
-      boardIndex: boardIndex,
-      minion: minion,
-    })
   }
 
   attack(attackerID, targetID) {
@@ -211,13 +182,13 @@ class GameState {
     damageToTarget = attacker.attack
     damageToAttacker = targetID === 102 ? 0 : target.attack
 
-    sendEvent(this.ws, 'attack', true, {
-      // trigger animation on client
-      attackerID: attackerID,
-      targetID: targetID,
-      damageToAttacker: damageToAttacker,
-      damageToTarget: damageToTarget,
-    })
+    // sendEvent(this.ws, 'attack', true, {
+    //   // trigger animation on client
+    //   attackerID: attackerID,
+    //   targetID: targetID,
+    //   damageToAttacker: damageToAttacker,
+    //   damageToTarget: damageToTarget,
+    // })
 
     attacker.health -= damageToAttacker
     if (targetID === 102) {
@@ -229,27 +200,27 @@ class GameState {
     if (targetID === 102) {
     } else {
       if (damageToTarget > 0) {
-        sendEvent(this.ws, 'applyDamage', true, {
-          attackerID: attackerID,
-          targetID: targetID,
-          damage: damageToTarget,
-          stats: [target.mana, target.attack, target.health],
-          baseStats: [target.baseMana, target.baseAttack, target.baseHealth],
-        })
+        // sendEvent(this.ws, 'applyDamage', true, {
+        //   attackerID: attackerID,
+        //   targetID: targetID,
+        //   damage: damageToTarget,
+        //   stats: [target.mana, target.attack, target.health],
+        //   baseStats: [target.baseMana, target.baseAttack, target.baseHealth],
+        // })
       }
 
       if (damageToAttacker > 0) {
-        sendEvent(this.ws, 'applyDamage', true, {
-          attackerID: targetID,
-          targetID: attackerID,
-          damage: damageToAttacker,
-          stats: [attacker.mana, attacker.attack, attacker.health],
-          baseStats: [
-            attacker.baseMana,
-            attacker.baseAttack,
-            attacker.baseHealth,
-          ],
-        })
+        // sendEvent(this.ws, 'applyDamage', true, {
+        //   attackerID: targetID,
+        //   targetID: attackerID,
+        //   damage: damageToAttacker,
+        //   stats: [attacker.mana, attacker.attack, attacker.health],
+        //   baseStats: [
+        //     attacker.baseMana,
+        //     attacker.baseAttack,
+        //     attacker.baseHealth,
+        //   ],
+        // })
       }
     }
 
@@ -280,16 +251,16 @@ class GameState {
     const playerIndex = this.playerBoard.indexOf(minion)
     if (playerIndex != -1) {
       this.playerBoard.splice(playerIndex, 1)
-      sendEvent(this.ws, 'death', true, {
-        minionID: minionID,
-      })
+      // sendEvent(this.ws, 'minionDied', true, {
+      //   minionID: minionID,
+      // })
     } else {
       const opponentIndex = this.opponentBoard.indexOf(minion)
       if (opponentIndex != -1) {
         this.opponentBoard.splice(opponentIndex, 1)
-        sendEvent(this.ws, 'death', true, {
-          minionID: minionID,
-        })
+        // sendEvent(this.ws, 'minionDied', true, {
+        //   minionID: minionID,
+        // })
       }
     }
   }
@@ -304,39 +275,15 @@ class GameState {
 
     this.triggerEffect('onEndTurn', {})
 
-    sendEvent(this.ws, 'endTurn', true, {
-      whoseTurn: this.whoseTurn,
-    })
+    // sendEvent(this.ws, 'endTurn', true, {
+    //   whoseTurn: this.whoseTurn,
+    // })
   }
 
   simulateOpponentTurn() {
     setTimeout(() => {
       this.endTurn()
     }, 2 * 1000)
-  }
-
-  triggerEffect(effect, data) {
-    this.playerBoard
-      .concat(this.opponentBoard)
-      .slice()
-      .sort((a, b) => a.playedIndex - b.playedIndex)
-      .forEach((i) => {
-        let ret
-        switch (effect) {
-          case 'onMinionPlayed':
-            ret = i.onMinionPlayed(this, data.minion)
-            break
-          case 'onEndTurn':
-            ret = i.onEndTurn(this)
-            break
-          default:
-            break
-        }
-
-        if (ret) {
-          sendEvent(this.ws, ret.event, true, ret.data)
-        }
-      })
   }
 
   // playSpell(spell) {
@@ -357,4 +304,5 @@ class GameState {
   }
 }
 
-module.exports = GameState
+const gameState = new GameState()
+module.exports = { gameState }

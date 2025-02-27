@@ -2,8 +2,8 @@ const Minion = require('../minion.js')
 const { ATTRIBUTES, MINION_IDS, MINION_DATA } = require('../baseMinionData.js')
 
 class guardian_of_kings extends Minion {
-  constructor() {
-    super(MINION_IDS.GUARDIAN_OF_KINGS)
+  constructor(playerNumber, index) {
+    super(MINION_IDS.GUARDIAN_OF_KINGS, playerNumber, index)
   }
 
   onEndTurn(gameState) {

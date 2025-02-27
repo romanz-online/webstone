@@ -5,29 +5,27 @@ class Engine extends EventEmitter {
     super()
     this.eventQueue = []
     this.processing = false
-    this.listenerRegistry = {}
+    this.listenerQueue = []
   }
 
-  addCardListener(cardID, eventName, listener) {
-    if (!this.listenerRegistry[cardID]) {
-      this.listenerRegistry[cardID] = []
-    }
-
-    this.listenerRegistry[cardID].push({ eventName, listener })
-    this.on(eventName, listener)
+  addGameElementListener(elementID, event, listener) {
+    // console.log(`Adding event listener: ${elementID}, ${event}`)
+    this.listenerQueue.push({
+      elementID: elementID,
+      event: event,
+      listener: listener,
+    })
   }
 
-  removeCardListeners(cardID) {
-    if (this.listenerRegistry[cardID]) {
-      for (const { eventName, listener } of this.listenerRegistry[cardID]) {
-        this.off(eventName, listener)
-      }
-      delete this.listenerRegistry[cardID]
-    }
+  removeGameElementListener(elementID, event) {
+    this.listenerQueue = this.listenerQueue.filter(
+      (x) => !(x.elementID === elementID && x.event === event)
+    )
   }
 
-  queueEvent(eventName, payload) {
-    this.eventQueue.push({ eventName, payload })
+  queueEvent(ws, event, data) {
+    // console.log(`Queueing event: ${event}`, data)
+    this.eventQueue.push({ ws: ws, event: event, data: data })
     if (!this.processing) {
       this.processEvents()
     }
@@ -36,21 +34,23 @@ class Engine extends EventEmitter {
   async processEvents() {
     this.processing = true
     while (this.eventQueue.length > 0) {
-      const { eventName, payload } = this.eventQueue.shift()
-      await this.handleEvent(eventName, payload)
+      const { ws, event, data } = this.eventQueue.shift()
+      // console.log(`Processing event: ${event}`, data)
+      await this.handleEvent(ws, event, data)
     }
     this.processing = false
   }
 
-  // NEED TO MAKE SURE THAT THIS TRIGGERS IN SEQUENCE AND IN ORDER OF WHICH CARD WAS PLAYED/REGISTERED FIRST
-  async handleEvent(eventName, payload) {
-    for (const { event, listener } in this.listenerRegistry) {
-      if (event === eventName) {
-        await new Promise((resolve) => listener(payload, resolve))
+  async handleEvent(ws, e, data) {
+    for (const { elementID, event, listener } of this.listenerQueue) {
+      if (e === event) {
+        // console.log(`Handling event: ${event} for ${elementID}`)
+        await new Promise((resolve) => listener(data, resolve))
+        this.emit('eventFinished', ws, e, data)
       }
     }
   }
 }
 
-const instance = new Engine()
-module.exports = instance
+const engine = new Engine()
+module.exports = { engine }
