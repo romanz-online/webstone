@@ -42,10 +42,13 @@ class Engine extends EventEmitter {
     this.processing = false
   }
 
+  // NEED TO MAKE SURE THAT THIS TRIGGERS IN SEQUENCE AND IN ORDER OF WHICH CARD WAS PLAYED/REGISTERED FIRST
   async handleEvent(eventName, payload) {
-    return new Promise((resolve) => {
-      this.emit(eventName, payload, resolve)
-    })
+    for (const { event, listener } in this.listenerRegistry) {
+      if (event === eventName) {
+        await new Promise((resolve) => listener(payload, resolve))
+      }
+    }
   }
 }
 
