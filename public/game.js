@@ -118,9 +118,8 @@ class GAME {
       socket: ws,
       event: 'attack',
       onSuccess: (data) => {
-        console.log(`${data.attackerID} attacked ${data.targetID}`)
         console.log(
-          `-----attacker dealt ${data.damageToTarget}, target dealt ${data.damageToAttacker}`
+          `${data.attackerID} attacked ${data.targetID} dealing ${data.damageToAttacker} damage`
         )
         this.triggerEvent('getGameState')
       },

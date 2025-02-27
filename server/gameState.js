@@ -1,3 +1,4 @@
+const engine = require('./engine')
 const { sendEvent } = require('./sendEvent.js')
 const { generateMinion } = require('./minionData/generateMinion.js')
 const {
@@ -227,25 +228,29 @@ class GameState {
 
     if (targetID === 102) {
     } else {
-      sendEvent(this.ws, 'applyDamage', true, {
-        attackerID: attackerID,
-        targetID: targetID,
-        damage: damageToTarget,
-        stats: [target.mana, target.attack, target.health],
-        baseStats: [target.baseMana, target.baseAttack, target.baseHealth],
-      })
+      if (damageToTarget > 0) {
+        sendEvent(this.ws, 'applyDamage', true, {
+          attackerID: attackerID,
+          targetID: targetID,
+          damage: damageToTarget,
+          stats: [target.mana, target.attack, target.health],
+          baseStats: [target.baseMana, target.baseAttack, target.baseHealth],
+        })
+      }
 
-      sendEvent(this.ws, 'applyDamage', true, {
-        attackerID: targetID,
-        targetID: attackerID,
-        damage: damageToAttacker,
-        stats: [attacker.mana, attacker.attack, attacker.health],
-        baseStats: [
-          attacker.baseMana,
-          attacker.baseAttack,
-          attacker.baseHealth,
-        ],
-      })
+      if (damageToAttacker > 0) {
+        sendEvent(this.ws, 'applyDamage', true, {
+          attackerID: targetID,
+          targetID: attackerID,
+          damage: damageToAttacker,
+          stats: [attacker.mana, attacker.attack, attacker.health],
+          baseStats: [
+            attacker.baseMana,
+            attacker.baseAttack,
+            attacker.baseHealth,
+          ],
+        })
+      }
     }
 
     if (targetID === 102) {

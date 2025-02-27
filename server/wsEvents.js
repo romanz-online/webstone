@@ -24,6 +24,7 @@
 //     LAST_MODIFIED: 'last_modified'
 // };
 
+const engine = require('./engine')
 const { sendEvent } = require('./sendEvent.js')
 const Minion = require('./minionData/minion.js')
 const {
@@ -84,6 +85,8 @@ async function attack(ws, data) {
     const { attackerID, targetID } = data
     gameState.setWS(ws)
     gameState.attack(attackerID, targetID)
+
+    engine.queueEvent('attack', { attackerID: attackerID, targetID: targetID })
   } catch (err) {
     console.error(err)
   }
