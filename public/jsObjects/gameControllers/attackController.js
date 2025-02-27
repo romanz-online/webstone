@@ -76,12 +76,12 @@ export class AttackController {
         this.attackerCard.dataset.minionid,
         event.target.dataset.minionid
       )
-      GAME.triggerEvent('attack', {
+      GAME.triggerEvent('tryAttack', {
         attackerID: this.attackerCard.dataset.minionid,
         targetID: event.target.dataset.minionid,
       })
     } else if (event.target.id == 'opponentHero') {
-      GAME.triggerEvent('attack', {
+      GAME.triggerEvent('tryAttack', {
         attackerID: this.attackerCard.dataset.minionid,
         targetID: 102, // TODO: make a list of shared enums between server and client for stuff like this
       })

@@ -20,8 +20,6 @@ const playerDeckStorage = [
 const PLAYER_ID = 1,
   OPPONENT_ID = 2
 
-let playedIndex = -1
-
 class GameState {
   constructor() {
     this.playerDeck = []
@@ -32,37 +30,17 @@ class GameState {
 
     this.playerBoard = []
     this.opponentBoard = [
-      new Minion(
-        MINION_IDS.ALAKIR_THE_WINDLORD,
-        ++playedIndex,
-        `2-${MINION_IDS.ALAKIR_THE_WINDLORD[0]}-0`
-      ),
-      new Minion(
-        MINION_IDS.CENARIUS,
-        ++playedIndex,
-        `2-${MINION_IDS.CENARIUS[0]}-1`
-      ),
-      new Minion(
-        MINION_IDS.KORKRON_ELITE,
-        ++playedIndex,
-        `2-${MINION_IDS.KORKRON_ELITE[0]}-2`
-      ),
-      new Minion(
-        MINION_IDS.SUMMONING_PORTAL,
-        ++playedIndex,
-        `2-${MINION_IDS.SUMMONING_PORTAL[0]}-3`
-      ),
-      new Minion(
-        MINION_IDS.MANA_TIDE_TOTEM,
-        ++playedIndex,
-        `2-${MINION_IDS.MANA_TIDE_TOTEM[0]}-4`
-      ),
-      new Minion(
-        MINION_IDS.ARATHI_WEAPONSMITH,
-        ++playedIndex,
-        `2-${MINION_IDS.ARATHI_WEAPONSMITH[0]}-5`
-      ),
+      generateMinion(MINION_IDS.ALAKIR_THE_WINDLORD, 2, 0),
+      generateMinion(MINION_IDS.CENARIUS, 2, 1),
+      generateMinion(MINION_IDS.KORKRON_ELITE, 2, 2),
+      generateMinion(MINION_IDS.SUMMONING_PORTAL, 2, 3),
+      generateMinion(MINION_IDS.MANA_TIDE_TOTEM, 2, 4),
+      generateMinion(MINION_IDS.ARATHI_WEAPONSMITH, 2, 5),
     ]
+
+    for (const minion of this.opponentBoard) {
+      minion.playedIndex = 1
+    }
 
     this.playerHealth = 30
     this.opponentHealth = 10
@@ -77,8 +55,22 @@ class GameState {
     this.drawCard(PLAYER_ID)
     this.drawCard(PLAYER_ID)
 
-    engine.addGameElementListener('gameState', 'minionPlayed', (data, done) => {
-      this.onMinionPlayed(data.isPlayer, data.boardIndex, data.minionID)
+    engine.addGameElementListener(
+      'gameState',
+      'tryMinionPlayed',
+      (data, done) => {
+        this.tryMinionPlayed(data.isPlayer, data.boardIndex, data.minionID)
+        done()
+      }
+    )
+
+    engine.addGameElementListener('gameState', 'tryAttack', (data, done) => {
+      this.tryAttack(data.attackerID, data.targetID)
+      done()
+    })
+
+    engine.addGameElementListener('gameState', 'minionDied', (data, done) => {
+      this.onMinionDied(data.attackerID, data.targetID)
       done()
     })
   }
@@ -139,7 +131,7 @@ class GameState {
     }
   }
 
-  onMinionPlayed(isPlayer, boardIndex, minionID) {
+  tryMinionPlayed(isPlayer, boardIndex, minionID) {
     if (isPlayer) {
       const index = this.playerHand.findIndex(
         (minion) => minion.minionID == minionID
@@ -150,17 +142,21 @@ class GameState {
         return
       }
 
+      // DO MORE ERROR CHECKS
+
       /** @type {Minion} */
       const minion = this.playerHand.splice(index, 1)[0]
-      minion.playedIndex = ++playedIndex
+      minion.playedIndex = 1
       this.playerBoard.splice(boardIndex, 0, minion)
+
+      engine.queueEvent('minionPlayed', {
+        boardIndex: boardIndex,
+        minionID: minionID,
+      })
     }
   }
 
-  attack(attackerID, targetID) {
-    let damageToAttacker = 0,
-      damageToTarget = 0
-
+  tryAttack(attackerID, targetID) {
     /** @type {Minion} */
     const attacker = this.getMinion(attackerID)
     if (!attacker) {
@@ -179,68 +175,15 @@ class GameState {
       }
     }
 
-    damageToTarget = attacker.attack
-    damageToAttacker = targetID === 102 ? 0 : target.attack
+    // DO ERROR CHECKS HERE
 
-    // sendEvent(this.ws, 'attack', true, {
-    //   // trigger animation on client
-    //   attackerID: attackerID,
-    //   targetID: targetID,
-    //   damageToAttacker: damageToAttacker,
-    //   damageToTarget: damageToTarget,
-    // })
-
-    attacker.health -= damageToAttacker
-    if (targetID === 102) {
-      this.opponentHealth -= damageToTarget
-    } else {
-      target.health -= damageToTarget
-    }
-
-    if (targetID === 102) {
-    } else {
-      if (damageToTarget > 0) {
-        // sendEvent(this.ws, 'applyDamage', true, {
-        //   attackerID: attackerID,
-        //   targetID: targetID,
-        //   damage: damageToTarget,
-        //   stats: [target.mana, target.attack, target.health],
-        //   baseStats: [target.baseMana, target.baseAttack, target.baseHealth],
-        // })
-      }
-
-      if (damageToAttacker > 0) {
-        // sendEvent(this.ws, 'applyDamage', true, {
-        //   attackerID: targetID,
-        //   targetID: attackerID,
-        //   damage: damageToAttacker,
-        //   stats: [attacker.mana, attacker.attack, attacker.health],
-        //   baseStats: [
-        //     attacker.baseMana,
-        //     attacker.baseAttack,
-        //     attacker.baseHealth,
-        //   ],
-        // })
-      }
-    }
-
-    if (targetID === 102) {
-      if (this.opponentHealth < 1) {
-        console.log('enemy hero died!')
-        // sendEvent
-      }
-    } else {
-      if (target.health < 1) {
-        this.killMinion(targetID)
-      }
-
-      if (attacker.health < 1) {
-        this.killMinion(attackerID)
-      }
-    }
+    engine.queueEvent('attack', {
+      attackerID: attackerID,
+      targetID: targetID,
+    })
   }
 
-  killMinion(minionID) {
+  onMinionDied(minionID) {
     /** @type {Minion} */
     const minion = this.getMinion(minionID)
     if (!minion) {
@@ -251,16 +194,10 @@ class GameState {
     const playerIndex = this.playerBoard.indexOf(minion)
     if (playerIndex != -1) {
       this.playerBoard.splice(playerIndex, 1)
-      // sendEvent(this.ws, 'minionDied', true, {
-      //   minionID: minionID,
-      // })
     } else {
       const opponentIndex = this.opponentBoard.indexOf(minion)
       if (opponentIndex != -1) {
         this.opponentBoard.splice(opponentIndex, 1)
-        // sendEvent(this.ws, 'minionDied', true, {
-        //   minionID: minionID,
-        // })
       }
     }
   }
@@ -273,7 +210,7 @@ class GameState {
       this.whoseTurn = PLAYER_ID
     }
 
-    this.triggerEffect('onEndTurn', {})
+    // this.triggerEffect('onEndTurn', {})
 
     // sendEvent(this.ws, 'endTurn', true, {
     //   whoseTurn: this.whoseTurn,

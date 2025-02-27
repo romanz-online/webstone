@@ -14,11 +14,6 @@ class mana_wyrm extends Minion {
         done()
       }
     )
-
-    // engine.addGameElementListener(this.minionID, 'minionDied', (data, done) => {
-    //   this.onMinionDied(data.minionID)
-    //   done()
-    // }) // NOT SURE ABOUT THIS ONE; MIGHT BE WRONG DEPENDING ON HOW I IMPLEMENT EVERYTHING ELSE
   }
 
   onMinionPlayed(minionID) {
@@ -32,18 +27,6 @@ class mana_wyrm extends Minion {
 
     this.attack += 1
   }
-
-  // onMinionDied(minion) {
-  //   if (this.playedIndex === -1) {
-  //     return
-  //   }
-
-  //   if (minion.minionID !== this.minionID) {
-  //     return
-  //   }
-
-  //   engine.removeGameElementListener(this.minionID, 'minionPlayed')
-  // }
 }
 
 module.exports = mana_wyrm

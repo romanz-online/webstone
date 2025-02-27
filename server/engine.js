@@ -23,9 +23,9 @@ class Engine extends EventEmitter {
     )
   }
 
-  queueEvent(ws, event, data) {
+  queueEvent(event, data) {
     // console.log(`Queueing event: ${event}`, data)
-    this.eventQueue.push({ ws: ws, event: event, data: data })
+    this.eventQueue.push({ event: event, data: data })
     if (!this.processing) {
       this.processEvents()
     }
@@ -34,19 +34,21 @@ class Engine extends EventEmitter {
   async processEvents() {
     this.processing = true
     while (this.eventQueue.length > 0) {
-      const { ws, event, data } = this.eventQueue.shift()
+      const { event, data } = this.eventQueue.shift()
       // console.log(`Processing event: ${event}`, data)
-      await this.handleEvent(ws, event, data)
+      await this.handleEvent(event, data)
     }
     this.processing = false
   }
 
-  async handleEvent(ws, e, data) {
+  async handleEvent(e, data) {
     for (const { elementID, event, listener } of this.listenerQueue) {
       if (e === event) {
         // console.log(`Handling event: ${event} for ${elementID}`)
         await new Promise((resolve) => listener(data, resolve))
-        this.emit('eventFinished', ws, e, data)
+        if (elementID !== 'gameState') {
+          this.emit('eventFinished', e, data)
+        }
       }
     }
   }
