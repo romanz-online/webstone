@@ -8,14 +8,6 @@ class guardian_of_kings extends Minion {
 
   onEndTurn(gameState) {
     this.health += 1
-    return {
-      event: 'changeStats',
-      data: {
-        minionID: this.minionID,
-        stats: [this.mana, this.attack, this.health],
-        baseStats: [this.baseMana, this.baseAttack, this.baseHealth],
-      },
-    }
   }
 }
 

@@ -36,11 +36,6 @@ class GameState {
     this.playerBoard = []
     this.opponentBoard = [
       generateMinion(
-        MINION_IDS.ALAKIR_THE_WINDLORD,
-        this.getUniqueMinionID(),
-        OPPONENT_ID
-      ),
-      generateMinion(
         MINION_IDS.CENARIUS,
         this.getUniqueMinionID(),
         OPPONENT_ID
@@ -98,12 +93,7 @@ class GameState {
       done()
     })
 
-    engine.addGameElementListener('gameState', 'attack', (data, done) => {
-      this.onAttack(data.attackerID, data.targetID)
-      done()
-    })
-
-    engine.addGameElementListener('gameState', 'applyDamage', (data, done) => {
+    engine.addGameElementListener('gameState', 'checkHealth', (data, done) => {
       this.checkHealth()
       done()
     })
@@ -183,6 +173,7 @@ class GameState {
       const index = this.playerHand.findIndex(
         (minion) => minion.minionID == minionID
       )
+
       if (index === -1) {
         notifyClient('tryMinionPlayed', false, this.toJSON())
         console.error(`Could not find minion ${minionID}`)
@@ -193,7 +184,9 @@ class GameState {
       // notifyClient('tryMinionPlayed', false, this.toJSON())
 
       /** @type {Minion} */
-      const minion = this.playerHand.splice(index, 1)[0]
+      const minion = this.playerHand.splice[index]
+      // TRY TO DO BATTLECRY SOMEWHERE HERE ???
+      this.playerHand.splice(index, 1)[0]
       this.playerBoard.splice(boardIndex, 0, minion)
       minion.inPlay = true
 
@@ -201,14 +194,7 @@ class GameState {
         minion: minion,
       })
 
-      // engine.queueEvent([
-      //   {
-      //     event: 'minionPlayed',
-      //     data: {
-      //       minion: minion,
-      //     },
-      //   },
-      // ])
+      minion.doPlay()
     }
   }
 
@@ -216,58 +202,33 @@ class GameState {
     /** @type {Minion} */
     const attacker = this.getBoardMinion(attackerID),
       target = this.getBoardMinion(targetID)
+
     if (!attacker) {
       notifyClient('tryAttack', false, this.toJSON())
       console.error('Could not find attacker with ID', attackerID, 'on board')
       return
-    }
-    if (!target) {
+    } else if (!target) {
       notifyClient('tryAttack', false, this.toJSON())
       console.error('Could not find target with ID', targetID, 'on board')
       return
+    } else if (!attacker.canAttack) {
+      notifyClient('tryAttack', false, this.toJSON())
+      console.error('Minion cannot attack')
+      return
+    } else if (!target.taunt && this.opponentBoard.some((m) => m.taunt)) {
+      notifyClient('tryAttack', false, this.toJSON())
+      console.error('Taunt is in the way')
+      return
     }
 
-    // DO ERROR CHECKS HERE
-    // notifyClient('tryAttack', false, this.toJSON())
+    notifyClient('attack', true, {
+      attacker: attacker,
+      target: target,
+    })
 
-    engine.queueEvent([
-      {
-        event: 'attack',
-        data: {
-          attacker: attacker,
-          target: target,
-        },
-      },
-    ])
-  }
+    attacker.doAttack(target)
 
-  onAttack(attackerID, targetID) {
-    // MOVE THIS TO MINION CLASS
-    // HAVE MINIONS DO attack(), APPLY DAMAGE, AND THEN TRIGGER THE ATTACKED MINION'S receiveAttack()
-    // WHICH THEN APPLIES DAMAGE BACK TO THE ATTACKER (IF APPLICABLE)
-
-    /** @type {Minion} */
-    const attacker = this.getBoardMinion(attackerID),
-      target = this.getBoardMinion(targetID)
-
-    engine.queueEvent([
-      {
-        event: 'applyDamage',
-        data: {
-          source: attacker, // SWITCH TO USING MINION OBJECTS INSTEAD OF JUST ID'S
-          target: target,
-          damage: attacker.attack,
-        },
-      },
-      {
-        event: 'applyDamage',
-        data: {
-          source: target,
-          target: attacker,
-          damage: target.attack,
-        },
-      },
-    ])
+    this.checkHealth()
   }
 
   checkHealth() {
@@ -302,8 +263,7 @@ class GameState {
         event: 'killMinion',
         data: {},
       },
-    ]) // HOW DO I HANDLE CASES WHERE A MINION NEEDS TO KNOW WHEN *IT* KILLS ANOTHER MINION?
-    // MAYBE STORE "lastDamagedBy" IN EACH MINION?
+    ])
   }
 
   onEndTurn() {

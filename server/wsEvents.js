@@ -1,5 +1,5 @@
-const { engine } = require('./engine')
-const GameState = require('./gameState')
+const { engine } = require('./engine.js')
+const GameState = require('./gameState.js')
 const { setSocket } = require('./ws.js')
 
 // NEED TO FIGURE OUT A BETTER WAY TO DO THIS

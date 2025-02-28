@@ -12,78 +12,49 @@ class Minion {
 
     this.inPlay = false
     this.attacksThisTurn = 0
-    this.canAttack = true
+    this.canAttack = true // CHANGE TO FALSE WHEN NOT DEBUGGING SAME-TURN ATTACKS
 
-    const { name, description, rarity, tribe, overload, stats, attributes } =
-      MINION_DATA[this.baseMinionID]
+    this.name = MINION_DATA[this.baseMinionID].name
+    this.description = MINION_DATA[this.baseMinionID].description
+    this.rarity = MINION_DATA[this.baseMinionID].rarity
+    this.tribe = MINION_DATA[this.baseMinionID].tribe
+    this.overload = MINION_DATA[this.baseMinionID].overload
 
-    Object.assign(this, {
-      name,
-      description,
-      rarity,
-      tribe,
-      overload,
-    })
-    ;[this.baseMana, this.baseAttack, this.baseHealth] = stats
-    ;[this.mana, this.attack, this.health] = stats
+    this.baseMana = MINION_DATA[this.baseMinionID].stats[0]
+    this.baseAttack = MINION_DATA[this.baseMinionID].stats[1]
+    this.baseHealth = MINION_DATA[this.baseMinionID].stats[2]
+    this.mana = MINION_DATA[this.baseMinionID].stats[0]
+    this.attack = MINION_DATA[this.baseMinionID].stats[1]
+    this.health = MINION_DATA[this.baseMinionID].stats[2]
 
     Object.keys(ATTRIBUTES).forEach((attr) => {
-      if (attributes[ATTRIBUTES[attr]]) {
+      if (MINION_DATA[this.baseMinionID].attributes[ATTRIBUTES[attr]]) {
         this[attr.toLowerCase()] = true
       }
     })
-
-    engine.addGameElementListener(this.minionID, 'attack', (data, done) => {
-      this.onAttack(data.attackerID, data.targetID)
-      done()
-    })
-
-    engine.addGameElementListener(
-      this.minionID,
-      'applyDamage',
-      (data, done) => {
-        this.onApplyDamage(data.sourceID, data.targetID, data.damage)
-        done()
-      }
-    )
 
     engine.addGameElementListener(this.minionID, 'killMinion', (data, done) => {
       this.onKillMinion()
       done()
     })
-
-    engine.addGameElementListener(this.minionID, 'minionDied', (data, done) => {
-      // this.onMinionDied()
-      done()
-    })
   }
 
-  onApplyDamage(sourceID, targetID, damage) {
-    if (!this.inPlay) {
-      return false
-    }
-
-    if (targetID !== this.minionID) {
-      return false
-    }
-
-    this.health -= damage
-
-    notifyClient('applyDamage', true, gameState.toJSON())
-
-    return true
+  doPlay() {
+    engine.queueEvent([
+      {
+        event: 'minionPlayed',
+        data: {
+          minion: this,
+        },
+      },
+    ])
   }
 
-  onAttack(attackerID, targetID) {
+  doAttack(target) {
     if (!this.inPlay) {
-      return false
+      return
     }
 
-    if (attackerID !== this.minionID) {
-      return false
-    }
-
-    // do stuff
     this.attacksThisTurn++
 
     if (
@@ -93,25 +64,41 @@ class Minion {
       this.canAttack = false
     }
 
-    notifyClient('attack', true, gameState.toJSON())
+    target.receiveAttack(this)
+  }
 
-    return true
+  receiveAttack(attacker) {
+    if (!this.inPlay) {
+      return
+    }
+
+    this.takeDamage(attacker, attacker.attack)
+    attacker.takeDamage(this, this.attack)
+  }
+
+  takeDamage(source, damage) {
+    // CHECK DIVINE SHIELD
+    // CHECK POISON
+
+    this.health -= damage
+
+    if (this.health < 1) {
+      // STORE A "killedBy" VALUE HERE IF NEEDED
+    }
+
+    notifyClient('applyDamage', true, { minion: this, damage: damage })
   }
 
   onKillMinion() {
-    if (!this.inPlay) {
-      return false
-    }
-
-    if (this.health > 0) {
-      return false
+    if (!this.inPlay || this.health > 0) {
+      return
     }
 
     this.inPlay = false
 
-    notifyClient('minionDied', true, gameState.toJSON())
+    notifyClient('minionDied', true, { minion: this })
 
-    return true
+    // CHECK DEATHRATTLE
   }
 }
 

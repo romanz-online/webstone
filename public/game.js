@@ -84,7 +84,7 @@ class GAME {
       socket: ws,
       event: 'minionDied',
       onSuccess: (data) => {
-        console.log(`${data.minionID} died`)
+        console.log(`${data.minion.minionID} died`)
         this.triggerEvent('getGameState')
       },
     })
@@ -93,9 +93,7 @@ class GAME {
       socket: ws,
       event: 'minionPlayed',
       onSuccess: (data) => {
-        console.log(
-          `${data.minion.minionID} played on board space ${data.boardIndex}`
-        )
+        console.log(`${data.minion.minionID} played`)
         // this.playerBoardView.playMinion(data.minion, data.boardIndex)
         // this.playerHandView.removeCard(data.minion)
         this.triggerEvent('getGameState')
@@ -106,7 +104,9 @@ class GAME {
       socket: ws,
       event: 'changeStats',
       onSuccess: (data) => {
-        console.log(`${data.minionID} stats changed to ${data.stats}`)
+        console.log(
+          `${data.minion.minionID} stats changed to ${data.minion.mana}-${data.minion.attack}-${data.minion.health}`
+        )
         // TODO: find a better way to do this. maybe have some minion pool shared between the two objects?
         // this.playerBoardView.changeStats(data.minionID, data.stats)
         // this.playerHandView.changeStats(data.minionID, data.stats)
@@ -119,7 +119,7 @@ class GAME {
       event: 'attack',
       onSuccess: (data) => {
         console.log(
-          `${data.attackerID} attacked ${data.targetID} dealing ${data.damageToAttacker} damage`
+          `${data.attacker.minionID} attacked ${data.target.minionID}`
         )
         this.triggerEvent('getGameState')
       },

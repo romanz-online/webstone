@@ -11,24 +11,20 @@ class mana_wyrm extends Minion {
       this.minionID,
       'minionPlayed',
       (data, done) => {
-        this.onMinionPlayed(data.minionID)
+        this.onMinionPlayed(data.minion)
         done()
       }
     )
   }
 
-  onMinionPlayed(minionID) {
-    if (!this.inPlay) {
-      return false
-    }
-
-    if (minionID === this.minionID) {
-      return false
+  onMinionPlayed(minion) {
+    if (!this.inPlay || this === minion) {
+      return
     }
 
     this.attack += 1
 
-    return true
+    notifyClient('changeStats', true, { minion: this })
   }
 }
 

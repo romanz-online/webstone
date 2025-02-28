@@ -1,10 +1,10 @@
 const RARITY = {
-  COMMON: 'Common',
-  FREE: 'Free',
-  RARE: 'Rare',
-  EPIC: 'Epic',
-  LEGENDARY: 'Legendary',
-},
+    COMMON: 'Common',
+    FREE: 'Free',
+    RARE: 'Rare',
+    EPIC: 'Epic',
+    LEGENDARY: 'Legendary',
+  },
   TRIBE = {
     NONE: 0,
     BEAST: 1,
