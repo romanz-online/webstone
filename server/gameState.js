@@ -47,7 +47,7 @@ class GameState {
     this.playerHealth = 30
     this.opponentHealth = 10
 
-    this.whoseTurn = PLAYER_ID
+    this.whoseTurn = OPPONENT_ID
 
     this.startGame()
 
@@ -85,6 +85,8 @@ class GameState {
       this.onEndTurn()
       done(true)
     })
+
+    engine.queueEvent('endTurn', {})
   }
 
   toJSON() {
@@ -254,11 +256,17 @@ class GameState {
       this.playerBoard.forEach((m) => {
         m.canAttack = false
       })
+      this.opponentBoard.forEach((m) => {
+        m.canAttack = true
+      })
       this.simulateOpponentTurn()
     } else {
       this.whoseTurn = PLAYER_ID
       this.playerBoard.forEach((m) => {
         m.canAttack = true
+      })
+      this.opponentBoard.forEach((m) => {
+        m.canAttack = false
       })
     }
   }

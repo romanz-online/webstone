@@ -2056,7 +2056,7 @@ span {
 }
 
 .canAttack {
-  box-shadow: '0px 2px 15px 12px #0FCC00';
+  box-shadow: 0 0 5px 4px #0ecc00ce;
 }
 
 #tutorialbutton {
