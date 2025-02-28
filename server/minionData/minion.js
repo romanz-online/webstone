@@ -9,6 +9,7 @@ class Minion {
     this.minionID = minionID
     this.inPlay = false
     this.attacksThisTurn = 0
+    this.canAttack = true
 
     const { name, description, rarity, tribe, overload, stats, attributes } =
       MINION_DATA[this.baseMinionID]
@@ -76,6 +77,11 @@ class Minion {
 
     // do stuff
     this.attacksThisTurn++
+    if (this.attacksThisTurn > 0 && !this.windfury) {
+      this.canAttack = false
+    } else if (this.windfury && this.attacksThisTurn > 1) {
+      this.canAttack = false
+    }
 
     return true
   }

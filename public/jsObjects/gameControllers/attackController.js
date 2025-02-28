@@ -25,7 +25,7 @@ export class AttackController {
   onMouseDown(event) {
     event.preventDefault()
     if (event.target.classList.contains('cardInPlay--player')) {
-      if (JSON.parse(event.target.dataset.minion).attacksThisTurn > 0) {
+      if (JSON.parse(event.target.dataset.minion).canAttack) {
         alert('minion already attacked this turn!')
         return
       }
