@@ -17,29 +17,31 @@ const playerDeckStorage = [
   ],
   opponentDeckStorage = []
 
-const PLAYER_ID = 1,
-  OPPONENT_ID = 2
+const PLAYER_ID = -1,
+  OPPONENT_ID = -2
 
 class GameState {
   constructor() {
+    this.uniqueMinionNumber = 0
+
+    this.graveyard = []
     this.playerDeck = []
     this.opponentDeck = []
-
     this.playerHand = []
     this.opponentHand = []
-
     this.playerBoard = []
+
     this.opponentBoard = [
-      generateMinion(MINION_IDS.ALAKIR_THE_WINDLORD, 2, 0),
-      generateMinion(MINION_IDS.CENARIUS, 2, 1),
-      generateMinion(MINION_IDS.KORKRON_ELITE, 2, 2),
-      generateMinion(MINION_IDS.SUMMONING_PORTAL, 2, 3),
-      generateMinion(MINION_IDS.MANA_TIDE_TOTEM, 2, 4),
-      generateMinion(MINION_IDS.ARATHI_WEAPONSMITH, 2, 5),
+      generateMinion(MINION_IDS.ALAKIR_THE_WINDLORD, this.getUniqueMinionID()),
+      generateMinion(MINION_IDS.CENARIUS, this.getUniqueMinionID()),
+      generateMinion(MINION_IDS.KORKRON_ELITE, this.getUniqueMinionID()),
+      generateMinion(MINION_IDS.SUMMONING_PORTAL, this.getUniqueMinionID()),
+      generateMinion(MINION_IDS.MANA_TIDE_TOTEM, this.getUniqueMinionID()),
+      generateMinion(MINION_IDS.ARATHI_WEAPONSMITH, this.getUniqueMinionID()),
     ]
 
     for (const minion of this.opponentBoard) {
-      minion.playedIndex = 1
+      minion.inPlay = true
     }
 
     this.playerHealth = 30
@@ -60,18 +62,23 @@ class GameState {
       'tryMinionPlayed',
       (data, done) => {
         this.tryMinionPlayed(data.isPlayer, data.boardIndex, data.minionID)
-        done()
+        done(true)
       }
     )
 
     engine.addGameElementListener('gameState', 'tryAttack', (data, done) => {
       this.tryAttack(data.attackerID, data.targetID)
-      done()
+      done(true)
     })
 
-    engine.addGameElementListener('gameState', 'minionDied', (data, done) => {
-      this.onMinionDied(data.attackerID, data.targetID)
-      done()
+    engine.addGameElementListener('gameState', 'attack', (data, done) => {
+      this.onAttack(data.attackerID, data.targetID)
+      done(true)
+    })
+
+    engine.addGameElementListener('gameState', 'applyDamage', (data, done) => {
+      this.checkHealth()
+      done(true)
     })
   }
 
@@ -89,24 +96,32 @@ class GameState {
     }
   }
 
+  getUniqueMinionID() {
+    return ++this.uniqueMinionNumber
+  }
+
   startGame() {
     for (let i = 0; i < playerDeckStorage.length; i++) {
-      this.playerDeck.push(generateMinion(playerDeckStorage[i], 1, i))
+      this.playerDeck.push(
+        generateMinion(playerDeckStorage[i], this.getUniqueMinionID())
+      )
     }
 
     for (let i = 0; i < opponentDeckStorage.length; i++) {
-      this.opponentDeck.push(generateMinion(opponentDeckStorage[i], 2, i))
+      this.opponentDeck.push(
+        generateMinion(opponentDeckStorage[i], this.getUniqueMinionID())
+      )
     }
 
-    this.shuffleDeck(this.playerDeck)
-    this.shuffleDeck(this.opponentDeck)
-  }
-
-  shuffleDeck(deck) {
-    for (let i = deck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[deck[i], deck[j]] = [deck[j], deck[i]]
+    const shuffleDeck = (deck) => {
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[deck[i], deck[j]] = [deck[j], deck[i]]
+      }
     }
+
+    shuffleDeck(this.playerDeck)
+    shuffleDeck(this.opponentDeck)
   }
 
   drawCard(player) {
@@ -146,7 +161,7 @@ class GameState {
 
       /** @type {Minion} */
       const minion = this.playerHand.splice(index, 1)[0]
-      minion.playedIndex = 1
+      minion.inPlay = true
       this.playerBoard.splice(boardIndex, 0, minion)
 
       engine.queueEvent('minionPlayed', {
@@ -158,21 +173,15 @@ class GameState {
 
   tryAttack(attackerID, targetID) {
     /** @type {Minion} */
-    const attacker = this.getMinion(attackerID)
+    const attacker = this.getMinion(attackerID),
+      target = this.getMinion(targetID)
     if (!attacker) {
       console.error('Could not find attacker with ID', attackerID, 'on board')
       return
     }
-
-    /** @type {Minion} */
-    let target
-    // enemy hero
-    if (targetID !== 102) {
-      target = this.getMinion(targetID)
-      if (!target) {
-        console.error('Could not find target with ID', targetID, 'on board')
-        return
-      }
+    if (!target) {
+      console.error('Could not find target with ID', targetID, 'on board')
+      return
     }
 
     // DO ERROR CHECKS HERE
@@ -183,23 +192,55 @@ class GameState {
     })
   }
 
-  onMinionDied(minionID) {
+  onAttack(attackerID, targetID) {
     /** @type {Minion} */
-    const minion = this.getMinion(minionID)
-    if (!minion) {
-      console.error('Minion not on board', minionID)
+    const attacker = this.getMinion(attackerID),
+      target = this.getMinion(targetID)
+
+    engine.queueEvent('applyDamage', {
+      sourceID: attackerID, // SWITCH TO USING MINION OBJECTS INSTEAD OF JUST ID'S
+      targetID: targetID,
+      damage: attacker.attack,
+    })
+
+    if (target.attack > 0) {
+      engine.queueEvent('applyDamage', {
+        sourceID: targetID,
+        targetID: attackerID,
+        damage: target.attack,
+      })
+    }
+  }
+
+  checkHealth() {
+    if (this.playerHealth < 1 && this.opponentHealth > 0) {
+      // kill player hero
+      return
+    } else if (this.opponentHealth < 1 && this.playerHealth > 0) {
+      // kill opponent
+      return
+    } else if (this.playerHealth < 1 && this.opponentHealth < 1) {
+      // tie
       return
     }
 
-    const playerIndex = this.playerBoard.indexOf(minion)
-    if (playerIndex != -1) {
-      this.playerBoard.splice(playerIndex, 1)
-    } else {
-      const opponentIndex = this.opponentBoard.indexOf(minion)
-      if (opponentIndex != -1) {
-        this.opponentBoard.splice(opponentIndex, 1)
+    this.playerBoard = this.playerBoard.filter((m) => {
+      if (m.health < 1) {
+        this.graveyard.push(m)
+        return false
       }
-    }
+      return true
+    })
+    this.opponentBoard = this.opponentBoard.filter((m) => {
+      if (m.health < 1) {
+        this.graveyard.push(m)
+        return false
+      }
+      return true
+    })
+
+    engine.queueEvent('killMinion', {}) // HOW DO I HANDLE CASES WHERE A MINION NEEDS TO KNOW WHEN *IT* KILLS ANOTHER MINION?
+    // MAYBE STORE "lastDamagedBy" IN EACH MINION?
   }
 
   endTurn() {
@@ -222,16 +263,6 @@ class GameState {
       this.endTurn()
     }, 2 * 1000)
   }
-
-  // playSpell(spell) {
-  //     spell.cast(this);
-  //     this.emit('spellPlayed', spell);
-  // }
-
-  // summonMinion(minion) {
-  //     this.minions.push(minion);
-  //     this.emit('minionSummoned', minion);
-  // }
 
   /** @returns {Minion} */
   getMinion(minionID) {

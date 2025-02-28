@@ -4,11 +4,7 @@ const { gameState } = require('./gameState.js')
 let socket
 
 const sendEvent = (event, success, data) => {
-  if (!socket) {
-    return
-  }
-
-  socket.send(
+  socket?.send(
     JSON.stringify({
       signature: event,
       success: success,

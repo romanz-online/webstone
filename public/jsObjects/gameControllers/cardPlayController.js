@@ -32,7 +32,7 @@ export class CardPlayController {
             GAME.playerBoardView.placeholderIndex == -1
               ? 0
               : GAME.playerBoardView.placeholderIndex,
-          minionID: ui.draggable.data('minionid'),
+          minionID: ui.draggable.data('minion').minionID,
         })
         $('#gifhint, #texthint').hide()
       },

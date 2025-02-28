@@ -25,6 +25,11 @@ export class AttackController {
   onMouseDown(event) {
     event.preventDefault()
     if (event.target.classList.contains('cardInPlay--player')) {
+      if (JSON.parse(event.target.dataset.minion).attacksThisTurn > 0) {
+        alert('minion already attacked this turn!')
+        return
+      }
+
       this.attackerCard = event.target
 
       const rect = this.attackerCard.getBoundingClientRect()
@@ -72,18 +77,17 @@ export class AttackController {
     }
 
     if (event.target.classList.contains('cardInPlay--opponent')) {
-      console.log(
-        this.attackerCard.dataset.minionid,
-        event.target.dataset.minionid
-      )
+      const attackerJSON = JSON.parse(this.attackerCard.dataset.minion),
+        targetJSON = JSON.parse(event.target.dataset.minion)
+      console.log(attackerJSON.minionID, targetJSON.minionID)
       GAME.triggerEvent('tryAttack', {
-        attackerID: this.attackerCard.dataset.minionid,
-        targetID: event.target.dataset.minionid,
+        attackerID: attackerJSON.minionID,
+        targetID: targetJSON.minionID,
       })
     } else if (event.target.id == 'opponentHero') {
       GAME.triggerEvent('tryAttack', {
-        attackerID: this.attackerCard.dataset.minionid,
-        targetID: 102, // TODO: make a list of shared enums between server and client for stuff like this
+        attackerID: attackerJSON.minionID,
+        targetID: -2, // TODO: make a list of shared enums between server and client for stuff like this
       })
     }
 

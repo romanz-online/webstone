@@ -24,7 +24,7 @@ class Engine extends EventEmitter {
   }
 
   queueEvent(event, data) {
-    // console.log(`Queueing event: ${event}`, data)
+    console.log(`Queueing event: ${event}`, data)
     this.eventQueue.push({ event: event, data: data })
     if (!this.processing) {
       this.processEvents()
@@ -45,8 +45,10 @@ class Engine extends EventEmitter {
     for (const { elementID, event, listener } of this.listenerQueue) {
       if (e === event) {
         // console.log(`Handling event: ${event} for ${elementID}`)
-        await new Promise((resolve) => listener(data, resolve))
-        if (elementID !== 'gameState') {
+        const shouldEmit = await new Promise((resolve) =>
+          listener(data, resolve)
+        )
+        if (shouldEmit || shouldEmit === undefined) {
           this.emit('eventFinished', e, data)
         }
       }

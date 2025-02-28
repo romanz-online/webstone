@@ -36,7 +36,7 @@ export class MinionBoardView {
       ? `playerCardInPlay${this.boardIndex}`
       : `opponentCardInPlay${this.boardIndex}`
     cardDiv.dataset.boardIndex = this.boardIndex
-    cardDiv.dataset.minionid = this.minion.minionID
+    cardDiv.dataset.minion = JSON.stringify(this.minion)
 
     cardDiv.classList.add('cardinplay')
     cardDiv.classList.add(

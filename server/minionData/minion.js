@@ -2,12 +2,13 @@ const { engine } = require('../engine.js')
 const { ATTRIBUTES, MINION_DATA } = require('./baseMinionData.js')
 
 class Minion {
-  constructor(minion, playerNumber, index) {
+  constructor(minion, minionID) {
     this.baseMinionID = minion[0]
     this.minionFileName = minion[1]
 
-    this.minionID = `${playerNumber}-${this.baseMinionID}-${index}`
-    this.playedIndex = -1
+    this.minionID = minionID
+    this.inPlay = false
+    this.attacksThisTurn = 0
 
     const { name, description, rarity, tribe, overload, stats, attributes } =
       MINION_DATA[this.baseMinionID]
@@ -18,83 +19,83 @@ class Minion {
       rarity,
       tribe,
       overload,
-      isDamaged: false,
     })
     ;[this.baseMana, this.baseAttack, this.baseHealth] = stats
     ;[this.mana, this.attack, this.health] = stats
 
     Object.keys(ATTRIBUTES).forEach((attr) => {
-      this[attr.toLowerCase()] = attributes[ATTRIBUTES[attr]] || false
+      if (attributes[ATTRIBUTES[attr]]) {
+        this[attr.toLowerCase()] = true
+      }
     })
 
     engine.addGameElementListener(this.minionID, 'attack', (data, done) => {
-      this.onAttack(data.attackerID, data.targetID)
-      done()
+      done(this.onAttack(data.attackerID, data.targetID))
     })
 
     engine.addGameElementListener(
       this.minionID,
       'applyDamage',
       (data, done) => {
-        this.onApplyDamage(data.sourceID, data.targetID, data.damage)
-        done()
+        done(this.onApplyDamage(data.sourceID, data.targetID, data.damage))
       }
     )
+
+    engine.addGameElementListener(this.minionID, 'killMinion', (data, done) => {
+      done(this.onKillMinion())
+    })
+
     engine.addGameElementListener(this.minionID, 'minionDied', (data, done) => {
-      this.onMinionDied(data.minionID, data.killerID)
-      done()
+      // this.onMinionDied()
+      done(false)
     })
   }
 
   onApplyDamage(sourceID, targetID, damage) {
-    if (this.playedIndex === -1) {
-      return
+    if (!this.inPlay) {
+      return false
     }
 
     if (targetID !== this.minionID) {
-      return
+      return false
     }
 
     this.health -= damage
 
-    if (this.health < 1) {
-      engine.queueEvent('minionDied', {
-        minionID: this.minionID,
-        killerID: sourceID,
-      })
-    }
+    return true
   }
 
   onAttack(attackerID, targetID) {
-    if (this.playedIndex === -1) {
-      return
+    if (!this.inPlay) {
+      return false
     }
 
-    if (attackerID === this.minionID) {
-      engine.queueEvent('applyDamage', {
-        sourceID: this.minionID,
-        targetID: targetID,
-        damage: this.attack,
-      })
-    } else if (targetID === this.minionID) {
-      engine.queueEvent('applyDamage', {
-        sourceID: this.minionID,
-        targetID: attackerID,
-        damage: this.attack,
-      })
+    if (attackerID !== this.minionID) {
+      return false
     }
+
+    // do stuff
+    this.attacksThisTurn++
+
+    return true
   }
 
-  onMinionDied(minionID, killerID) {
-    if (this.playedIndex === -1) {
-      return
+  onKillMinion() {
+    if (!this.inPlay) {
+      return false
     }
 
-    if (minionID !== this.minionID) {
-      return
+    if (this.health > 0) {
+      return false
     }
 
-    this.playedIndex = -1
+    this.inPlay = false
+
+    engine.queueEvent('minionDied', {
+      minionID: this.minionID,
+    })
+
+    return true
   }
 }
 

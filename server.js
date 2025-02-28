@@ -64,7 +64,7 @@ uWS
 
     message: async (ws, message, isBinary) => {
       const msg = Buffer.from(message).toString()
-      console.log('Received message:', msg)
+      // console.log('Received message:', msg)
 
       let parsedMessage
       try {

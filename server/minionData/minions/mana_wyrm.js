@@ -3,29 +3,30 @@ const { ATTRIBUTES, MINION_IDS, MINION_DATA } = require('../baseMinionData.js')
 const { engine } = require('../../engine.js')
 
 class mana_wyrm extends Minion {
-  constructor(playerNumber, index) {
-    super(MINION_IDS.MANA_WYRM, playerNumber, index)
+  constructor(minionID) {
+    super(MINION_IDS.MANA_WYRM, minionID)
 
     engine.addGameElementListener(
       this.minionID,
       'minionPlayed',
       (data, done) => {
-        this.onMinionPlayed(data.minionID)
-        done()
+        done(this.onMinionPlayed(data.minionID))
       }
     )
   }
 
   onMinionPlayed(minionID) {
-    if (this.playedIndex === -1) {
-      return
+    if (!this.inPlay) {
+      return false
     }
 
     if (minionID === this.minionID) {
-      return
+      return false
     }
 
     this.attack += 1
+
+    return true
   }
 }
 
