@@ -22,9 +22,7 @@ export class TurnController {
     document.body.style.cursor =
       'url(../media/images/cursor/cursor.png) 10 2, auto'
 
-    $('#playerHeropower')
-      .css({ 'box-shadow': '0px 2px 15px 12px #0FCC00' })
-      .addClass('canAttack')
+    $('#playerHeropower').addClass('canAttack')
 
     $('#computerTurn').hide()
 

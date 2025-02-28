@@ -43,6 +43,9 @@ export class MinionBoardView {
       this.isPlayer ? 'cardInPlay--player' : 'cardInPlay--opponent'
     )
     // cardDiv.classList.add('placeCardAnim');
+    if (this.minion.canAttack) {
+      cardDiv.classList.add('canAttack') // TEST THIS
+    }
 
     attackValue.classList.add('attackValue')
     attackValueBackground.classList.add('attackValueBackground')

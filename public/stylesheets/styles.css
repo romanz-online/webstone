@@ -2055,6 +2055,10 @@ span {
   background: linear-gradient(to top right, #653517, #e6c279);
 }
 
+.canAttack {
+  box-shadow: '0px 2px 15px 12px #0FCC00';
+}
+
 #tutorialbutton {
   width: 16%;
   height: 3.5%;

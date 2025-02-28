@@ -12,8 +12,7 @@ export class HeroPowerPlayerView {
   }
 
   update() {
-    this.getElement().style.boxShadow = '0px 2px 15px 12px #0FCC00'
-    // this.getElement().classList.add("canAttack");
+    this.getElement().classList.add('canAttack')
 
     if (GAME.playerManaView.currentMana() < 2) {
       this.getElement().style.boxShadow = 'none'
