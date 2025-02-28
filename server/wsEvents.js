@@ -1,35 +1,13 @@
 const { engine } = require('./engine')
-const { gameState } = require('./gameState.js')
+const GameState = require('./gameState')
+const { setSocket } = require('./ws.js')
 
-let socket
-
-const sendEvent = (event, success, data) => {
-  socket?.send(
-    JSON.stringify({
-      signature: event,
-      success: success,
-      data: data,
-    })
-  )
-}
-
-engine.on('eventFinished', (event, data) => {
-  if (event === 'minionPlayed') {
-    // sendEvent(event, data) // WILL NEED TO GENERATE DATA SOMEHOW DEPENDING ON WHAT EVENT IS FIRING
-    sendEvent('getGameState', true, gameState.toJSON()) // FOR NOW JUST SENDING FULL GAME STATE EACH TIME
-  } else {
-    sendEvent('getGameState', true, gameState.toJSON())
-  }
-})
+// NEED TO FIGURE OUT A BETTER WAY TO DO THIS
+const gameState = new GameState()
 
 const processEvent = async (ws, json) => {
-  socket = ws
-  const { event, data } = json
-  if (event === 'getGameState') {
-    sendEvent('getGameState', true, gameState.toJSON())
-  } else {
-    engine.queueEvent(event, data)
-  }
+  setSocket(ws)
+  engine.queueEvent([json])
 }
 
 module.exports = { processEvent }

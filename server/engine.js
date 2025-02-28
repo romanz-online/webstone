@@ -23,20 +23,30 @@ class Engine extends EventEmitter {
     )
   }
 
-  queueEvent(event, data) {
-    console.log(`Queueing event: ${event}`, data)
-    this.eventQueue.push({ event: event, data: data })
-    if (!this.processing) {
-      this.processEvents()
-    }
+  // ONLY QUEUE EVENTS FOR PLAYER-TRIGGERED ACTIONS. THE REST HAPPENS ENTIRELY OUTSIDE OF THE EVENT QUEUE LOOP
+  // ONLY attack, end turn, cast spell/other effect (draw card, battlecry, etc.)
+  // ...
+  // actually i'm not sure about "only" these being registered as events... need to try actually implementing stuff and then
+  // i'll see how well or poorly that works
+  // ...
+  // BUT EACH ACTION WILL DO notifyClient AS NECESSARY TO TRIGGER VISUAL UPDATES ON CLIENT
+  // ALSO UPDATE notifyClient NAME TO BE CLEARER AS TO WHAT IT'S DOING
+  queueEvent(eventList) {
+    eventList.forEach((x) => {
+      // console.log(`Queueing event: ${x.event}`, x.data)
+      this.eventQueue.push({ event: x.event, data: x.data })
+      if (!this.processing) {
+        this.processEvents()
+      }
+    })
   }
 
   async processEvents() {
     this.processing = true
     while (this.eventQueue.length > 0) {
-      const { event, data } = this.eventQueue.shift()
-      // console.log(`Processing event: ${event}`, data)
-      await this.handleEvent(event, data)
+      const x = this.eventQueue.shift()
+      // console.log(`Processing event: ${x.event}`, x.data)
+      await this.handleEvent(x.event, x.data)
     }
     this.processing = false
   }
@@ -44,13 +54,8 @@ class Engine extends EventEmitter {
   async handleEvent(e, data) {
     for (const { elementID, event, listener } of this.listenerQueue) {
       if (e === event) {
-        // console.log(`Handling event: ${event} for ${elementID}`)
-        const shouldEmit = await new Promise((resolve) =>
-          listener(data, resolve)
-        )
-        if (shouldEmit || shouldEmit === undefined) {
-          this.emit('eventFinished', e, data)
-        }
+        console.log(`Handling event: ${event} for ${elementID}`)
+        await new Promise((resolve) => listener(data, resolve))
       }
     }
   }

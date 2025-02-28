@@ -1,12 +1,15 @@
 const { engine } = require('../engine.js')
+const { notifyClient } = require('../ws.js')
 const { ATTRIBUTES, MINION_DATA } = require('./baseMinionData.js')
 
 class Minion {
-  constructor(minion, minionID) {
+  constructor(minion, minionID, owner) {
     this.baseMinionID = minion[0]
     this.minionFileName = minion[1]
 
     this.minionID = minionID
+    this.owner = owner
+
     this.inPlay = false
     this.attacksThisTurn = 0
     this.canAttack = true
@@ -31,24 +34,27 @@ class Minion {
     })
 
     engine.addGameElementListener(this.minionID, 'attack', (data, done) => {
-      done(this.onAttack(data.attackerID, data.targetID))
+      this.onAttack(data.attackerID, data.targetID)
+      done()
     })
 
     engine.addGameElementListener(
       this.minionID,
       'applyDamage',
       (data, done) => {
-        done(this.onApplyDamage(data.sourceID, data.targetID, data.damage))
+        this.onApplyDamage(data.sourceID, data.targetID, data.damage)
+        done()
       }
     )
 
     engine.addGameElementListener(this.minionID, 'killMinion', (data, done) => {
-      done(this.onKillMinion())
+      this.onKillMinion()
+      done()
     })
 
     engine.addGameElementListener(this.minionID, 'minionDied', (data, done) => {
       // this.onMinionDied()
-      done(false)
+      done()
     })
   }
 
@@ -62,6 +68,8 @@ class Minion {
     }
 
     this.health -= damage
+
+    notifyClient('applyDamage', true, gameState.toJSON())
 
     return true
   }
@@ -85,6 +93,8 @@ class Minion {
       this.canAttack = false
     }
 
+    notifyClient('attack', true, gameState.toJSON())
+
     return true
   }
 
@@ -99,9 +109,7 @@ class Minion {
 
     this.inPlay = false
 
-    engine.queueEvent('minionDied', {
-      minionID: this.minionID,
-    })
+    notifyClient('minionDied', true, gameState.toJSON())
 
     return true
   }
