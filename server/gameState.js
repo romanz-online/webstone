@@ -40,9 +40,9 @@ class GameState {
       generateMinion(MINION_IDS.ARATHI_WEAPONSMITH, this.getUniqueMinionID()),
     ]
 
-    for (const minion of this.opponentBoard) {
-      minion.inPlay = true
-    }
+    this.opponentBoard.forEach((m) => {
+      m.inPlay = true
+    })
 
     this.playerHealth = 30
     this.opponentHealth = 10
