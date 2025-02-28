@@ -80,6 +80,11 @@ class GameState {
       this.checkHealth()
       done(true)
     })
+
+    engine.addGameElementListener('gameState', 'endTurn', (data, done) => {
+      this.onEndTurn()
+      done(true)
+    })
   }
 
   toJSON() {
@@ -243,24 +248,24 @@ class GameState {
     // MAYBE STORE "lastDamagedBy" IN EACH MINION?
   }
 
-  endTurn() {
-    if (this.whoseTurn == PLAYER_ID) {
+  onEndTurn() {
+    if (this.whoseTurn === PLAYER_ID) {
       this.whoseTurn = OPPONENT_ID
+      this.playerBoard.forEach((m) => {
+        m.canAttack = false
+      })
       this.simulateOpponentTurn()
     } else {
       this.whoseTurn = PLAYER_ID
+      this.playerBoard.forEach((m) => {
+        m.canAttack = true
+      })
     }
-
-    // this.triggerEffect('onEndTurn', {})
-
-    // sendEvent(this.ws, 'endTurn', true, {
-    //   whoseTurn: this.whoseTurn,
-    // })
   }
 
   simulateOpponentTurn() {
     setTimeout(() => {
-      this.endTurn()
+      engine.queueEvent('endTurn', {})
     }, 2 * 1000)
   }
 

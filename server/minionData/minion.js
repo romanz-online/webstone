@@ -77,9 +77,11 @@ class Minion {
 
     // do stuff
     this.attacksThisTurn++
-    if (this.attacksThisTurn > 0 && !this.windfury) {
-      this.canAttack = false
-    } else if (this.windfury && this.attacksThisTurn > 1) {
+
+    if (
+      (this.attacksThisTurn > 0 && !this.windfury) ||
+      (this.attacksThisTurn > 1 && this.windfury)
+    ) {
       this.canAttack = false
     }
 
