@@ -6,9 +6,7 @@ class guardian_of_kings extends Minion {
     super(MINION_IDS.GUARDIAN_OF_KINGS, minionID, owner)
   }
 
-  onEndTurn(gameState) {
-    this.health += 1
-  }
+  onPlay() {}
 }
 
 module.exports = guardian_of_kings

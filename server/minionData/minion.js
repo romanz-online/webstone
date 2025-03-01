@@ -27,6 +27,9 @@ class Minion {
     this.attack = MINION_DATA[this.baseMinionID].stats[1]
     this.health = MINION_DATA[this.baseMinionID].stats[2]
 
+    this.effects = {} // UPDATE WITH RELEVANT EFFECTS LIKE BATTLECRIES
+    // e.g. this.effects = { battlecry: fireballEffect() }
+
     Object.keys(ATTRIBUTES).forEach((attr) => {
       if (MINION_DATA[this.baseMinionID].attributes[ATTRIBUTES[attr]]) {
         this[attr.toLowerCase()] = true
