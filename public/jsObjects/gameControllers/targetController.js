@@ -7,6 +7,7 @@ export class TargetController {
     // use .dataSet.boardIndex or id to distinguish
     this.attackerCard = null
     this.dragOrigin = { x: 0, y: 0 }
+    this.targetting = false
 
     $('#board--player').on('mousedown', (e) => this.onMouseDown(e))
 
@@ -23,6 +24,7 @@ export class TargetController {
   }
 
   startTargetting(origin) {
+    this.targetting = true
     this.dragOrigin = origin
 
     $('#svg').show()
@@ -74,23 +76,30 @@ export class TargetController {
     event.preventDefault()
 
     $('body').off('mousemove', this.onMouseDrag)
-    this.dragOrigin = { x: 0, y: 0 }
 
-    if (!this.attackerCard) {
+    if (!this.attackerCard && !this.targetting) {
+      return
+    }
+
+    if (!this.attackerCard && this.targetting) {
+      GAME.triggerEvent('cancelEffect', {})
       return
     }
 
     if (event.target.classList.contains('cardInPlay--opponent')) {
-      const attackerJSON = JSON.parse(this.attackerCard.dataset.minion),
-        targetJSON = JSON.parse(event.target.dataset.minion)
-      console.log(attackerJSON.minionID, targetJSON.minionID)
-      GAME.triggerEvent('tryAttack', {
-        attackerID: attackerJSON.minionID,
-        targetID: targetJSON.minionID,
-      })
+      if (!this.attackerCard) {
+        GAME.triggerEvent('tryEffect', {
+          targetID: JSON.parse(event.target.dataset.minion).minionID,
+        })
+      } else {
+        GAME.triggerEvent('tryAttack', {
+          attackerID: JSON.parse(this.attackerCard.dataset.minion).minionID,
+          targetID: JSON.parse(event.target.dataset.minion).minionID,
+        })
+      }
     } else if (event.target.id == 'opponentHero') {
       GAME.triggerEvent('tryAttack', {
-        attackerID: attackerJSON.minionID,
+        attackerID: JSON.parse(this.attackerCard.dataset.minion).minionID,
         targetID: -2, // TODO: make a list of shared enums between server and client for stuff like this
       })
     }
@@ -100,12 +109,16 @@ export class TargetController {
 
   resetAttack() {
     this.attackerCard = null
+    this.targetting = false
 
     $('#svg').hide()
 
     $('#innercursor, #outercursor, #arrowcursor').css({ visibility: 'hidden' })
 
-    document.body.style.cursor =
-      'url(../media/images/cursor/cursor.png) 10 2, auto'
+    $('body').css({
+      cursor: 'url(../media/images/cursor/cursor.png) 10 2, auto',
+    })
+
+    this.dragOrigin = { x: 0, y: 0 }
   }
 }

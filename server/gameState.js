@@ -104,7 +104,7 @@ class GameState {
       done()
     })
 
-    engine.addGameElementListener('gameState', 'target', (data, done) => {
+    engine.addGameElementListener('gameState', 'tryEffect', (data, done) => {
       this.tryEffect(data.targetID)
       done()
     })
@@ -218,7 +218,7 @@ class GameState {
       return
     }
 
-    this.cardWaitingForTarget.card.doBattlecry(this)
+    this.cardWaitingForTarget.card.doBattlecry(this, target)
 
     this.cardWaitingForTarget = { card: null, waiting: false }
   }

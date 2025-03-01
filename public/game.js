@@ -129,6 +129,15 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
+      event: 'applyDamage',
+      onSuccess: (data) => {
+        console.log(`${data.minion.minionID} takes ${data.damage} damage`)
+        this.triggerEvent('getGameState')
+      },
+    })
+
+    wsEventHandler({
+      socket: ws,
       event: 'attack',
       onSuccess: (data) => {
         console.log(

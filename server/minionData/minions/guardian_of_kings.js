@@ -12,14 +12,14 @@ class guardian_of_kings extends Minion {
         description: 'Deal 2 damage',
         amount: 2,
         requiresTarget: true,
-        apply: (gameState, source, target) => {
+        apply: function (gameState, source, target) {
           if (this.requiresTarget && !target) {
-            throw new Error('Target required for targeted damage effect')
+            console.error('Target required for targeted damage effect')
           }
 
           if (this.requiresTarget) {
             // Single target damage
-            target.takeDamage(this.amount)
+            target.takeDamage(source, this.amount)
             console.log(
               `${source.name} deals ${this.amount} damage to ${target.name}`
             )
@@ -49,8 +49,8 @@ class guardian_of_kings extends Minion {
     }
   }
 
-  doBattlecry(gameState) {
-    this.effects.battlecry.apply(gameState, this)
+  doBattlecry(gameState, target) {
+    this.effects.battlecry.apply(gameState, this, target)
   }
 }
 
