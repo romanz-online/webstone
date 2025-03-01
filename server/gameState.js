@@ -65,6 +65,7 @@ class GameState {
     this.opponentBoard.forEach((m) => (m.inPlay = true))
 
     this.whoseTurn = OPPONENT_ID
+    this.cardWaitingForTarget = { card: null, waiting: false }
 
     this.startGame()
 
@@ -100,6 +101,11 @@ class GameState {
 
     engine.addGameElementListener('gameState', 'endTurn', (data, done) => {
       this.onEndTurn()
+      done()
+    })
+
+    engine.addGameElementListener('gameState', 'target', (data, done) => {
+      this.tryEffect(data.targetID)
       done()
     })
 
@@ -194,8 +200,27 @@ class GameState {
         minion: minion,
       })
 
-      minion.doPlay(this)
+      this.cardWaitingForTarget = { card: minion, waiting: minion.doPlay(this) }
     }
+  }
+
+  tryEffect(targetID) {
+    /** @type {Minion} */
+    const target = this.getBoardMinion(targetID)
+
+    if (!target) {
+      notifyClient('target', false, this.toJSON())
+      console.error('Could not find target with ID', targetID, 'on board')
+      return
+    } else if (!this.cardWaitingForTarget.waiting) {
+      notifyClient('target', false, this.toJSON())
+      console.error('No card is waiting for a target')
+      return
+    }
+
+    this.cardWaitingForTarget.card.doBattlecry(this)
+
+    this.cardWaitingForTarget = { card: null, waiting: false }
   }
 
   tryAttack(attackerID, targetID) {

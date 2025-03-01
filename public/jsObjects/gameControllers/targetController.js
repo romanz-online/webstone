@@ -1,7 +1,7 @@
 import GAME from '../../game.js'
 
 // maybe convert this into TargetController or something which handles all targeting (attacks, spells, hero powers, etc.)
-export class AttackController {
+export class TargetController {
   constructor() {
     // HTML dom element, not view or object
     // use .dataSet.boardIndex or id to distinguish
@@ -22,6 +22,22 @@ export class AttackController {
     })
   }
 
+  startTargetting(origin) {
+    this.dragOrigin = origin
+
+    $('#svg').show()
+
+    $('#innercursor, #outercursor, #arrowcursor').css({
+      visibility: 'visible',
+    })
+
+    $('body').css({ cursor: 'none' })
+
+    $('body').on('mousemove', (e) => this.onMouseDrag(e))
+
+    this.onMouseDrag({ clientX: origin.x, clientY: origin.y }) // updates the svg once to set its origin correctly
+  }
+
   onMouseDown(event) {
     event.preventDefault()
     if (event.target.classList.contains('cardInPlay--player')) {
@@ -33,22 +49,10 @@ export class AttackController {
       this.attackerCard = event.target
 
       const rect = this.attackerCard.getBoundingClientRect()
-      this.dragOrigin = {
+      this.startTargetting({
         x: rect.left + rect.width / 2,
         y: rect.top + rect.height / 2,
-      }
-
-      $('#svg').show()
-
-      $('#innercursor, #outercursor, #arrowcursor').css({
-        visibility: 'visible',
       })
-
-      $('body').css({ cursor: 'none' })
-
-      $('body').on('mousemove', (e) => this.onMouseDrag(e))
-
-      this.onMouseDrag(event) // updates the svg to set its origin correctly
     } else if (true /* click on hero portrait */) {
       // do hero attack
     }

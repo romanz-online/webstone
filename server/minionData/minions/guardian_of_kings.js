@@ -9,29 +9,70 @@ class guardian_of_kings extends Minion {
     this.effects = {
       battlecry: {
         name: 'Battlecry',
-        description:
-          'Gain +1/+1 for each other friendly minion on the battlefield',
-        requiresTarget: false,
-        apply: (gameState, source) => {
-          const friendlyCount = gameState.playerBoard.filter(
-            (minion) => minion !== source
-          ).length
-          source.attack += friendlyCount
-          source.health += friendlyCount
-          source.maxHealth += friendlyCount
-          console.log(
-            `${source.name} gains +${friendlyCount}/+${friendlyCount} from battlecry`
-          )
+        description: 'Deal 2 damage',
+        amount: 2,
+        requiresTarget: true,
+        apply: (gameState, source, target) => {
+          if (this.requiresTarget && !target) {
+            throw new Error('Target required for targeted damage effect')
+          }
 
-          notifyClient('changeStats', true, { minion: this })
+          if (this.requiresTarget) {
+            // Single target damage
+            target.takeDamage(this.amount)
+            console.log(
+              `${source.name} deals ${this.amount} damage to ${target.name}`
+            )
+          }
+          // else if (this.targetFilter) {
+          //   // Multi-target damage based on filter
+          //   const targets = this.targetFilter(game, source)
+          //   targets.forEach((target) => {
+          //     target.health -= this.amount
+          //     console.log(
+          //       `${source.name} deals ${this.amount} damage to ${target.name}`
+          //     )
+          //   })
+          // }
         },
       },
     }
   }
 
   doPlay(gameState) {
+    if (this.effects.battlecry.requiresTarget) {
+      notifyClient('getTarget', true, { minion: this })
+      return true
+    } else {
+      this.doBattlecry(gameState)
+      return false
+    }
+  }
+
+  doBattlecry(gameState) {
     this.effects.battlecry.apply(gameState, this)
   }
 }
+
+// FROSTWOLF WARLORD
+// {
+//   name: 'Battlecry',
+//   description:
+//     'Gain +1/+1 for each other friendly minion on the battlefield',
+//   requiresTarget: false,
+//   apply: (gameState, source) => {
+//     const friendlyCount = gameState.playerBoard.filter(
+//       (minion) => minion !== source
+//     ).length
+//     source.attack += friendlyCount
+//     source.health += friendlyCount
+//     source.maxHealth += friendlyCount
+//     console.log(
+//       `${source.name} gains +${friendlyCount}/+${friendlyCount} from battlecry`
+//     )
+
+//     notifyClient('changeStats', true, { minion: this })
+//   },
+// },
 
 module.exports = guardian_of_kings

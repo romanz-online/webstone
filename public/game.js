@@ -1,6 +1,6 @@
 import { Mana } from './jsObjects/gameObjects/mana.js'
 
-import { AttackController } from './jsObjects/gameControllers/attackController.js'
+import { TargetController } from './jsObjects/gameControllers/targetController.js'
 import { TurnController } from './jsObjects/gameControllers/turnController.js'
 import { CardDrawController } from './jsObjects/gameControllers/cardDrawController.js'
 import { CardPlayController } from './jsObjects/gameControllers/cardPlayController.js'
@@ -43,7 +43,7 @@ class GAME {
     this.playerManaView = null
     this.opponentManaView = null
 
-    this.attackController = new AttackController()
+    this.targetController = new TargetController()
     this.turnController = new TurnController()
     this.cardDrawController = new CardDrawController()
     this.cardPlayController = new CardPlayController()
@@ -77,6 +77,19 @@ class GAME {
         setTimeout(() => {
           this.triggerEvent('getGameState') // retry
         }, 5 * 1000)
+      },
+    })
+
+    wsEventHandler({
+      socket: ws,
+      event: 'getTarget',
+      onSuccess: (data) => {
+        console.log('Starting to target')
+        const rect = this.playerHeroView.getElement().getBoundingClientRect()
+        this.targetController.startTargetting({
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+        })
       },
     })
 
