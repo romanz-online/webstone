@@ -16,6 +16,17 @@ const RARITY = {
     UNDEAD: 7,
     DRAGON: 8,
   },
+  CLASS = {
+    DRUID: 0,
+    HUNTER: 1,
+    MAGE: 2,
+    PALADIN: 3,
+    PRIEST: 4,
+    ROGUE: 5,
+    SHAMAN: 6,
+    WARLOCK: 7,
+    WARRIOR: 8,
+  },
   ATTRIBUTES = {
     CHARGE: 0,
     TAUNT: 1,
@@ -100,8 +111,10 @@ const RARITY = {
   MINION_DATA = [
     // minion objects will have more data than this
     // these are just the baseline stats for each minion, before manipulation
+
+    // DRUID
     {
-      // DRUID
+      class: CLASS.DRUID,
       name: 'Keeper of the Grove',
       description: '',
       stats: [4, 2, 4],
@@ -113,6 +126,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.DRUID,
       name: 'Druid of the Claw',
       description: '',
       stats: [5, 4, 4],
@@ -122,6 +136,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.DRUID,
       name: 'Ancient of Lore',
       description: '',
       stats: [7, 5, 5],
@@ -131,6 +146,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.DRUID,
       name: 'Ancient of War',
       description: '',
       stats: [7, 5, 5],
@@ -140,6 +156,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.DRUID,
       name: 'Ironbark Protector',
       description: '',
       stats: [8, 8, 8],
@@ -149,6 +166,7 @@ const RARITY = {
       attributes: [false, true, false, false, false, false, false],
     },
     {
+      class: CLASS.DRUID,
       name: 'Cenarius',
       description: '',
       stats: [9, 5, 8],
@@ -157,8 +175,9 @@ const RARITY = {
       overload: 0,
       attributes: [false, false, false, false, false, false, false],
     },
+    // HUNTER
     {
-      // HUNTER
+      class: CLASS.HUNTER,
       name: 'Timber Wolf',
       description: '',
       stats: [1, 1, 1],
@@ -168,6 +187,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.HUNTER,
       name: 'Scavenging Hyena',
       description: '',
       stats: [2, 2, 2],
@@ -177,6 +197,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.HUNTER,
       name: 'Starving Buzzard',
       description: '',
       stats: [2, 2, 1],
@@ -186,6 +207,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.HUNTER,
       name: 'Houndmaster',
       description: '',
       stats: [4, 4, 3],
@@ -195,6 +217,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.HUNTER,
       name: 'Tundra Rhino',
       description: '',
       stats: [5, 2, 5],
@@ -204,6 +227,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.HUNTER,
       name: 'Savannah Highmane',
       description: '',
       stats: [6, 6, 5],
@@ -213,6 +237,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.HUNTER,
       name: 'King Krush',
       description: '',
       stats: [9, 8, 8],
@@ -221,8 +246,9 @@ const RARITY = {
       overload: 0,
       attributes: [true, false, false, false, false, false, false],
     },
+    // MAGE
     {
-      // MAGE
+      class: CLASS.MAGE,
       name: 'Mana Wyrm',
       description: '',
       stats: [1, 1, 3],
@@ -232,6 +258,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.MAGE,
       name: "Sorcerer's Apprentice",
       description: '',
       stats: [2, 3, 2],
@@ -241,6 +268,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.MAGE,
       name: 'Kirin Tor Mage',
       description: '',
       stats: [3, 4, 3],
@@ -250,6 +278,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.MAGE,
       name: 'Ethereal Arcanist',
       description: '',
       stats: [4, 3, 3],
@@ -259,6 +288,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.MAGE,
       name: 'Water Elemental',
       description: '',
       stats: [4, 3, 6],
@@ -268,6 +298,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.MAGE,
       name: 'Archmage Antonidas',
       description: '',
       stats: [7, 5, 7],
@@ -276,8 +307,9 @@ const RARITY = {
       overload: 0,
       attributes: [false, false, false, false, false, false, false],
     },
+    // PALADIN
     {
-      // PALADIN
+      class: CLASS.PALADIN,
       name: 'Argent Protector',
       description: '',
       stats: [2, 2, 2],
@@ -287,6 +319,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.PALADIN,
       name: 'Aldor Peacekeeper',
       description: '',
       stats: [3, 3, 3],
@@ -296,6 +329,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.PALADIN,
       name: 'Guardian of Kings',
       description: '',
       stats: [7, 5, 6],
@@ -305,6 +339,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.PALADIN,
       name: 'Tirion Fordring',
       description: '',
       stats: [8, 6, 6],
@@ -313,8 +348,9 @@ const RARITY = {
       overload: 0,
       attributes: [false, true, false, false, false, false, false],
     },
+    // PRIEST
     {
-      // PRIEST
+      class: CLASS.PRIEST,
       name: 'Northshire Cleric',
       description: '',
       stats: [1, 1, 3],
@@ -324,6 +360,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.PRIEST,
       name: 'Lightwell',
       description: '',
       stats: [2, 0, 5],
@@ -333,6 +370,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.PRIEST,
       name: 'Auchenai Soulpriest',
       description: '',
       stats: [4, 3, 5],
@@ -342,6 +380,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.PRIEST,
       name: 'Lightspawn',
       description: '',
       stats: [4, 0, 5],
@@ -351,6 +390,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.PRIEST,
       name: 'Cabal Shadow Priest',
       description: '',
       stats: [6, 4, 5],
@@ -360,6 +400,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.PRIEST,
       name: 'Temple Enforcer',
       description: '',
       stats: [6, 6, 6],
@@ -369,6 +410,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.PRIEST,
       name: 'Prophet Velen',
       description: '',
       stats: [7, 7, 7],
@@ -377,8 +419,9 @@ const RARITY = {
       overload: 0,
       attributes: [false, false, false, false, false, false, false],
     },
+    // ROGUE
     {
-      // ROGUE
+      class: CLASS.ROGUE,
       name: 'Defias Ring Leader',
       description: '',
       stats: [2, 2, 2],
@@ -388,6 +431,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.ROGUE,
       name: 'Patient Assassin',
       description: '',
       stats: [2, 1, 1],
@@ -397,6 +441,7 @@ const RARITY = {
       attributes: [false, false, false, true, false, false, true],
     },
     {
+      class: CLASS.ROGUE,
       name: 'Edwin VanCleef',
       description: '',
       stats: [3, 2, 2],
@@ -406,6 +451,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.ROGUE,
       name: 'SI:7 Agent',
       description: '',
       stats: [3, 3, 3],
@@ -415,6 +461,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.ROGUE,
       name: 'Master of Disguise',
       description: '',
       stats: [4, 4, 4],
@@ -424,6 +471,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.ROGUE,
       name: 'Kidnapper',
       description: '',
       stats: [6, 5, 3],
@@ -432,8 +480,9 @@ const RARITY = {
       overload: 0,
       attributes: [false, false, false, false, false, false, false],
     },
+    // SHAMAN
     {
-      // SHAMAN
+      class: CLASS.SHAMAN,
       name: 'Dust Devil',
       description: '',
       stats: [1, 3, 1],
@@ -443,6 +492,7 @@ const RARITY = {
       attributes: [false, false, false, false, true, false, false],
     },
     {
+      class: CLASS.SHAMAN,
       name: 'Flametongue Totem',
       description: '',
       stats: [2, 0, 3],
@@ -452,6 +502,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.SHAMAN,
       name: 'Mana Tide Totem',
       description: '',
       stats: [3, 0, 3],
@@ -461,6 +512,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.SHAMAN,
       name: 'Unbound Elemental',
       description: '',
       stats: [3, 2, 4],
@@ -470,6 +522,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.SHAMAN,
       name: 'Windspeaker',
       description: '',
       stats: [4, 3, 3],
@@ -479,6 +532,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.SHAMAN,
       name: 'Earth Elemental',
       description: '',
       stats: [5, 7, 8],
@@ -488,6 +542,7 @@ const RARITY = {
       attributes: [false, true, false, false, false, false, false],
     },
     {
+      class: CLASS.SHAMAN,
       name: 'Fire Elemental',
       description: '',
       stats: [6, 6, 5],
@@ -497,6 +552,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.SHAMAN,
       name: "Al'Akir the Windlord",
       description: '',
       stats: [8, 3, 5],
@@ -505,8 +561,9 @@ const RARITY = {
       overload: 0,
       attributes: [true, true, true, false, true, false, false],
     },
+    // WARLOCK
     {
-      // WARLOCK
+      class: CLASS.WARLOCK,
       name: 'Blood Imp',
       description: '',
       stats: [1, 0, 1],
@@ -516,6 +573,7 @@ const RARITY = {
       attributes: [false, false, false, true, false, false, false],
     },
     {
+      class: CLASS.WARLOCK,
       name: 'Flame Imp',
       description: '',
       stats: [1, 3, 2],
@@ -525,6 +583,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.WARLOCK,
       name: 'Voidwalker',
       description: '',
       stats: [1, 1, 3],
@@ -534,6 +593,7 @@ const RARITY = {
       attributes: [false, true, false, false, false, false, false],
     },
     {
+      class: CLASS.WARLOCK,
       name: 'Felstalker',
       description: '',
       stats: [2, 4, 3],
@@ -543,6 +603,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.WARLOCK,
       name: 'Felguard',
       description: '',
       stats: [3, 3, 5],
@@ -552,6 +613,7 @@ const RARITY = {
       attributes: [false, true, false, false, false, false, false],
     },
     {
+      class: CLASS.WARLOCK,
       name: 'Void Terror',
       description: '',
       stats: [3, 3, 3],
@@ -561,6 +623,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.WARLOCK,
       name: 'Pit Lord',
       description: '',
       stats: [4, 5, 6],
@@ -570,6 +633,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.WARLOCK,
       name: 'Summoning Portal',
       description: '',
       stats: [4, 0, 4],
@@ -579,6 +643,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.WARLOCK,
       name: 'Doomguard',
       description: '',
       stats: [5, 5, 7],
@@ -588,6 +653,7 @@ const RARITY = {
       attributes: [true, false, false, false, false, false, false],
     },
     {
+      class: CLASS.WARLOCK,
       name: 'Dread Infernal',
       description: '',
       stats: [6, 6, 6],
@@ -597,6 +663,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.WARLOCK,
       name: 'Lord Jaraxxus',
       description: '',
       stats: [9, 3, 15],
@@ -605,8 +672,9 @@ const RARITY = {
       overload: 0,
       attributes: [false, false, false, false, false, false, false],
     },
+    // WARRIOR
     {
-      // WARRIOR
+      class: CLASS.WARRIOR,
       name: 'Armorsmith',
       description: '',
       stats: [2, 1, 4],
@@ -616,6 +684,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.WARRIOR,
       name: 'Cruel Taskmaster',
       description: '',
       stats: [2, 2, 2],
@@ -625,6 +694,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.WARRIOR,
       name: 'Frothing Berserker',
       description: '',
       stats: [3, 2, 4],
@@ -634,6 +704,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.WARRIOR,
       name: 'Warsong Commander',
       description: '',
       stats: [3, 2, 3],
@@ -643,6 +714,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.WARRIOR,
       name: 'Arathi Weaponsmith',
       description: '',
       stats: [4, 3, 3],
@@ -652,6 +724,7 @@ const RARITY = {
       attributes: [false, false, false, false, false, false, false],
     },
     {
+      class: CLASS.WARRIOR,
       name: "Kor'kron Elite",
       description: '',
       stats: [4, 4, 3],
@@ -661,6 +734,7 @@ const RARITY = {
       attributes: [true, false, false, false, false, false, false],
     },
     {
+      class: CLASS.WARRIOR,
       name: 'Grommash Hellscream',
       description: '',
       stats: [8, 4, 9],
