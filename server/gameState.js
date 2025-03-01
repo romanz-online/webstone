@@ -200,7 +200,9 @@ class GameState {
         minion: minion,
       })
 
-      this.cardWaitingForTarget = { card: minion, waiting: minion.doPlay(this) }
+      this.cardWaitingForTarget = { card: minion, waiting: minion.doPlay(this) } // INSTEAD OF DOING THIS, TRY MAKING A "CARD STACK"
+      // SOMETIMES THERE WILL BE MULTIPLE CARDS IN THE STACK, LIKE FOR "CHOOSE ONE" AND YOU CAN GO BACKWARDS THROUGH THEM TO
+      // TRIGGER EACH EFFECT. "CHOOSE ONE EFFECT" -> "CHOOSE ONE SPLIT SPELL" -> PLAY MINION
     }
   }
 
