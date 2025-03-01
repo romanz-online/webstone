@@ -23,6 +23,7 @@ class Minion {
     this.baseMana = MINION_DATA[this.baseMinionID].stats[0]
     this.baseAttack = MINION_DATA[this.baseMinionID].stats[1]
     this.baseHealth = MINION_DATA[this.baseMinionID].stats[2]
+    this.maxHealth = MINION_DATA[this.baseMinionID].stats[2]
     this.mana = MINION_DATA[this.baseMinionID].stats[0]
     this.attack = MINION_DATA[this.baseMinionID].stats[1]
     this.health = MINION_DATA[this.baseMinionID].stats[2]

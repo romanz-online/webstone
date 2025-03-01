@@ -1,6 +1,6 @@
 class Effect {
   constructor(config = {}) {
-    this.name = config.name || '???'
+    this.name = config.name || ''
     this.description = config.description || ''
     this.requiresTarget = config.requiresTarget || false
     this.targetValidator = config.targetValidator || null

@@ -184,7 +184,7 @@ class GameState {
       // notifyClient('tryMinionPlayed', false, this.toJSON())
 
       /** @type {Minion} */
-      const minion = this.playerHand.splice[index]
+      const minion = this.playerHand[index]
       // TRY TO DO BATTLECRY SOMEWHERE HERE ???
       this.playerHand.splice(index, 1)[0]
       this.playerBoard.splice(boardIndex, 0, minion)
@@ -194,7 +194,7 @@ class GameState {
         minion: minion,
       })
 
-      minion.doPlay()
+      minion.doPlay(this)
     }
   }
 
@@ -297,4 +297,5 @@ class GameState {
   }
 }
 
-module.exports = GameState
+const gameState = new GameState()
+module.exports = { gameState }
