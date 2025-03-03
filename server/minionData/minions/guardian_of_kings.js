@@ -3,11 +3,11 @@ const { notifyClient } = require('../../ws.js')
 const guardian_of_kings_battlecry = require('../../effectData/effects/guardian_of_kings_battlecry.js')
 
 class guardian_of_kings extends Minion {
-  constructor(baseID, uniqueID, owner) {
-    super(baseID, uniqueID, owner)
+  constructor(baseID, uniqueID, player) {
+    super(baseID, uniqueID, player)
 
     this.effects = {
-      battlecry: new guardian_of_kings_battlecry(owner),
+      battlecry: new guardian_of_kings_battlecry(player),
     }
   }
 

@@ -2,11 +2,9 @@ const { engine } = require('./engine.js')
 const { notifyClient } = require('./ws.js')
 const { generateMinion } = require('./minionData/generateMinion.js')
 const MINION_ID = require('./minionData/minionID.json')
-const Minion = require('./minionData/minion.js')
-/** @typedef {Object} Minion */
+/** @typedef {import('./minionData/minion.js').Minion} Minion */
 
 const playerDeckStorage = [
-    MINION_ID.ARMORSMITH,
     MINION_ID.TIRION_FORDRING,
     MINION_ID.MANA_WYRM,
     MINION_ID.LIGHTWELL,
@@ -22,7 +20,7 @@ class GameState {
   constructor() {
     this.uniqueMinionNumber = 0
 
-    this.playerHealth = 30
+    this.playerHealth = 20
     this.opponentHealth = 10
 
     this.graveyard = []
@@ -314,4 +312,4 @@ class GameState {
 }
 
 const gameState = new GameState()
-module.exports = { gameState }
+module.exports = { gameState, GameState }

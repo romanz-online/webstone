@@ -1,9 +1,11 @@
 const Effect = require('../effect.js')
 const EFFECT_ID = require('../effectID.json')
+/** @typedef {import('../../gameState.js').GameState} GameState */
+/** @typedef {import('../../minionData/minion.js').Minion} Minion */
 
 class fireball extends Effect {
-  constructor(owner) {
-    super(EFFECT_ID.FIREBALL, owner)
+  constructor(player) {
+    super(EFFECT_ID.FIREBALL, player)
   }
 
   apply(game, source, target) {

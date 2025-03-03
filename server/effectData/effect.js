@@ -1,10 +1,10 @@
 const { EFFECT_DATA } = require('./baseEffectData.js')
 
 class Effect {
-  constructor(baseID, owner) {
+  constructor(baseID, player) {
     const baseData = EFFECT_DATA[baseID - 2000]
     this.baseID = baseID
-    this.owner = owner
+    this.player = player
 
     this.fileName = baseData.fileName
     this.class = baseData.class
@@ -20,6 +20,10 @@ class Effect {
     this.obtainable = baseData.obtainable
 
     // this.targetValidator = config.targetValidator || null
+  }
+
+  getAmount() {
+    return this.amount // + gameState.spellpower * gameState.prophetVelenAura
   }
 
   getDescription() {

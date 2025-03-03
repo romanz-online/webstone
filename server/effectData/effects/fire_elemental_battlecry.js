@@ -1,33 +1,31 @@
-const Effect = require('../effect.js')
 const EFFECT_ID = require('../effectID.json')
+const Effect = require('../effect.js')
+/** @typedef {import('../../gameState.js').GameState} GameState */
+/** @typedef {import('../../minionData/minion.js').Minion} Minion */
 
 class fire_elemental_battlecry extends Effect {
-  constructor(owner) {
-    super(EFFECT_ID.FIRE_ELEMENTAL_BATTLECRY, owner)
+  constructor(player) {
+    super(EFFECT_ID.FIRE_ELEMENTAL_BATTLECRY, player)
   }
 
-  apply(gameState, source, target) {
-    if ((this.canTarget || this.requiresTarget) && !target) {
-      console.error('Target required for targeted damage effect')
+  apply(
+    /** @type {GameState} */ gameState,
+    /** @type {Minion} */ source,
+    /** @type {Minion} */ target
+  ) {
+    if (!target) {
+      if (
+        this.requiresTarget ||
+        (gameState.opponentBoard.length > 0 && this.canTarget)
+      ) {
+        console.error('Target required for targeted damage effect')
+      }
     }
 
-    if (this.canTarget || this.requiresTarget) {
-      // Single target damage
-      target.takeDamage(source, this.amount)
-      console.log(
-        `${source.name} deals ${this.amount} damage to ${target.name}`
-      )
-    }
-    // else if (this.targetFilter) {
-    //   // Multi-target damage based on filter
-    //   const targets = this.targetFilter(game, source)
-    //   targets.forEach((target) => {
-    //     target.health -= this.amount
-    //     console.log(
-    //       `${source.name} deals ${this.amount} damage to ${target.name}`
-    //     )
-    //   })
-    // }
+    target.takeDamage(source, this.getAmount())
+    console.log(
+      `${source.name} deals ${this.getAmount()} damage to ${target.name}`
+    )
   }
 }
 

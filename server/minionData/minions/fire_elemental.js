@@ -3,20 +3,17 @@ const { notifyClient } = require('../../ws.js')
 const fire_elemental_battlecry = require('../../effectData/effects/fire_elemental_battlecry.js')
 
 class fire_elemental extends Minion {
-  constructor(baseID, uniqueID, owner) {
-    super(baseID, uniqueID, owner)
+  constructor(baseID, uniqueID, player) {
+    super(baseID, uniqueID, player)
 
     this.effects = {
-      battlecry: new fire_elemental_battlecry(owner),
+      battlecry: new fire_elemental_battlecry(player),
     }
   }
 
   doPlay(gameState) {
     // THIS TARGETTING ISN'T QUITE RIGHT YET
-    if (
-      this.effects.battlecry.canTarget ||
-      this.effects.battlecry.requiresTarget
-    ) {
+    if (this.effects.battlecry.canTarget) {
       notifyClient('getTarget', true, { minion: this })
       return true
     } else {
@@ -29,26 +26,5 @@ class fire_elemental extends Minion {
     this.effects.battlecry.apply(gameState, this, target)
   }
 }
-
-// FROSTWOLF WARLORD
-// {
-//   name: 'Battlecry',
-//   description:
-//     'Gain +1/+1 for each other friendly minion on the battlefield',
-//   requiresTarget: false,
-//   apply: (gameState, source) => {
-//     const friendlyCount = gameState.playerBoard.filter(
-//       (minion) => minion !== source
-//     ).length
-//     source.attack += friendlyCount
-//     source.health += friendlyCount
-//     source.maxHealth += friendlyCount
-//     console.log(
-//       `${source.name} gains +${friendlyCount}/+${friendlyCount} from battlecry`
-//     )
-
-//     notifyClient('changeStats', true, { minion: this })
-//   },
-// },
 
 module.exports = fire_elemental

@@ -3,8 +3,8 @@ const { engine } = require('../../engine.js')
 const { notifyClient } = require('../../ws.js')
 
 class mana_wyrm extends Minion {
-  constructor(baseID, uniqueID, owner) {
-    super(baseID, uniqueID, owner)
+  constructor(baseID, uniqueID, player) {
+    super(baseID, uniqueID, player)
 
     engine.addGameElementListener(
       this.uniqueID,

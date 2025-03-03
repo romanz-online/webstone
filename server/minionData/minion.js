@@ -3,14 +3,14 @@ const { notifyClient } = require('../ws.js')
 const { ATTRIBUTES, MINION_DATA } = require('./baseMinionData.js')
 
 class Minion {
-  constructor(baseID, uniqueID, owner) {
+  constructor(baseID, uniqueID, player) {
     const baseData = MINION_DATA[baseID - 1000]
 
     this.baseID = baseID
     this.fileName = baseData.fileName
 
     this.uniqueID = uniqueID
-    this.owner = owner
+    this.player = player
 
     this.inPlay = false
     this.attacksThisTurn = 0
