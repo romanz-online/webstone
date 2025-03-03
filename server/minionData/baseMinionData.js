@@ -36,78 +36,6 @@ const RARITY = {
     ELUSIVE: 5,
     POISON: 6,
   },
-  MINION_IDS = {
-    KEEPER_OF_THE_GROVE: [0, 'keeper_of_the_grove'],
-    DRUID_OF_THE_CLAW: [1, 'druid_of_the_claw'],
-    ANCIENT_OF_LORE: [2, 'ancient_of_lore'],
-    ANCIENT_OF_WAR: [3, 'ancient_of_war'],
-    IRONBARK_PROTECTOR: [4, 'ironbark_protector'],
-    CENARIUS: [5, 'cenarius'],
-
-    TIMBER_WOLF: [6, 'timber_wolf'],
-    SCAVENGING_HYENA: [7, 'scavenging_hyena'],
-    STARVING_BUZZARD: [8, 'starving_buzzard'],
-    HOUNDMASTER: [9, 'houndmaster'],
-    TUNDRA_RHINO: [10, 'tundra_rhino'],
-    SAVANNAH_HIGHMANE: [11, 'savannah_highmane'],
-    KING_KRUSH: [12, 'king_krush'],
-
-    MANA_WYRM: [13, 'mana_wyrm'],
-    SORCERERS_APPRENTICE: [14, 'sorcerers_apprentice'],
-    KIRIN_TOR_MAGE: [15, 'kirin_tor_mage'],
-    ETHEREAL_ARCANIST: [16, 'ethereal_arcanist'],
-    WATER_ELEMENTAL: [17, 'water_elemental'],
-    ARCHMAGE_ANTONIDAS: [18, 'archmage_antonidas'],
-
-    ARGENT_PROTECTOR: [19, 'argent_protector'],
-    ALDOR_PEACEKEEPER: [20, 'aldor_peacekeeper'],
-    GUARDIAN_OF_KINGS: [21, 'guardian_of_kings'],
-    TIRION_FORDRING: [22, 'tirion_fordring'],
-
-    NORTHSHIRE_CLERIC: [23, 'northshire_cleric'],
-    LIGHTWELL: [24, 'lightwell'],
-    AUCHENAI_SOULPRIEST: [25, 'auchenai_soulpriest'],
-    LIGHTSPAWN: [26, 'lightspawn'],
-    CABAL_SHADOW_PRIEST: [27, 'cabal_shadow_priest'],
-    TEMPLE_ENFORCER: [28, 'temple_enforcer'],
-    PROPHET_VELEN: [29, 'prophet_velen'],
-
-    DEFIAS_RINGLEADER: [30, 'defias_ringleader'],
-    PATIENT_ASSASSIN: [31, 'patient_assassin'],
-    EDWIN_VANCLEEF: [32, 'edwin_vancleef'],
-    SI7_AGENT: [33, 'si7_agent'],
-    MASTER_OF_DISGUISE: [34, 'master_of_disguise'],
-    KIDNAPPER: [35, 'kidnapper'],
-
-    DUST_DEVIL: [36, 'dust_devil'],
-    FLAMETONGUE_TOTEM: [37, 'flametongue_totem'],
-    MANA_TIDE_TOTEM: [38, 'mana_tide_totem'],
-    UNBOUND_ELEMENTAL: [39, 'unbound_elemental'],
-    WINDSPEAKER: [40, 'windspeaker'],
-    EARTH_ELEMENTAL: [41, 'earth_elemental'],
-    FIRE_ELEMENTAL: [42, 'fire_elemental'],
-    ALAKIR_THE_WINDLORD: [43, 'alakir_the_windlord'],
-
-    BLOOD_IMP: [44, 'blood_imp'],
-    FLAME_IMP: [45, 'flame_imp'],
-    VOIDWALKER: [46, 'voidwalker'],
-    FELSTALKER: [47, 'felstalker'],
-    FELGUARD: [48, 'felguard'],
-    VOID_TERROR: [49, 'void_terror'],
-    PIT_LORD: [50, 'pit_lord'],
-    SUMMONING_PORTAL: [51, 'summoning_portal'],
-    DOOMGUARD: [52, 'doomguard'],
-    DREAD_INFERNAL: [53, 'dread_infernal'],
-    LORD_JARAXXUS: [54, 'lord_jaraxxus'],
-
-    ARMORSMITH: [55, 'armorsmith'],
-    CRUEL_TASKMASTER: [56, 'cruel_taskmaster'],
-    FROTHING_BERSERKER: [57, 'frothing_berserker'],
-    WARSONG_COMMANDER: [58, 'warsong_commander'],
-    ARATHI_WEAPONSMITH: [59, 'arathi_weaponsmith'],
-    KORKRON_ELITE: [60, 'korkron_elite'],
-    GROMMASH_HELLSCREAM: [61, 'grommash_hellscream'],
-  },
   MINION_DATA = [
     // minion objects will have more data than this
     // these are just the baseline stats for each minion, before manipulation
@@ -116,6 +44,7 @@ const RARITY = {
     {
       class: CLASS.DRUID,
       name: 'Keeper of the Grove',
+      fileName: 'keeper_of_the_grove',
       description: '',
       stats: [4, 2, 4],
       rarity: RARITY.RARE,
@@ -128,6 +57,7 @@ const RARITY = {
     {
       class: CLASS.DRUID,
       name: 'Druid of the Claw',
+      fileName: 'druid_of_the_claw',
       description: '',
       stats: [5, 4, 4],
       rarity: RARITY.COMMON,
@@ -139,6 +69,7 @@ const RARITY = {
       class: CLASS.DRUID,
       name: 'Ancient of Lore',
       description: '',
+      fileName: 'ancient_of_lore',
       stats: [7, 5, 5],
       rarity: RARITY.EPIC,
       tribe: TRIBE.NONE,
@@ -149,6 +80,7 @@ const RARITY = {
       class: CLASS.DRUID,
       name: 'Ancient of War',
       description: '',
+      fileName: 'ancient_of_war',
       stats: [7, 5, 5],
       rarity: RARITY.RARE,
       tribe: TRIBE.NONE,
@@ -158,6 +90,7 @@ const RARITY = {
     {
       class: CLASS.DRUID,
       name: 'Ironbark Protector',
+      fileName: 'ironbark_protector',
       description: '',
       stats: [8, 8, 8],
       rarity: RARITY.FREE,
@@ -168,6 +101,7 @@ const RARITY = {
     {
       class: CLASS.DRUID,
       name: 'Cenarius',
+      fileName: 'cenarius',
       description: '',
       stats: [9, 5, 8],
       rarity: RARITY.LEGENDARY,
@@ -179,6 +113,7 @@ const RARITY = {
     {
       class: CLASS.HUNTER,
       name: 'Timber Wolf',
+      fileName: 'timber_wolf',
       description: '',
       stats: [1, 1, 1],
       rarity: RARITY.FREE,
@@ -189,6 +124,7 @@ const RARITY = {
     {
       class: CLASS.HUNTER,
       name: 'Scavenging Hyena',
+      fileName: 'scavenging_hyena',
       description: '',
       stats: [2, 2, 2],
       rarity: RARITY.COMMON,
@@ -199,6 +135,7 @@ const RARITY = {
     {
       class: CLASS.HUNTER,
       name: 'Starving Buzzard',
+      fileName: 'starving_buzzard',
       description: '',
       stats: [2, 2, 1],
       rarity: RARITY.FREE,
@@ -209,6 +146,7 @@ const RARITY = {
     {
       class: CLASS.HUNTER,
       name: 'Houndmaster',
+      fileName: 'houndmaster',
       description: '',
       stats: [4, 4, 3],
       rarity: RARITY.RARE,
@@ -219,6 +157,7 @@ const RARITY = {
     {
       class: CLASS.HUNTER,
       name: 'Tundra Rhino',
+      fileName: 'tundra_rhino',
       description: '',
       stats: [5, 2, 5],
       rarity: RARITY.FREE,
@@ -229,6 +168,7 @@ const RARITY = {
     {
       class: CLASS.HUNTER,
       name: 'Savannah Highmane',
+      fileName: 'savannah_highmane',
       description: '',
       stats: [6, 6, 5],
       rarity: RARITY.RARE,
@@ -239,6 +179,7 @@ const RARITY = {
     {
       class: CLASS.HUNTER,
       name: 'King Krush',
+      fileName: 'king_krush',
       description: '',
       stats: [9, 8, 8],
       rarity: RARITY.LEGENDARY,
@@ -250,6 +191,7 @@ const RARITY = {
     {
       class: CLASS.MAGE,
       name: 'Mana Wyrm',
+      fileName: 'mana_wyrm',
       description: '',
       stats: [1, 1, 3],
       rarity: RARITY.COMMON,
@@ -260,6 +202,7 @@ const RARITY = {
     {
       class: CLASS.MAGE,
       name: "Sorcerer's Apprentice",
+      fileName: 'sorcerers_apprentice',
       description: '',
       stats: [2, 3, 2],
       rarity: RARITY.COMMON,
@@ -270,6 +213,7 @@ const RARITY = {
     {
       class: CLASS.MAGE,
       name: 'Kirin Tor Mage',
+      fileName: 'kirin_tor_mage',
       description: '',
       stats: [3, 4, 3],
       rarity: RARITY.RARE,
@@ -280,6 +224,7 @@ const RARITY = {
     {
       class: CLASS.MAGE,
       name: 'Ethereal Arcanist',
+      fileName: 'ethereal_arcanist',
       description: '',
       stats: [4, 3, 3],
       rarity: RARITY.RARE,
@@ -290,6 +235,7 @@ const RARITY = {
     {
       class: CLASS.MAGE,
       name: 'Water Elemental',
+      fileName: 'water_elemental',
       description: '',
       stats: [4, 3, 6],
       rarity: RARITY.FREE,
@@ -300,6 +246,7 @@ const RARITY = {
     {
       class: CLASS.MAGE,
       name: 'Archmage Antonidas',
+      fileName: 'archmage_antonidas',
       description: '',
       stats: [7, 5, 7],
       rarity: RARITY.LEGENDARY,
@@ -311,6 +258,7 @@ const RARITY = {
     {
       class: CLASS.PALADIN,
       name: 'Argent Protector',
+      fileName: 'argent_protector',
       description: '',
       stats: [2, 2, 2],
       rarity: RARITY.COMMON,
@@ -321,6 +269,7 @@ const RARITY = {
     {
       class: CLASS.PALADIN,
       name: 'Aldor Peacekeeper',
+      fileName: 'aldor_peacekeeper',
       description: '',
       stats: [3, 3, 3],
       rarity: RARITY.RARE,
@@ -331,6 +280,7 @@ const RARITY = {
     {
       class: CLASS.PALADIN,
       name: 'Guardian of Kings',
+      fileName: 'guardian_of_kings',
       description: '',
       stats: [7, 5, 6],
       rarity: RARITY.FREE,
@@ -341,6 +291,7 @@ const RARITY = {
     {
       class: CLASS.PALADIN,
       name: 'Tirion Fordring',
+      fileName: 'tirion_fordring',
       description: '',
       stats: [8, 6, 6],
       rarity: RARITY.LEGENDARY,
@@ -352,6 +303,7 @@ const RARITY = {
     {
       class: CLASS.PRIEST,
       name: 'Northshire Cleric',
+      fileName: 'northshire_cleric',
       description: '',
       stats: [1, 1, 3],
       rarity: RARITY.COMMON,
@@ -362,6 +314,7 @@ const RARITY = {
     {
       class: CLASS.PRIEST,
       name: 'Lightwell',
+      fileName: 'lightwell',
       description: '',
       stats: [2, 0, 5],
       rarity: RARITY.RARE,
@@ -372,6 +325,7 @@ const RARITY = {
     {
       class: CLASS.PRIEST,
       name: 'Auchenai Soulpriest',
+      fileName: 'auchenai_soulpriest',
       description: '',
       stats: [4, 3, 5],
       rarity: RARITY.RARE,
@@ -382,6 +336,7 @@ const RARITY = {
     {
       class: CLASS.PRIEST,
       name: 'Lightspawn',
+      fileName: 'lightspawn',
       description: '',
       stats: [4, 0, 5],
       rarity: RARITY.COMMON,
@@ -392,6 +347,7 @@ const RARITY = {
     {
       class: CLASS.PRIEST,
       name: 'Cabal Shadow Priest',
+      fileName: 'cabal_shadow_priest',
       description: '',
       stats: [6, 4, 5],
       rarity: RARITY.EPIC,
@@ -402,6 +358,7 @@ const RARITY = {
     {
       class: CLASS.PRIEST,
       name: 'Temple Enforcer',
+      fileName: 'temple_enforcer',
       description: '',
       stats: [6, 6, 6],
       rarity: RARITY.COMMON,
@@ -412,6 +369,7 @@ const RARITY = {
     {
       class: CLASS.PRIEST,
       name: 'Prophet Velen',
+      fileName: 'prophet_velen',
       description: '',
       stats: [7, 7, 7],
       rarity: RARITY.LEGENDARY,
@@ -423,6 +381,7 @@ const RARITY = {
     {
       class: CLASS.ROGUE,
       name: 'Defias Ring Leader',
+      fileName: 'defias_ring_leader',
       description: '',
       stats: [2, 2, 2],
       rarity: RARITY.COMMON,
@@ -433,6 +392,7 @@ const RARITY = {
     {
       class: CLASS.ROGUE,
       name: 'Patient Assassin',
+      fileName: 'patient_assassin',
       description: '',
       stats: [2, 1, 1],
       rarity: RARITY.RARE,
@@ -443,6 +403,7 @@ const RARITY = {
     {
       class: CLASS.ROGUE,
       name: 'Edwin VanCleef',
+      fileName: 'edwin_vancleef',
       description: '',
       stats: [3, 2, 2],
       rarity: RARITY.LEGENDARY,
@@ -453,6 +414,7 @@ const RARITY = {
     {
       class: CLASS.ROGUE,
       name: 'SI:7 Agent',
+      fileName: 'si7_agent',
       description: '',
       stats: [3, 3, 3],
       rarity: RARITY.RARE,
@@ -463,6 +425,7 @@ const RARITY = {
     {
       class: CLASS.ROGUE,
       name: 'Master of Disguise',
+      fileName: 'master_of_disguise',
       description: '',
       stats: [4, 4, 4],
       rarity: RARITY.RARE,
@@ -473,6 +436,7 @@ const RARITY = {
     {
       class: CLASS.ROGUE,
       name: 'Kidnapper',
+      fileName: 'kidnapper',
       description: '',
       stats: [6, 5, 3],
       rarity: RARITY.RARE,
@@ -484,6 +448,7 @@ const RARITY = {
     {
       class: CLASS.SHAMAN,
       name: 'Dust Devil',
+      fileName: 'dust_devil',
       description: '',
       stats: [1, 3, 1],
       rarity: RARITY.COMMON,
@@ -494,6 +459,7 @@ const RARITY = {
     {
       class: CLASS.SHAMAN,
       name: 'Flametongue Totem',
+      fileName: 'flametongue_totem',
       description: '',
       stats: [2, 0, 3],
       rarity: RARITY.FREE,
@@ -504,6 +470,7 @@ const RARITY = {
     {
       class: CLASS.SHAMAN,
       name: 'Mana Tide Totem',
+      fileName: 'mana_tide_totem',
       description: '',
       stats: [3, 0, 3],
       rarity: RARITY.RARE,
@@ -514,6 +481,7 @@ const RARITY = {
     {
       class: CLASS.SHAMAN,
       name: 'Unbound Elemental',
+      fileName: 'unbound_elemental',
       description: '',
       stats: [3, 2, 4],
       rarity: RARITY.COMMON,
@@ -524,6 +492,7 @@ const RARITY = {
     {
       class: CLASS.SHAMAN,
       name: 'Windspeaker',
+      fileName: 'windspeaker',
       description: '',
       stats: [4, 3, 3],
       rarity: RARITY.FREE,
@@ -534,6 +503,7 @@ const RARITY = {
     {
       class: CLASS.SHAMAN,
       name: 'Earth Elemental',
+      fileName: 'earth_elemental',
       description: '',
       stats: [5, 7, 8],
       rarity: RARITY.EPIC,
@@ -544,6 +514,7 @@ const RARITY = {
     {
       class: CLASS.SHAMAN,
       name: 'Fire Elemental',
+      fileName: 'fire_elemental',
       description: '',
       stats: [6, 6, 5],
       rarity: RARITY.FREE,
@@ -554,6 +525,7 @@ const RARITY = {
     {
       class: CLASS.SHAMAN,
       name: "Al'Akir the Windlord",
+      fileName: 'alakir_the_windlord',
       description: '',
       stats: [8, 3, 5],
       rarity: RARITY.LEGENDARY,
@@ -565,6 +537,7 @@ const RARITY = {
     {
       class: CLASS.WARLOCK,
       name: 'Blood Imp',
+      fileName: 'blood_imp',
       description: '',
       stats: [1, 0, 1],
       rarity: RARITY.COMMON,
@@ -575,6 +548,7 @@ const RARITY = {
     {
       class: CLASS.WARLOCK,
       name: 'Flame Imp',
+      fileName: 'flame_imp',
       description: '',
       stats: [1, 3, 2],
       rarity: RARITY.COMMON,
@@ -585,6 +559,7 @@ const RARITY = {
     {
       class: CLASS.WARLOCK,
       name: 'Voidwalker',
+      fileName: 'voidwalker',
       description: '',
       stats: [1, 1, 3],
       rarity: RARITY.FREE,
@@ -595,6 +570,7 @@ const RARITY = {
     {
       class: CLASS.WARLOCK,
       name: 'Felstalker',
+      fileName: 'felstalker',
       description: '',
       stats: [2, 4, 3],
       rarity: RARITY.FREE,
@@ -605,6 +581,7 @@ const RARITY = {
     {
       class: CLASS.WARLOCK,
       name: 'Felguard',
+      fileName: 'felguard',
       description: '',
       stats: [3, 3, 5],
       rarity: RARITY.RARE,
@@ -615,6 +592,7 @@ const RARITY = {
     {
       class: CLASS.WARLOCK,
       name: 'Void Terror',
+      fileName: 'void_terror',
       description: '',
       stats: [3, 3, 3],
       rarity: RARITY.RARE,
@@ -625,6 +603,7 @@ const RARITY = {
     {
       class: CLASS.WARLOCK,
       name: 'Pit Lord',
+      fileName: 'pit_lord',
       description: '',
       stats: [4, 5, 6],
       rarity: RARITY.RARE,
@@ -635,6 +614,7 @@ const RARITY = {
     {
       class: CLASS.WARLOCK,
       name: 'Summoning Portal',
+      fileName: 'summoning_portal',
       description: '',
       stats: [4, 0, 4],
       rarity: RARITY.COMMON,
@@ -645,6 +625,7 @@ const RARITY = {
     {
       class: CLASS.WARLOCK,
       name: 'Doomguard',
+      fileName: 'doomguard',
       description: '',
       stats: [5, 5, 7],
       rarity: RARITY.RARE,
@@ -655,6 +636,7 @@ const RARITY = {
     {
       class: CLASS.WARLOCK,
       name: 'Dread Infernal',
+      fileName: 'dread_infernal',
       description: '',
       stats: [6, 6, 6],
       rarity: RARITY.FREE,
@@ -665,6 +647,7 @@ const RARITY = {
     {
       class: CLASS.WARLOCK,
       name: 'Lord Jaraxxus',
+      fileName: 'lord_jaraxxus',
       description: '',
       stats: [9, 3, 15],
       rarity: RARITY.LEGENDARY,
@@ -676,6 +659,7 @@ const RARITY = {
     {
       class: CLASS.WARRIOR,
       name: 'Armorsmith',
+      fileName: 'armorsmith',
       description: '',
       stats: [2, 1, 4],
       rarity: RARITY.RARE,
@@ -686,6 +670,7 @@ const RARITY = {
     {
       class: CLASS.WARRIOR,
       name: 'Cruel Taskmaster',
+      fileName: 'cruel_taskmaster',
       description: '',
       stats: [2, 2, 2],
       rarity: RARITY.COMMON,
@@ -696,6 +681,7 @@ const RARITY = {
     {
       class: CLASS.WARRIOR,
       name: 'Frothing Berserker',
+      fileName: 'frothing_berserker',
       description: '',
       stats: [3, 2, 4],
       rarity: RARITY.RARE,
@@ -706,6 +692,7 @@ const RARITY = {
     {
       class: CLASS.WARRIOR,
       name: 'Warsong Commander',
+      fileName: 'warsong_commander',
       description: '',
       stats: [3, 2, 3],
       rarity: RARITY.FREE,
@@ -716,6 +703,7 @@ const RARITY = {
     {
       class: CLASS.WARRIOR,
       name: 'Arathi Weaponsmith',
+      fileName: 'arathi_weaponsmith',
       description: '',
       stats: [4, 3, 3],
       rarity: RARITY.COMMON,
@@ -726,6 +714,7 @@ const RARITY = {
     {
       class: CLASS.WARRIOR,
       name: "Kor'kron Elite",
+      fileName: 'korkron_elite',
       description: '',
       stats: [4, 4, 3],
       rarity: RARITY.FREE,
@@ -736,6 +725,7 @@ const RARITY = {
     {
       class: CLASS.WARRIOR,
       name: 'Grommash Hellscream',
+      fileName: 'grommash_hellscream',
       description: '',
       stats: [8, 4, 9],
       rarity: RARITY.LEGENDARY,
@@ -747,6 +737,5 @@ const RARITY = {
 
 module.exports = {
   ATTRIBUTES,
-  MINION_IDS,
   MINION_DATA,
 }

@@ -82,8 +82,8 @@ export class BoardView {
     $('.card--placeholder').remove()
   }
 
-  changeStats(minionID, stats) {
-    const index = this.board.findIndex((c) => c.minionID == minionID)
+  changeStats(uniqueID, stats) {
+    const index = this.board.findIndex((c) => c.uniqueID == uniqueID)
     if (index == -1) {
       return
     }

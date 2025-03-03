@@ -97,7 +97,7 @@ class GAME {
       socket: ws,
       event: 'minionDied',
       onSuccess: (data) => {
-        console.log(`${data.minion.minionID} died`)
+        console.log(`${data.minion.uniqueID} died`)
         this.triggerEvent('getGameState')
       },
     })
@@ -106,7 +106,7 @@ class GAME {
       socket: ws,
       event: 'minionPlayed',
       onSuccess: (data) => {
-        console.log(`${data.minion.minionID} played`)
+        console.log(`${data.minion.uniqueID} played`)
         // this.playerBoardView.playMinion(data.minion, data.boardIndex)
         // this.playerHandView.removeCard(data.minion)
         this.triggerEvent('getGameState')
@@ -118,11 +118,11 @@ class GAME {
       event: 'changeStats',
       onSuccess: (data) => {
         console.log(
-          `${data.minion.minionID} stats changed to ${data.minion.mana}-${data.minion.attack}-${data.minion.health}`
+          `${data.minion.uniqueID} stats changed to ${data.minion.mana}-${data.minion.attack}-${data.minion.health}`
         )
         // TODO: find a better way to do this. maybe have some minion pool shared between the two objects?
-        // this.playerBoardView.changeStats(data.minionID, data.stats)
-        // this.playerHandView.changeStats(data.minionID, data.stats)
+        // this.playerBoardView.changeStats(data.uniqueID, data.stats)
+        // this.playerHandView.changeStats(data.uniqueID, data.stats)
         this.triggerEvent('getGameState')
       },
     })
@@ -131,7 +131,7 @@ class GAME {
       socket: ws,
       event: 'applyDamage',
       onSuccess: (data) => {
-        console.log(`${data.minion.minionID} takes ${data.damage} damage`)
+        console.log(`${data.minion.uniqueID} takes ${data.damage} damage`)
         this.triggerEvent('getGameState')
       },
     })
@@ -141,7 +141,7 @@ class GAME {
       event: 'attack',
       onSuccess: (data) => {
         console.log(
-          `${data.attacker.minionID} attacked ${data.target.minionID}`
+          `${data.attacker.uniqueID} attacked ${data.target.uniqueID}`
         )
         this.triggerEvent('getGameState')
       },

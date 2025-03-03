@@ -84,17 +84,17 @@ export class TargetController {
     if (event.target.classList.contains('cardInPlay--opponent')) {
       if (!this.attackerCard) {
         GAME.triggerEvent('tryEffect', {
-          targetID: JSON.parse(event.target.dataset.minion).minionID,
+          targetID: JSON.parse(event.target.dataset.minion).uniqueID,
         })
       } else {
         GAME.triggerEvent('tryAttack', {
-          attackerID: JSON.parse(this.attackerCard.dataset.minion).minionID,
-          targetID: JSON.parse(event.target.dataset.minion).minionID,
+          attackerID: JSON.parse(this.attackerCard.dataset.minion).uniqueID,
+          targetID: JSON.parse(event.target.dataset.minion).uniqueID,
         })
       }
     } else if (event.target.id == 'opponentHero') {
       GAME.triggerEvent('tryAttack', {
-        attackerID: JSON.parse(this.attackerCard.dataset.minion).minionID,
+        attackerID: JSON.parse(this.attackerCard.dataset.minion).uniqueID,
         targetID: -2, // TODO: make a list of shared enums between server and client for stuff like this
       })
     } else if (!this.attackerCard && this.targetting) {

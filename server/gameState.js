@@ -1,20 +1,17 @@
 const { engine } = require('./engine.js')
 const { notifyClient } = require('./ws.js')
 const { generateMinion } = require('./minionData/generateMinion.js')
-const {
-  ATTRIBUTES,
-  MINION_IDS,
-  MINION_DATA,
-} = require('./minionData/baseMinionData.js')
+const MINION_ID = require('./minionData/minionID.json')
 const Minion = require('./minionData/minion.js')
 /** @typedef {Object} Minion */
 
 const playerDeckStorage = [
-    MINION_IDS.ARMORSMITH,
-    MINION_IDS.TIRION_FORDRING,
-    MINION_IDS.MANA_WYRM,
-    MINION_IDS.LIGHTWELL,
-    MINION_IDS.GUARDIAN_OF_KINGS,
+    MINION_ID.ARMORSMITH,
+    MINION_ID.TIRION_FORDRING,
+    MINION_ID.MANA_WYRM,
+    MINION_ID.LIGHTWELL,
+    MINION_ID.GUARDIAN_OF_KINGS,
+    MINION_ID.FIRE_ELEMENTAL,
   ],
   opponentDeckStorage = []
 
@@ -35,29 +32,21 @@ class GameState {
     this.opponentHand = []
     this.playerBoard = []
     this.opponentBoard = [
+      generateMinion(MINION_ID.CENARIUS, this.getUniqueID(), OPPONENT_ID),
+      generateMinion(MINION_ID.KORKRON_ELITE, this.getUniqueID(), OPPONENT_ID),
       generateMinion(
-        MINION_IDS.CENARIUS,
-        this.getUniqueMinionID(),
+        MINION_ID.SUMMONING_PORTAL,
+        this.getUniqueID(),
         OPPONENT_ID
       ),
       generateMinion(
-        MINION_IDS.KORKRON_ELITE,
-        this.getUniqueMinionID(),
+        MINION_ID.MANA_TIDE_TOTEM,
+        this.getUniqueID(),
         OPPONENT_ID
       ),
       generateMinion(
-        MINION_IDS.SUMMONING_PORTAL,
-        this.getUniqueMinionID(),
-        OPPONENT_ID
-      ),
-      generateMinion(
-        MINION_IDS.MANA_TIDE_TOTEM,
-        this.getUniqueMinionID(),
-        OPPONENT_ID
-      ),
-      generateMinion(
-        MINION_IDS.ARATHI_WEAPONSMITH,
-        this.getUniqueMinionID(),
+        MINION_ID.ARATHI_WEAPONSMITH,
+        this.getUniqueID(),
         OPPONENT_ID
       ),
     ]
@@ -84,7 +73,7 @@ class GameState {
       'gameState', // TRY CHANGING THIS TO "this"
       'tryMinionPlayed', // AND GET RID OF THIS. JUST HAVE engine DIRECTLY EXECUTE LISTENERS WITH this.listener(data, done)
       (data, done) => {
-        this.tryMinionPlayed(data.isPlayer, data.boardIndex, data.minionID)
+        this.tryMinionPlayed(data.isPlayer, data.boardIndex, data.uniqueID)
         done()
       }
     )
@@ -126,17 +115,17 @@ class GameState {
     }
   }
 
-  getUniqueMinionID() {
+  getUniqueID() {
     return this.uniqueMinionNumber++
   }
 
   startGame() {
     this.playerDeck = playerDeckStorage.map((minion) =>
-      generateMinion(minion, this.getUniqueMinionID(), PLAYER_ID)
+      generateMinion(minion, this.getUniqueID(), PLAYER_ID)
     )
 
     this.opponentDeck = opponentDeckStorage.map((minion) =>
-      generateMinion(minion, this.getUniqueMinionID(), OPPONENT_ID)
+      generateMinion(minion, this.getUniqueID(), OPPONENT_ID)
     )
 
     const shuffleDeck = (deck) => {
@@ -174,15 +163,15 @@ class GameState {
     }
   }
 
-  tryMinionPlayed(isPlayer, boardIndex, minionID) {
+  tryMinionPlayed(isPlayer, boardIndex, uniqueID) {
     if (isPlayer) {
       const index = this.playerHand.findIndex(
-        (minion) => minion.minionID == minionID
+        (minion) => minion.uniqueID == uniqueID
       )
 
       if (index === -1) {
         notifyClient('tryMinionPlayed', false, this.toJSON())
-        console.error(`Could not find minion ${minionID}`)
+        console.error(`Could not find minion ${uniqueID}`)
         return
       }
 
@@ -317,9 +306,9 @@ class GameState {
   }
 
   /** @returns {Minion} */
-  getBoardMinion(minionID) {
+  getBoardMinion(uniqueID) {
     return [...this.playerBoard, ...this.opponentBoard].find(
-      (minion) => minion.minionID == minionID
+      (minion) => minion.uniqueID == uniqueID
     )
   }
 }

@@ -48,7 +48,7 @@ export class MinionHandView {
 
     playerInfoValueInHand.innerText = this.minion.description
     playerNameValueInHand.innerText = this.minion.name
-    playerCardFaceInHandDiv.style.backgroundImage = `url(../media/images/cardimages/${this.minion.minionFileName}.jpg)`
+    playerCardFaceInHandDiv.style.backgroundImage = `url(../media/images/cardimages/${this.minion.fileName}.jpg)`
 
     return cardDiv
   }

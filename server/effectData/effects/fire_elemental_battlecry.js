@@ -1,17 +1,17 @@
 const Effect = require('../effect.js')
 const EFFECT_ID = require('../effectID.json')
 
-class guardian_of_kings_battlecry extends Effect {
+class fire_elemental_battlecry extends Effect {
   constructor(owner) {
-    super(EFFECT_ID.GUARDIAN_OF_KINGS_BATTLECRY, owner)
+    super(EFFECT_ID.FIRE_ELEMENTAL_BATTLECRY, owner)
   }
 
   apply(gameState, source, target) {
-    if (this.requiresTarget && !target) {
+    if ((this.canTarget || this.requiresTarget) && !target) {
       console.error('Target required for targeted damage effect')
     }
 
-    if (this.requiresTarget) {
+    if (this.canTarget || this.requiresTarget) {
       // Single target damage
       target.takeDamage(source, this.amount)
       console.log(
@@ -31,4 +31,4 @@ class guardian_of_kings_battlecry extends Effect {
   }
 }
 
-module.exports = guardian_of_kings_battlecry
+module.exports = fire_elemental_battlecry

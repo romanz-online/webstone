@@ -1,25 +1,32 @@
 const Enum = require('enum')
 
-const CLASS = new Enum([
-  DRUID,
-  HUNTER,
-  MAGE,
-  PALADIN,
-  PRIEST,
-  ROGUE,
-  SHAMAN,
-  WARLOCK,
-  WARRIOR,
-])
+const CLASS = new Enum(
+  [
+    'DRUID',
+    'HUNTER',
+    'MAGE',
+    'PALADIN',
+    'PRIEST',
+    'ROGUE',
+    'SHAMAN',
+    'WARLOCK',
+    'WARRIOR',
+  ],
+  { start: 0 }
+)
 
-const TYPE = new Enum([
-  SPELL,
-  CHOOSE_ONE,
-  BATTLECRY,
-  DEATHRATTLE,
-  AURA,
-  GENERIC, // not any of the others; shouldn't trigger any additional effects
-])
+const TYPE = new Enum(
+  [
+    'SPELL',
+    'CHOOSE_ONE',
+    'COMBO',
+    'BATTLECRY',
+    'DEATHRATTLE',
+    'AURA',
+    'GENERIC', // not any of the others; shouldn't trigger any additional effects
+  ],
+  { start: 0 }
+)
 
 const RARITY = {
     COMMON: 'Common',
@@ -28,12 +35,12 @@ const RARITY = {
     EPIC: 'Epic',
     LEGENDARY: 'Legendary',
   },
-  EFFECT_DATA = {
+  EFFECT_DATA = [
     // effect objects will have more data than this
     // these are just the baseline values
 
     // DRUID
-    INNERVATE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'innervate', // for card displays on spells and "choose one"
       class: CLASS.DRUID.value,
@@ -44,10 +51,11 @@ const RARITY = {
       amount: [0], // doesn't apply when not affected by spellpower
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    MOONFIRE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'moonfire',
       class: CLASS.DRUID.value,
@@ -58,10 +66,11 @@ const RARITY = {
       amount: [1],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    CLAW: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'claw',
       class: CLASS.DRUID.value,
@@ -72,10 +81,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    NATURALIZE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'naturalize',
       class: CLASS.DRUID.value,
@@ -86,10 +96,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    SAVAGERY: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'savagery',
       class: CLASS.DRUID.value,
@@ -100,10 +111,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    MARK_OF_THE_WILD: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'mark_of_the_wild',
       class: CLASS.DRUID.value,
@@ -115,10 +127,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    POWER_OF_THE_WILD: {
+    {
       type: TYPE.CHOOSE_ONE.value,
       fileName: 'power_of_the_wild',
       class: CLASS.DRUID.value,
@@ -130,10 +143,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    POWER_OF_THE_WILD_LEADER_OF_THE_PACK: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'power_of_the_wild_leader_of_the_pack',
       class: CLASS.DRUID.value,
@@ -144,10 +158,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
-      requiresTarget: true,
+      canTarget: false,
+      requiresTarget: false,
       obtainable: false,
     },
-    POWER_OF_THE_WILD_SUMMON_A_PANTHER: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'power_of_the_wild_summon_a_panther',
       class: CLASS.DRUID.value,
@@ -158,10 +173,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-    WILD_GROWTH: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'wild_growth',
       class: CLASS.DRUID.value,
@@ -172,10 +188,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    WRATH: {
+    {
       type: TYPE.CHOOSE_ONE.value,
       fileName: 'wrath',
       class: CLASS.DRUID.value,
@@ -187,10 +204,11 @@ const RARITY = {
       amount: [3, 1],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: false,
       obtainable: true,
     },
-    WRATH_NATURES_WRATH: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'wrath_natures_wrath',
       class: CLASS.DRUID.value,
@@ -201,10 +219,11 @@ const RARITY = {
       amount: [1],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: false,
     },
-    WRATH_SOLAR_WRATH: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'wrath_solar_wrath',
       class: CLASS.DRUID.value,
@@ -215,10 +234,11 @@ const RARITY = {
       amount: [3],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: false,
     },
-    HEALING_TOUCH: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'healing_touch',
       class: CLASS.DRUID.value,
@@ -229,10 +249,11 @@ const RARITY = {
       amount: [8],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    MARK_OF_NATURE: {
+    {
       type: TYPE.CHOOSE_ONE.value,
       fileName: 'mark_of_nature',
       class: CLASS.DRUID.value,
@@ -244,10 +265,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    MARK_OF_NATURE_TIGERS_FURY: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'mark_of_nature_tigers_fury',
       class: CLASS.DRUID.value,
@@ -258,10 +280,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: false,
     },
-    MARK_OF_NATURE_THICK_HIDE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'mark_of_nature_thick_hide',
       class: CLASS.DRUID.value,
@@ -272,10 +295,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: false,
     },
-    SAVAGE_ROAR: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'savage_roar',
       class: CLASS.DRUID.value,
@@ -286,10 +310,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    BITE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'bite',
       class: CLASS.DRUID.value,
@@ -300,10 +325,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    SOUL_OF_THE_FOREST: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'soul_of_the_forest',
       class: CLASS.DRUID.value,
@@ -315,10 +341,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    SWIPE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'swipe',
       class: CLASS.DRUID.value,
@@ -330,10 +357,11 @@ const RARITY = {
       amount: [4, 1],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    NOURISH: {
+    {
       type: TYPE.CHOOSE_ONE.value,
       fileName: 'nourish',
       class: CLASS.DRUID.value,
@@ -345,10 +373,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    NOURISH_ENRICH: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'nourish_enrich',
       class: CLASS.DRUID.value,
@@ -359,10 +388,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-    NOURISH_RAMPANT_GROWTH: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'nourish_rampant_growth',
       class: CLASS.DRUID.value,
@@ -373,10 +403,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-    STARFALL: {
+    {
       type: TYPE.CHOOSE_ONE.value,
       fileName: 'starfall',
       class: CLASS.DRUID.value,
@@ -388,10 +419,11 @@ const RARITY = {
       amount: [5, 2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    STARFALL_STARLORD: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'starfall_starlord',
       class: CLASS.DRUID.value,
@@ -402,10 +434,11 @@ const RARITY = {
       amount: [5],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: false,
     },
-    STARFALL_STELLAR_DRIFT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'starfall_stellar_drift',
       class: CLASS.DRUID.value,
@@ -416,10 +449,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-    FORCE_OF_NATURE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'force_of_nature',
       class: CLASS.DRUID.value,
@@ -431,10 +465,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    STARFIRE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'starfire',
       class: CLASS.DRUID.value,
@@ -445,11 +480,12 @@ const RARITY = {
       amount: [5],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
     // HUNTER
-    HUNTERS_MARK: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'hunters_mark',
       class: CLASS.HUNTER.value,
@@ -460,10 +496,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    ARCANE_SHOT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'arcane_shot',
       class: CLASS.HUNTER.value,
@@ -474,10 +511,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    BESTIAL_WRATH: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'bestial_wrath',
       class: CLASS.HUNTER.value,
@@ -488,10 +526,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    FLARE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'flare',
       class: CLASS.HUNTER.value,
@@ -503,10 +542,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    TRACKING: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'tracking',
       class: CLASS.HUNTER.value,
@@ -518,10 +558,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    EXPLOSIVE_TRAP: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'explosive_trap',
       class: CLASS.HUNTER.value,
@@ -533,10 +574,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    FREEZING_TRAP: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'freezing_trap',
       class: CLASS.HUNTER.value,
@@ -548,10 +590,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    MISDIRECTION: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'misdirection',
       class: CLASS.HUNTER.value,
@@ -563,10 +606,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    SNAKE_TRAP: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'snake_trap',
       class: CLASS.HUNTER.value,
@@ -578,10 +622,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    SNIPE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'snipe',
       class: CLASS.HUNTER.value,
@@ -593,10 +638,11 @@ const RARITY = {
       amount: [4],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    ANIMAL_COMPANION: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'animal_companion',
       class: CLASS.HUNTER.value,
@@ -607,10 +653,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    DEADLY_SHOT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'deadly_shot',
       class: CLASS.HUNTER.value,
@@ -621,10 +668,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    KILL_COMMAND: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'kill_command',
       class: CLASS.HUNTER.value,
@@ -636,10 +684,11 @@ const RARITY = {
       amount: [3, 5],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    UNLEASH_THE_HOUNDS: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'unleash_the_hounds',
       class: CLASS.HUNTER.value,
@@ -651,10 +700,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    MULTI_SHOT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'multi_shot',
       class: CLASS.HUNTER.value,
@@ -665,10 +715,11 @@ const RARITY = {
       amount: [3],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    EXPLOSIVE_SHOT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'explosive_shot',
       class: CLASS.HUNTER.value,
@@ -680,11 +731,12 @@ const RARITY = {
       amount: [5, 2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
     // MAGE
-    ARCANE_MISSILES: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'arcane_missiles',
       class: CLASS.MAGE.value,
@@ -696,10 +748,11 @@ const RARITY = {
       amount: [3],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    ICE_LANCE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'ice_lance',
       class: CLASS.MAGE.value,
@@ -711,10 +764,11 @@ const RARITY = {
       amount: [4],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    MIRROR_IMAGE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'mirror_image',
       class: CLASS.MAGE.value,
@@ -725,10 +779,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    ARCANE_EXPLOSION: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'arcane_explosion',
       class: CLASS.MAGE.value,
@@ -739,10 +794,11 @@ const RARITY = {
       amount: [1],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    FROSTBOLT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'frostbolt',
       class: CLASS.MAGE.value,
@@ -754,10 +810,11 @@ const RARITY = {
       amount: [3],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    ARCANE_INTELLECT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'arcane_intellect',
       class: CLASS.MAGE.value,
@@ -768,10 +825,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    COUNTERSPELL: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'counterspell',
       class: CLASS.MAGE.value,
@@ -783,10 +841,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    FROST_NOVA: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'frost_nova',
       class: CLASS.MAGE.value,
@@ -797,10 +856,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    ICE_BARRIER: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'ice_barrier',
       class: CLASS.MAGE.value,
@@ -812,10 +872,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    ICE_BLOCK: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'ice_block',
       class: CLASS.MAGE.value,
@@ -827,10 +888,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    MIRROR_ENTITY: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'mirror_entity',
       class: CLASS.MAGE.value,
@@ -842,10 +904,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    SPELLBENDER: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'spellbender',
       class: CLASS.MAGE.value,
@@ -857,10 +920,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    VAPORIZE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'vaporize',
       class: CLASS.MAGE.value,
@@ -872,10 +936,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    CONE_OF_COLD: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'cone_of_cold',
       class: CLASS.MAGE.value,
@@ -887,10 +952,11 @@ const RARITY = {
       amount: [1],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    FIREBALL: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'fireball',
       class: CLASS.MAGE.value,
@@ -901,10 +967,11 @@ const RARITY = {
       amount: [6],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    POLYMORPH: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'polymorph',
       class: CLASS.MAGE.value,
@@ -915,10 +982,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    BLIZZARD: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'blizzard',
       class: CLASS.MAGE.value,
@@ -930,10 +998,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    FLAMESTRIKE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'flamestrike',
       class: CLASS.MAGE.value,
@@ -944,10 +1013,11 @@ const RARITY = {
       amount: [4],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    PYROBLAST: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'pyroblast',
       class: CLASS.MAGE.value,
@@ -958,11 +1028,12 @@ const RARITY = {
       amount: [10],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
     // PALADIN
-    BLESSING_OF_MIGHT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'blessing_of_might',
       class: CLASS.PALADIN.value,
@@ -973,10 +1044,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    BLESSING_OF_WISDOM: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'blessing_of_wisdom',
       class: CLASS.PALADIN.value,
@@ -987,10 +1059,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    EYE_FOR_AN_EYE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'eye_for_an_eye',
       class: CLASS.PALADIN.value,
@@ -1002,10 +1075,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    HAND_OF_PROTECTION: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'hand_of_protection',
       class: CLASS.PALADIN.value,
@@ -1016,10 +1090,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    HUMILITY: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'humility',
       class: CLASS.PALADIN.value,
@@ -1030,10 +1105,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    NOBLE_SACRIFICE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'noble_sacrifice',
       class: CLASS.PALADIN.value,
@@ -1045,10 +1121,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    REDEMPTION: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'redemption',
       class: CLASS.PALADIN.value,
@@ -1060,10 +1137,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    REPENTANCE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'repentance',
       class: CLASS.PALADIN.value,
@@ -1075,10 +1153,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    EQUALITY: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'equality',
       class: CLASS.PALADIN.value,
@@ -1089,10 +1168,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    HOLY_LIGHT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'holy_light',
       class: CLASS.PALADIN.value,
@@ -1103,10 +1183,11 @@ const RARITY = {
       amount: [6],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    DIVINE_FAVOR: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'divine_favor',
       class: CLASS.PALADIN.value,
@@ -1118,10 +1199,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    BLESSING_OF_KINGS: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'blessing_of_kings',
       class: CLASS.PALADIN.value,
@@ -1132,10 +1214,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    CONSECRATION: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'consecration',
       class: CLASS.PALADIN.value,
@@ -1146,10 +1229,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    HAMMER_OF_WRATH: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'hammer_of_wrath',
       class: CLASS.PALADIN.value,
@@ -1160,10 +1244,11 @@ const RARITY = {
       amount: [3],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    BLESSED_CHAMPION: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'blessed_champion',
       class: CLASS.PALADIN.value,
@@ -1174,10 +1259,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    HOLY_WRATH: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'holy_wrath',
       class: CLASS.PALADIN.value,
@@ -1188,10 +1274,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    AVENGING_WRATH: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'avenging_wrath',
       class: CLASS.PALADIN.value,
@@ -1203,10 +1290,11 @@ const RARITY = {
       amount: [8],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    LAY_ON_HANDS: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'lay_on_hands',
       class: CLASS.PALADIN.value,
@@ -1217,11 +1305,12 @@ const RARITY = {
       amount: [8],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
     // PRIEST
-    CIRCLE_OF_HEALING: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'circle_of_healing',
       class: CLASS.PRIEST.value,
@@ -1232,10 +1321,11 @@ const RARITY = {
       amount: [4],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    SILENCE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'silence',
       class: CLASS.PRIEST.value,
@@ -1246,10 +1336,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    HOLY_SMITE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'holy_smite',
       class: CLASS.PRIEST.value,
@@ -1260,10 +1351,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    INNER_FIRE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'inner_fire',
       class: CLASS.PRIEST.value,
@@ -1274,10 +1366,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    MIND_VISION: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'mind_vision',
       class: CLASS.PRIEST.value,
@@ -1289,10 +1382,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    POWER_WORD_SHIELD: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'power_word_shield',
       class: CLASS.PRIEST.value,
@@ -1303,10 +1397,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    DIVINE_SPIRIT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'divine_spirit',
       class: CLASS.PRIEST.value,
@@ -1317,10 +1412,11 @@ const RARITY = {
       amount: 0,
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    MIND_BLAST: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'mind_blast',
       class: CLASS.PRIEST.value,
@@ -1331,10 +1427,11 @@ const RARITY = {
       amount: [5],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    SHADOW_WORD_PAIN: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'shadow_word_pain',
       class: CLASS.PRIEST.value,
@@ -1345,10 +1442,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    SHADOW_WORD_DEATH: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'shadow_word_death',
       class: CLASS.PRIEST.value,
@@ -1359,10 +1457,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    SHADOWFORM: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'shadowform',
       class: CLASS.PRIEST.value,
@@ -1374,10 +1473,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    THOUGHTSTEAL: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'thoughtsteal',
       class: CLASS.PRIEST.value,
@@ -1389,10 +1489,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    MASS_DISPEL: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'mass_dispel',
       class: CLASS.PRIEST.value,
@@ -1403,10 +1504,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    MINDGAMES: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'mindgames',
       class: CLASS.PRIEST.value,
@@ -1418,10 +1520,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    SHADOW_MADNESS: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'shadow_madness',
       class: CLASS.PRIEST.value,
@@ -1433,10 +1536,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    HOLY_NOVA: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'holy_nova',
       class: CLASS.PRIEST.value,
@@ -1448,10 +1552,11 @@ const RARITY = {
       amount: [2, 2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    HOLY_FIRE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'holy_fire',
       class: CLASS.PRIEST.value,
@@ -1463,10 +1568,11 @@ const RARITY = {
       amount: [5, 5],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    MIND_CONTROL: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'mind_control',
       class: CLASS.PRIEST.value,
@@ -1477,11 +1583,12 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
     // ROGUE
-    BACKSTAB: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'backstab',
       class: CLASS.ROGUE.value,
@@ -1492,10 +1599,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    PREPARATION: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'preparation',
       class: CLASS.ROGUE.value,
@@ -1506,10 +1614,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    SHADOWSTEP: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'shadowstep',
       class: CLASS.ROGUE.value,
@@ -1521,10 +1630,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: true,
       obtainable: true,
     },
-    COLD_BLOOD: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'cold_blood',
       class: CLASS.ROGUE.value,
@@ -1536,10 +1646,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    CONCEAL: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'conceal',
       class: CLASS.ROGUE.value,
@@ -1550,10 +1661,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    DEADLY_POISON: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'deadly_poison',
       class: CLASS.ROGUE.value,
@@ -1564,10 +1676,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    SINISTER_STRIKE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'sinister_strike',
       class: CLASS.ROGUE.value,
@@ -1578,10 +1691,11 @@ const RARITY = {
       amount: [3],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    BETRAYAL: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'betrayal',
       class: CLASS.ROGUE.value,
@@ -1593,10 +1707,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    BLADE_FLURRY: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'blade_flurry',
       class: CLASS.ROGUE.value,
@@ -1608,10 +1723,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    EVISCERATE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'eviscerate',
       class: CLASS.ROGUE.value,
@@ -1623,10 +1739,11 @@ const RARITY = {
       amount: [2, 4],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    SAP: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'sap',
       class: CLASS.ROGUE.value,
@@ -1637,10 +1754,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    SHIV: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'shiv',
       class: CLASS.ROGUE.value,
@@ -1651,10 +1769,11 @@ const RARITY = {
       amount: [1],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    FAN_OF_KNIVES: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'fan_of_knives',
       class: CLASS.ROGUE.value,
@@ -1666,10 +1785,11 @@ const RARITY = {
       amount: [1],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    HEADCRACK: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'headcrack',
       class: CLASS.ROGUE.value,
@@ -1681,10 +1801,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    ASSASSINATE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'assassinate',
       class: CLASS.ROGUE.value,
@@ -1695,10 +1816,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    VANISH: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'vanish',
       class: CLASS.ROGUE.value,
@@ -1709,10 +1831,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    SPRINT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'sprint',
       class: CLASS.ROGUE.value,
@@ -1723,11 +1846,12 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
     // SHAMAN
-    ANCESTRAL_HEALING: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'ancestral_healing',
       class: CLASS.SHAMAN.value,
@@ -1739,10 +1863,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    TOTEMIC_MIGHT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'totemic_might',
       class: CLASS.SHAMAN.value,
@@ -1753,10 +1878,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    EARTH_SHOCK: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'earth_shock',
       class: CLASS.SHAMAN.value,
@@ -1768,10 +1894,11 @@ const RARITY = {
       amount: [1],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    FORKED_LIGHTNING: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'forked_lightning',
       class: CLASS.SHAMAN.value,
@@ -1783,10 +1910,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: true,
       overload: 2,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    FROST_SHOCK: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'frost_shock',
       class: CLASS.SHAMAN.value,
@@ -1798,10 +1926,11 @@ const RARITY = {
       amount: [1],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    LIGHTNING_BOLT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'lightning_bolt',
       class: CLASS.SHAMAN.value,
@@ -1812,10 +1941,11 @@ const RARITY = {
       amount: [3],
       affectedBySpellpower: true,
       overload: 1,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    ROCKBITER_WEAPON: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'rockbiter_weapon',
       class: CLASS.SHAMAN.value,
@@ -1826,10 +1956,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    ANCESTRAL_SPIRIT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'ancestral_spirit',
       class: CLASS.SHAMAN.value,
@@ -1841,10 +1972,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    WINDFURY: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'windfury',
       class: CLASS.SHAMAN.value,
@@ -1855,10 +1987,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    FAR_SIGHT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'far_sight',
       class: CLASS.SHAMAN.value,
@@ -1869,10 +2002,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    FERAL_SPIRIT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'feral_spirit',
       class: CLASS.SHAMAN.value,
@@ -1884,10 +2018,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 2,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    HEX: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'hex',
       class: CLASS.SHAMAN.value,
@@ -1898,10 +2033,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    LAVA_BURST: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'lava_burst',
       class: CLASS.SHAMAN.value,
@@ -1912,10 +2048,11 @@ const RARITY = {
       amount: [5],
       affectedBySpellpower: true,
       overload: 2,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    LIGHTNING_STORM: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'lightning_storm',
       class: CLASS.SHAMAN.value,
@@ -1927,10 +2064,11 @@ const RARITY = {
       amount: [2, 3],
       affectedBySpellpower: true,
       overload: 2,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    BLOODLUST: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'bloodlust',
       class: CLASS.SHAMAN.value,
@@ -1941,11 +2079,12 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
     // WARLOCK
-    SACRIFICIAL_PACT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'sacrificial_pact',
       class: CLASS.WARLOCK.value,
@@ -1957,10 +2096,11 @@ const RARITY = {
       amount: [5],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    SOULFIRE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'soulfire',
       class: CLASS.WARLOCK.value,
@@ -1971,10 +2111,11 @@ const RARITY = {
       amount: [4],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    CORRUPTION: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'corruption',
       class: CLASS.WARLOCK.value,
@@ -1986,10 +2127,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    MORTAL_COIL: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'mortal_coil',
       class: CLASS.WARLOCK.value,
@@ -2001,10 +2143,11 @@ const RARITY = {
       amount: [1],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    POWER_OVERWHELMING: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'power_overwhelming',
       class: CLASS.WARLOCK.value,
@@ -2016,10 +2159,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    DEMONFIRE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'demonfire',
       class: CLASS.WARLOCK.value,
@@ -2031,10 +2175,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    DRAIN_LIFE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'drain_life',
       class: CLASS.WARLOCK.value,
@@ -2046,10 +2191,11 @@ const RARITY = {
       amount: [2, 2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    SENSE_DEMONS: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'sense_demons',
       class: CLASS.WARLOCK.value,
@@ -2060,10 +2206,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    SHADOW_BOLT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'shadow_bolt',
       class: CLASS.WARLOCK.value,
@@ -2074,10 +2221,11 @@ const RARITY = {
       amount: [4],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    HELLFIRE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'hellfire',
       class: CLASS.WARLOCK.value,
@@ -2088,10 +2236,11 @@ const RARITY = {
       amount: [3],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    SHADOWFLAME: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'shadowflame',
       class: CLASS.WARLOCK.value,
@@ -2103,10 +2252,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    BANE_OF_DOOM: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'bane_of_doom',
       class: CLASS.WARLOCK.value,
@@ -2118,10 +2268,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    SIPHON_SOUL: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'siphon_soul',
       class: CLASS.WARLOCK.value,
@@ -2133,10 +2284,11 @@ const RARITY = {
       amount: [3],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    TWISTING_NETHER: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'twisting_nether',
       class: CLASS.WARLOCK.value,
@@ -2147,11 +2299,12 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
     // WARRIOR
-    INNER_RAGE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'inner_rage',
       class: CLASS.WARRIOR.value,
@@ -2163,10 +2316,11 @@ const RARITY = {
       amount: [1],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    EXECUTE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'execute',
       class: CLASS.WARRIOR.value,
@@ -2177,10 +2331,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    SHIELD_SLAM: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'shield_slam',
       class: CLASS.WARRIOR.value,
@@ -2191,10 +2346,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    UPGRADE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'upgrade',
       class: CLASS.WARRIOR.value,
@@ -2206,10 +2362,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    WHIRLWIND: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'whirlwind',
       class: CLASS.WARRIOR.value,
@@ -2220,10 +2377,11 @@ const RARITY = {
       amount: [1],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    BATTLE_RAGE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'battle_rage',
       class: CLASS.WARRIOR.value,
@@ -2234,10 +2392,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    CLEAVE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'cleave',
       class: CLASS.WARRIOR.value,
@@ -2248,10 +2407,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    COMMANDING_SHOUT: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'commanding_shout',
       class: CLASS.WARRIOR.value,
@@ -2263,10 +2423,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    HEROIC_STRIKE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'heroic_strike',
       class: CLASS.WARRIOR.value,
@@ -2277,10 +2438,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    RAMPAGE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'rampage',
       class: CLASS.WARRIOR.value,
@@ -2291,10 +2453,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    SLAM: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'slam',
       class: CLASS.WARRIOR.value,
@@ -2306,10 +2469,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    CHARGE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'charge',
       class: CLASS.WARRIOR.value,
@@ -2320,10 +2484,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    SHIELD_BLOCK: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'shield_block',
       class: CLASS.WARRIOR.value,
@@ -2334,10 +2499,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
-    MORTAL_STRIKE: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'mortal_strike',
       class: CLASS.WARRIOR.value,
@@ -2349,10 +2515,11 @@ const RARITY = {
       amount: [4, 6],
       affectedBySpellpower: true,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: true,
     },
-    BRAWL: {
+    {
       type: TYPE.SPELL.value,
       fileName: 'brawl',
       class: CLASS.WARRIOR.value,
@@ -2364,6 +2531,7 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: true,
     },
@@ -2371,9 +2539,9 @@ const RARITY = {
     // OTHER
 
     // DRUID
-    KEEPER_OF_THE_GROVE_CHOOSE_ONE: {
+    {
       type: TYPE.CHOOSE_ONE.value,
-      fileName: '',
+      fileName: 'keeper_of_the_grove_choose_one',
       class: CLASS.DRUID.value,
       name: 'Choose One',
       baseDescription: '',
@@ -2382,10 +2550,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-    KEEPER_OF_THE_GROVE_CHOOSE_ONE_DISPEL: {
+    {
       type: TYPE.GENERIC.value,
       fileName: 'keeper_of_the_grove_choose_one_dispel',
       class: CLASS.DRUID.value,
@@ -2396,10 +2565,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: false,
     },
-    KEEPER_OF_THE_GROVE_CHOOSE_ONE_MOONFIRE: {
+    {
       type: TYPE.GENERIC.value,
       fileName: 'keeper_of_the_grove_choose_one_moonfire',
       class: CLASS.DRUID.value,
@@ -2410,10 +2580,11 @@ const RARITY = {
       amount: [2],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: false,
     },
-    DRUID_OF_THE_CLAW_CHOOSE_ONE: {
+    {
       type: TYPE.CHOOSE_ONE.value,
       fileName: 'druid_of_the_claw_choose_one',
       class: CLASS.DRUID.value,
@@ -2424,12 +2595,13 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-    ANCIENT_OF_LORE_CHOOSE_ONE: {
+    {
       type: TYPE.CHOOSE_ONE.value,
-      fileName: '',
+      fileName: 'ancient_of_lore_choose_one',
       class: CLASS.DRUID.value,
       name: 'Choose One',
       baseDescription: '',
@@ -2438,10 +2610,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-    ANCIENT_OF_LORE_CHOOSE_ONE_ANCIENT_SECRETS: {
+    {
       type: TYPE.GENERIC.value,
       fileName: 'ancient_of_lore_choose_one_ancient_secrets',
       class: CLASS.DRUID.value,
@@ -2452,10 +2625,11 @@ const RARITY = {
       amount: [7],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: true,
       requiresTarget: true,
       obtainable: false,
     },
-    ANCIENT_OF_LORE_CHOOSE_ONE_ANCIENT_TEACHINGS: {
+    {
       type: TYPE.GENERIC.value,
       fileName: 'ancient_of_lore_choose_one_ancient_teachings',
       class: CLASS.DRUID.value,
@@ -2466,12 +2640,13 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-    ANCIENT_OF_WAR_CHOOSE_ONE: {
+    {
       type: TYPE.CHOOSE_ONE.value,
-      fileName: '',
+      fileName: 'ancient_of_war_choose_one',
       class: CLASS.DRUID.value,
       name: 'Choose One',
       baseDescription: '',
@@ -2480,10 +2655,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-    ANCIENT_OF_WAR_CHOOSE_ONE_ROOTED: {
+    {
       type: TYPE.GENERIC.value,
       fileName: 'ancient_of_war_choose_one_rooted',
       class: CLASS.DRUID.value,
@@ -2494,10 +2670,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-    ANCIENT_OF_WAR_CHOOSE_ONE_UPROOT: {
+    {
       type: TYPE.GENERIC.value,
       fileName: 'ancient_of_war_choose_one_uproot',
       class: CLASS.DRUID.value,
@@ -2508,12 +2685,13 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-    CENARIUS_ONE: {
+    {
       type: TYPE.CHOOSE_ONE.value,
-      fileName: '',
+      fileName: 'cenarius_choose_one',
       class: CLASS.DRUID.value,
       name: 'Choose One',
       baseDescription: '',
@@ -2522,10 +2700,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-    CENARIUS_ONE_DEMIGODS_FAVOR: {
+    {
       type: TYPE.GENERIC.value,
       fileName: 'cenarius_choose_one_demigods_favor',
       class: CLASS.DRUID.value,
@@ -2536,10 +2715,11 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-    CENARIUS_CHOOSE_ONE_SHANDOS_LESSON: {
+    {
       type: TYPE.GENERIC.value,
       fileName: 'cenarius_choose_one_shandos_lesson',
       class: CLASS.DRUID.value,
@@ -2550,12 +2730,520 @@ const RARITY = {
       amount: [0],
       affectedBySpellpower: false,
       overload: 0,
+      canTarget: false,
       requiresTarget: false,
       obtainable: false,
     },
-  }
+    // HUNTER
+    {
+      type: TYPE.AURA.value,
+      fileName: 'timber_wolf_aura',
+      class: CLASS.HUNTER.value,
+      name: '+1 Attack',
+      baseDescription: 'Your other Beasts have +1 Attack.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'houndmaster_battlecry',
+      class: CLASS.HUNTER.value,
+      name: '+2/+2 and <b>Taunt</b>',
+      baseDescription: 'Give a friendly Beast +2/+2 and <b>Taunt</b>.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: true,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.AURA.value,
+      fileName: 'tundra_rhino_aura',
+      class: CLASS.HUNTER.value,
+      name: '<b>Charge</b>',
+      baseDescription: 'Your Beasts have <b>Charge</b>.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.DEATHRATTLE.value,
+      fileName: 'savannah_highmane_deathrattle',
+      class: CLASS.HUNTER.value,
+      name: '<b>Deathrattle</b>',
+      baseDescription: 'Summon two 2/2 Hyenas.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    // MAGE
+    {
+      type: TYPE.AURA.value,
+      fileName: 'sorcerers_apprentice_aura',
+      class: CLASS.MAGE.value,
+      name: 'Spells cost (1) less',
+      baseDescription: 'Your spells cost (1) less.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'kirin_tor_mage_battlecry',
+      class: CLASS.MAGE.value,
+      name: 'The next <b>Secret</b> you play this turn costs (0)',
+      baseDescription: 'The next <b>Secret</b> you play this turn costs (0).',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    // PALADIN
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'argent_protector_battlecry',
+      class: CLASS.PALADIN.value,
+      name: '',
+      baseDescription: 'Give a friendly minion <b>Divine Shield</b>.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: true,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'aldor_peacekeeper_battlecry',
+      class: CLASS.PALADIN.value,
+      name: 'Aldor Peacekeeper',
+      baseDescription: "Change an enemy minion's Attack to 1.",
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: true,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'guardian_of_kings_battlecry',
+      class: CLASS.PALADIN.value,
+      name: '',
+      baseDescription: 'Restore {amount0} Health to your hero.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [6],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.DEATHRATTLE.value,
+      fileName: 'tirion_fordring_deathrattle',
+      class: CLASS.PALADIN.value,
+      name: 'Equip a 5/3 Ashbringer',
+      baseDescription: 'Equip a 5/3 Ashbringer.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    // PRIEST
+    {
+      type: TYPE.AURA.value,
+      fileName: 'auchenai_soulpriest_aura',
+      class: CLASS.PRIEST.value,
+      name: 'Restoring Health deals damage instead',
+      baseDescription:
+        'Your cards and powers that restore Health now deal damage instead.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'cabal_shadow_priest_battlecry',
+      class: CLASS.PRIEST.value,
+      name: '',
+      baseDescription:
+        'Take control of an enemy minion that has 2 or less Attack.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: true,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'temple_enforcer_battlecry',
+      class: CLASS.PRIEST.value,
+      name: '+3 Health',
+      baseDescription: 'Give a friendly minion +3 Health.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: true,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.AURA.value,
+      fileName: 'prophet_velen_aura',
+      class: CLASS.PRIEST.value,
+      name: 'Double damage and healing of spells and Hero Power',
+      baseDescription:
+        'Double the damage and healing of your spells and Hero Power.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    // ROGUE
+    {
+      type: TYPE.COMBO.value,
+      fileName: 'defias_ringleader_combo',
+      class: CLASS.ROGUE.value,
+      name: '',
+      baseDescription: 'Summon a 2/1 Defias Bandit.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.COMBO.value,
+      fileName: 'edwin_vancleef_combo',
+      class: CLASS.ROGUE.value,
+      name: '',
+      baseDescription: 'Gain +2/+2 for each card played earlier this turn.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.COMBO.value,
+      fileName: 'si7_agent_combo',
+      class: CLASS.ROGUE.value,
+      name: '',
+      baseDescription: 'Deal {amount0} damage.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [2],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: true,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'master_of_disguise_battlecry',
+      class: CLASS.ROGUE.value,
+      name: '<b>Stealth</b>',
+      baseDescription: 'Give a friendly minion <b>Stealth</b>.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: true,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.COMBO.value,
+      fileName: 'kidnapper_combo',
+      class: CLASS.ROGUE.value,
+      name: '',
+      baseDescription: "Return a minion to its owner's hand.",
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: true,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    // SHAMAN
+    {
+      type: TYPE.AURA.value,
+      fileName: 'flametongue_totem_aura',
+      class: CLASS.SHAMAN.value,
+      name: '+2 Attack',
+      baseDescription: 'Adjacent minions have +2 Attack.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'windspeaker_battlecry',
+      class: CLASS.SHAMAN.value,
+      name: '<b>Windfury</b>',
+      baseDescription: 'Give a friendly minion <b>Windfury</b>.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: true,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'fire_elemental_battlecry',
+      class: CLASS.SHAMAN.value,
+      name: '',
+      baseDescription: 'Deal {amount0} damage.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [3],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: true,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    // WARLOCK
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'flame_imp_battlecry',
+      class: CLASS.WARLOCK.value,
+      name: '',
+      baseDescription: 'Deal {amount0} damage to your hero.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [3],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'felstalker_battlecry',
+      class: CLASS.WARLOCK.value,
+      name: '',
+      baseDescription: 'Discard a random card.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'felguard_battlecry',
+      class: CLASS.WARLOCK.value,
+      name: '',
+      baseDescription: 'Destroy one of your Mana Crystals.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'void_terror_battlecry',
+      class: CLASS.WARLOCK.value,
+      name: '',
+      baseDescription:
+        'Destroy both adjacent minions and gain their Attack and Health.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'pit_lord_battlecry',
+      class: CLASS.WARLOCK.value,
+      name: '',
+      baseDescription: 'Deal {amount0} damage to your hero.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [5],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.AURA.value,
+      fileName: 'summoning_portal_aura',
+      class: CLASS.WARLOCK.value,
+      name: 'Minions cost (2) less',
+      baseDescription: 'Your minions cost (2) less, but not less than (1).',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'doomguard_battlecry',
+      class: CLASS.WARLOCK.value,
+      name: '',
+      baseDescription: 'Discard two random cards.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'dread_infernal_battlecry',
+      class: CLASS.WARLOCK.value,
+      name: '',
+      baseDescription: 'Deal {amount0} damage to ALL other characters.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [1],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'lord_jaraxxus_battlecry',
+      class: CLASS.WARLOCK.value,
+      name: '',
+      baseDescription: 'Destroy your hero and replace it with Lord Jaraxxus.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    // WARRIOR
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'cruel_taskmaster_battlecry',
+      class: CLASS.WARRIOR.value,
+      name: '+2 Attack',
+      baseDescription:
+        'Deal {amount0} damage to a minion and give it +2 Attack.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [1],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: true,
+      requiresTarget: false,
+      obtainable: false,
+    },
+    {
+      type: TYPE.BATTLECRY.value,
+      fileName: 'arathi_weaponsmith_battlecry',
+      class: CLASS.WARRIOR.value,
+      name: '',
+      baseDescription: 'Equip a 2/2 weapon.',
+      rarity: RARITY.FREE,
+      cost: 0,
+      amount: [0],
+      affectedBySpellpower: false,
+      overload: 0,
+      canTarget: false,
+      requiresTarget: false,
+      obtainable: false,
+    },
+  ]
 
 module.exports = {
-  EFFECT_IDS,
   EFFECT_DATA,
 }

@@ -1,14 +1,13 @@
 const Minion = require('../minion.js')
-const { ATTRIBUTES, MINION_IDS, MINION_DATA } = require('../baseMinionData.js')
 const { engine } = require('../../engine.js')
 const { notifyClient } = require('../../ws.js')
 
 class mana_wyrm extends Minion {
-  constructor(minionID, owner) {
-    super(MINION_IDS.MANA_WYRM, minionID, owner)
+  constructor(baseID, uniqueID, owner) {
+    super(baseID, uniqueID, owner)
 
     engine.addGameElementListener(
-      this.minionID,
+      this.uniqueID,
       'minionPlayed',
       (data, done) => {
         this.onMinionPlayed(data.minion)

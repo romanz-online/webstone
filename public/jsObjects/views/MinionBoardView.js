@@ -57,7 +57,7 @@ export class MinionBoardView {
     cardDiv.appendChild(healthValueBackground)
     healthValueBackground.appendChild(healthValue)
 
-    cardDiv.style.backgroundImage = `url('../media/images/cardimages/${this.minion.minionFileName}.jpg')`
+    cardDiv.style.backgroundImage = `url('../media/images/cardimages/${this.minion.fileName}.jpg')`
 
     return cardDiv
   }

@@ -8,6 +8,28 @@ const { processEvent } = require('./server/wsEvents.js')
 
 // const clients = new Map();
 
+const { MINION_DATA } = require('./server/minionData/baseMinionData.js')
+const minionIDArray = {}
+for (let i = 0; i < MINION_DATA.length; i++) {
+  minionIDArray[MINION_DATA[i].fileName.toUpperCase()] = 1000 + i
+}
+fs.writeFileSync(
+  './server/minionData/minionID.json',
+  JSON.stringify(minionIDArray, null, 2),
+  'utf8'
+)
+
+const { EFFECT_DATA } = require('./server/effectData/baseEffectData.js')
+const effectIDArray = {}
+for (let i = 0; i < EFFECT_DATA.length; i++) {
+  effectIDArray[EFFECT_DATA[i].fileName.toUpperCase()] = 2000 + i
+}
+fs.writeFileSync(
+  './server/effectData/effectID.json',
+  JSON.stringify(effectIDArray, null, 2),
+  'utf8'
+)
+
 const port = process.env.PORT || 5500
 uWS
   .App({

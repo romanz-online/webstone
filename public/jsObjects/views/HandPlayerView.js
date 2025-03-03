@@ -35,8 +35,8 @@ export class HandPlayerView {
     // view.getElement().offsetHeight;
   }
 
-  changeStats(minionID, stats) {
-    const index = this.hand.findIndex((c) => c.minionID == minionID)
+  changeStats(uniqueID, stats) {
+    const index = this.hand.findIndex((c) => c.uniqueID == uniqueID)
     if (index == -1) {
       return
     }
@@ -48,11 +48,11 @@ export class HandPlayerView {
   }
 
   removeCard(card) {
-    const index = this.hand.findIndex((c) => c.minionID == card.minionID)
+    const index = this.hand.findIndex((c) => c.uniqueID == card.uniqueID)
     this.hand.splice(index, 1)
     this.cardViews.splice(index, 1)
     const element = this.getElement().querySelector(
-      `[data-minionid='${card.minionID}']`
+      `[data-uniqueid='${card.uniqueID}']`
     )
     if (element) {
       this.getElement().removeChild(element)

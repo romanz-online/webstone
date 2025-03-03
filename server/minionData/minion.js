@@ -3,41 +3,44 @@ const { notifyClient } = require('../ws.js')
 const { ATTRIBUTES, MINION_DATA } = require('./baseMinionData.js')
 
 class Minion {
-  constructor(minion, minionID, owner) {
-    this.baseMinionID = minion[0]
-    this.minionFileName = minion[1]
+  constructor(baseID, uniqueID, owner) {
+    const baseData = MINION_DATA[baseID - 1000]
 
-    this.minionID = minionID
+    this.baseID = baseID
+    this.fileName = baseData.fileName
+
+    this.uniqueID = uniqueID
     this.owner = owner
 
     this.inPlay = false
     this.attacksThisTurn = 0
     this.canAttack = true // CHANGE TO FALSE WHEN NOT DEBUGGING SAME-TURN ATTACKS
 
-    this.name = MINION_DATA[this.baseMinionID].name
-    this.description = MINION_DATA[this.baseMinionID].description
-    this.rarity = MINION_DATA[this.baseMinionID].rarity
-    this.tribe = MINION_DATA[this.baseMinionID].tribe
-    this.overload = MINION_DATA[this.baseMinionID].overload
+    this.name = baseData.name
+    this.description = baseData.description
+    this.class = baseData.class
+    this.rarity = baseData.rarity
+    this.tribe = baseData.tribe
+    this.overload = baseData.overload
 
-    this.baseMana = MINION_DATA[this.baseMinionID].stats[0]
-    this.baseAttack = MINION_DATA[this.baseMinionID].stats[1]
-    this.baseHealth = MINION_DATA[this.baseMinionID].stats[2]
-    this.maxHealth = MINION_DATA[this.baseMinionID].stats[2]
-    this.mana = MINION_DATA[this.baseMinionID].stats[0]
-    this.attack = MINION_DATA[this.baseMinionID].stats[1]
-    this.health = MINION_DATA[this.baseMinionID].stats[2]
+    this.baseMana = baseData.stats[0]
+    this.baseAttack = baseData.stats[1]
+    this.baseHealth = baseData.stats[2]
+    this.maxHealth = baseData.stats[2]
+    this.mana = baseData.stats[0]
+    this.attack = baseData.stats[1]
+    this.health = baseData.stats[2]
 
     this.effects = {} // UPDATE WITH RELEVANT EFFECTS LIKE BATTLECRIES
     // e.g. this.effects = { battlecry: fireballEffect() }
 
     Object.keys(ATTRIBUTES).forEach((attr) => {
-      if (MINION_DATA[this.baseMinionID].attributes[ATTRIBUTES[attr]]) {
+      if (baseData.attributes[ATTRIBUTES[attr]]) {
         this[attr.toLowerCase()] = true
       }
     })
 
-    engine.addGameElementListener(this.minionID, 'killMinion', (data, done) => {
+    engine.addGameElementListener(this.uniqueID, 'killMinion', (data, done) => {
       this.onKillMinion()
       done()
     })

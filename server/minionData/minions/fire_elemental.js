@@ -1,19 +1,22 @@
 const Minion = require('../minion.js')
 const { notifyClient } = require('../../ws.js')
-const guardian_of_kings_battlecry = require('../../effectData/effects/guardian_of_kings_battlecry.js')
+const fire_elemental_battlecry = require('../../effectData/effects/fire_elemental_battlecry.js')
 
-class guardian_of_kings extends Minion {
+class fire_elemental extends Minion {
   constructor(baseID, uniqueID, owner) {
     super(baseID, uniqueID, owner)
 
     this.effects = {
-      battlecry: new guardian_of_kings_battlecry(owner),
+      battlecry: new fire_elemental_battlecry(owner),
     }
   }
 
   doPlay(gameState) {
-    console.log(this.effects.battlecry.requiresTarget)
-    if (this.effects.battlecry.requiresTarget) {
+    // THIS TARGETTING ISN'T QUITE RIGHT YET
+    if (
+      this.effects.battlecry.canTarget ||
+      this.effects.battlecry.requiresTarget
+    ) {
       notifyClient('getTarget', true, { minion: this })
       return true
     } else {
@@ -48,4 +51,4 @@ class guardian_of_kings extends Minion {
 //   },
 // },
 
-module.exports = guardian_of_kings
+module.exports = fire_elemental
