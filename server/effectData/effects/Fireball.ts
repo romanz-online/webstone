@@ -1,14 +1,14 @@
-const Effect = require('../effect.js')
-const EFFECT_ID = require('../effectID.json')
-/** @typedef {import('../../gameState.js').GameState} GameState */
-/** @typedef {import('../../minionData/minion.js').Minion} Minion */
+import { GameState } from '../../gameState'
+import Minion from '../../minionData/minion'
+import Effect from '../effect'
+import * as EFFECT_ID from '../effectID.json'
 
-class fireball extends Effect {
-  constructor(player) {
-    super(EFFECT_ID.FIREBALL, player)
+class Fireball extends Effect {
+  constructor(player: number, source: Minion) {
+    super(EFFECT_ID.FIREBALL, player, source, null)
   }
 
-  apply(game, source, target) {
+  apply(game: GameState, source: Minion, target: Minion | null): void {
     // if (this.requiresTarget && !target) {
     //   throw new Error('Target required for targeted damage effect')
     // }
@@ -31,4 +31,4 @@ class fireball extends Effect {
   }
 }
 
-module.exports = fireball
+export default Fireball

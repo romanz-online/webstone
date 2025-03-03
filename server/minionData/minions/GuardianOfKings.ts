@@ -1,31 +1,35 @@
-const Minion = require('../minion.js')
-const { notifyClient } = require('../../ws.js')
-const guardian_of_kings_battlecry = require('../../effectData/effects/guardian_of_kings_battlecry.js')
+import Minion from '../minion'
+import { notifyClient } from '../../ws'
+import GuardianOfKingsBattlecry from '../../effectData/effects/GuardianOfKingsBattlecry'
+import { GameState } from '../../gameState'
 
-class guardian_of_kings extends Minion {
-  constructor(baseID, uniqueID, player) {
+class GuardianOfKings extends Minion {
+  effects: { battlecry: GuardianOfKingsBattlecry }
+
+  constructor(baseID: number, uniqueID: number, player: number) {
     super(baseID, uniqueID, player)
 
     this.effects = {
-      battlecry: new guardian_of_kings_battlecry(player),
+      battlecry: new GuardianOfKingsBattlecry(player),
     }
   }
 
-  doPlay(gameState) {
-    console.log(this.effects.battlecry.requiresTarget)
+  doPlay(gameState: GameState): boolean {
     if (this.effects.battlecry.requiresTarget) {
       notifyClient('getTarget', true, { minion: this })
       return true
     } else {
-      this.doBattlecry(gameState)
+      this.doBattlecry(gameState, null)
       return false
     }
   }
 
-  doBattlecry(gameState, target) {
+  doBattlecry(gameState: GameState, target: Minion | null): void {
     this.effects.battlecry.apply(gameState, this, target)
   }
 }
+
+export default GuardianOfKings
 
 // FROSTWOLF WARLORD
 // {
@@ -47,5 +51,3 @@ class guardian_of_kings extends Minion {
 //     notifyClient('changeStats', true, { minion: this })
 //   },
 // },
-
-module.exports = guardian_of_kings

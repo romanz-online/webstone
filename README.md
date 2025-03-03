@@ -4,8 +4,6 @@ Run `npm install` and then `npm start` to run the website.
 
 To-do List:
 
-- Specify class types on objects with JSDoc. Add "// @ts-check" at the top of the file (or configure it globally through a jsconfig.json file at the root of the project). https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html
-
 - Get all card images and sound effects. Most are now in the files but some are sporadically missing.
 
 - Tidy up HTML and CSS. Start using something like storybook for the html/css elements, so they can be developed without having to play the entire game. https://storybook.js.org/docs/get-started
@@ -24,7 +22,5 @@ To-do List:
   - Shuffle card back into deck https://animista.net/play/exits/slit-out
   - Burn/overdraw card https://animista.net/play/exits/puff-out
   - Minion dies https://animista.net/play/attention/shake
-
-- Figure out how things like battlecries will work between client and server. (it'll probably work the same way as spells. store whether or not the minion has a battlecry and initiate the targeting system entirely clientside)
 
 - For visuals: three.js? https://youtu.be/e2ntx-fyXaE

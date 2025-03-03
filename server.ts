@@ -1,14 +1,19 @@
-const uWS = require('uWebSockets.js')
-// const { v4: uuidv4 } = require('uuid');
-const mime = require('mime-types')
-const fs = require('fs')
-const path = require('path')
+import uWS from 'uWebSockets.js'
+// import { v4 as uuidv4 } from 'uuid';
+import mime from 'mime-types'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 const staticDir = path.join(__dirname, '/public')
-const { processEvent } = require('./server/wsEvents.js')
+import { processEvent } from './server/wsEvents'
+import MINION_DATA from './server/minionData/baseMinionData'
+import EFFECT_DATA from './server/effectData/baseEffectData'
 
 // const clients = new Map();
 
-const { MINION_DATA } = require('./server/minionData/baseMinionData.js')
 const minionIDArray = {}
 for (let i = 0; i < MINION_DATA.length; i++) {
   minionIDArray[MINION_DATA[i].fileName.toUpperCase()] = 1000 + i
@@ -19,7 +24,6 @@ fs.writeFileSync(
   'utf8'
 )
 
-const { EFFECT_DATA } = require('./server/effectData/baseEffectData.js')
 const effectIDArray = {}
 for (let i = 0; i < EFFECT_DATA.length; i++) {
   effectIDArray[EFFECT_DATA[i].fileName.toUpperCase()] = 2000 + i
@@ -30,7 +34,7 @@ fs.writeFileSync(
   'utf8'
 )
 
-const port = process.env.PORT || 5500
+const port = Number(process.env.PORT) || 5500
 uWS
   .App({
     key_file_name: 'misc/key.pem',
@@ -46,7 +50,7 @@ uWS
 
     const filePath = path.join(
       staticDir,
-      req.getUrl() == '/' ? '/index.html' : req.getUrl()
+      req.getUrl() === '/' ? '/index.html' : req.getUrl()
     )
     fs.readFile(filePath, (err, data) => {
       if (res.aborted) {
@@ -58,7 +62,7 @@ uWS
           .writeStatus(err ? '404 Not Found' : '200 OK')
           .writeHeader(
             'Content-Type',
-            err ? 'text/plain' : mime.lookup(filePath)
+            err ? 'text/plain' : mime.lookup(filePath) || 'text/plain'
           )
           .end(err ? 'File Not Found' : data)
       })
@@ -71,16 +75,10 @@ uWS
     idleTimeout: 10,
 
     open: (ws) => {
-      // const id = uuidv4();
-      // ws.id = id;
-      // clients.set(id, ws);
-      // console.log(`Client connected: ${id}`);
       console.log('Client connected')
     },
 
     close: (ws, code, message) => {
-      // clients.delete(ws.id);
-      // console.log(`Client disconnected: ${ws.id}`);
       console.log('Client disconnected with code', code)
     },
 
@@ -96,7 +94,7 @@ uWS
         return
       }
 
-      processEvent(ws, parsedMessage)
+      processEvent(ws as any, parsedMessage)
     },
   })
   .listen(port, () => {

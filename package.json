@@ -1,25 +1,20 @@
 {
   "name": "hs",
   "version": "1.0.0",
+  "type": "module",
   "description": "Web-based vanilla Hearthstone currently in development.",
-  "main": "server.js",
+  "main": "server.ts",
   "scripts": {
-    "start": "node server.js",
+    "start": "npx tsx server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write ."
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "enum": "^3.0.4",
     "mime-types": "^2.1.35",
-    "pg": "^8.12.0",
     "prettier": "^3.5.2",
+    "tsx": "^4.19.3",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.43.0"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.21.0",
-    "globals": "^16.0.0",
-    "typescript-eslint": "^8.25.0"
   }
 }

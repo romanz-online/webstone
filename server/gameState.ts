@@ -1,22 +1,35 @@
-const { engine } = require('./engine.js')
-const { notifyClient } = require('./ws.js')
-const { generateMinion } = require('./minionData/generateMinion.js')
-const MINION_ID = require('./minionData/minionID.json')
-/** @typedef {import('./minionData/minion.js').Minion} Minion */
+import { engine } from './engine'
+import { notifyClient } from './ws'
+import { generateMinion } from './minionData/generateMinion'
+import MINION_ID from './minionData/minionID.json'
+import Minion from './minionData/minion'
 
-const playerDeckStorage = [
+const playerDeckStorage: number[] = [
     MINION_ID.TIRION_FORDRING,
     MINION_ID.MANA_WYRM,
     MINION_ID.LIGHTWELL,
     MINION_ID.GUARDIAN_OF_KINGS,
     MINION_ID.FIRE_ELEMENTAL,
   ],
-  opponentDeckStorage = []
+  opponentDeckStorage: number[] = []
 
-const PLAYER_ID = -1,
-  OPPONENT_ID = -2
+const PLAYER_ID: number = -1,
+  OPPONENT_ID: number = -2
 
-class GameState {
+export class GameState {
+  uniqueMinionNumber: number
+  playerHealth: number
+  opponentHealth: number
+  graveyard: Minion[]
+  playerDeck: Minion[]
+  opponentDeck: Minion[]
+  playerHand: Minion[]
+  opponentHand: Minion[]
+  playerBoard: Minion[]
+  opponentBoard: Minion[]
+  whoseTurn: number
+  cardWaitingForTarget: any
+
   constructor() {
     this.uniqueMinionNumber = 0
 
@@ -303,13 +316,9 @@ class GameState {
     }, 2 * 1000)
   }
 
-  /** @returns {Minion} */
-  getBoardMinion(uniqueID) {
+  getBoardMinion(uniqueID: number): Minion | undefined {
     return [...this.playerBoard, ...this.opponentBoard].find(
-      (minion) => minion.uniqueID == uniqueID
+      (minion) => minion.uniqueID === uniqueID
     )
   }
 }
-
-const gameState = new GameState()
-module.exports = { gameState, GameState }
