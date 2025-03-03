@@ -112,7 +112,7 @@ export class GameState {
     engine.queueEvent([{ event: 'endTurn', data: {} }])
   }
 
-  toJSON() {
+  toJSON(): any {
     return {
       playerDeck: this.playerDeck,
       opponentDeck: this.opponentDeck,
@@ -126,11 +126,11 @@ export class GameState {
     }
   }
 
-  getUniqueID() {
+  getUniqueID(): number {
     return this.uniqueMinionNumber++
   }
 
-  startGame() {
+  startGame(): void {
     this.playerDeck = playerDeckStorage.map((minion) =>
       generateMinion(minion, this.getUniqueID(), PLAYER_ID)
     )
@@ -150,7 +150,7 @@ export class GameState {
     shuffleDeck(this.opponentDeck)
   }
 
-  drawCard(player) {
+  drawCard(player: number): void {
     if (player === PLAYER_ID) {
       const card = this.playerDeck.pop()
       if (card) {
@@ -174,9 +174,13 @@ export class GameState {
     }
   }
 
-  tryMinionPlayed(isPlayer, boardIndex, uniqueID) {
+  tryMinionPlayed(
+    isPlayer: boolean,
+    boardIndex: number,
+    uniqueID: number
+  ): void {
     if (isPlayer) {
-      const index = this.playerHand.findIndex(
+      const index: number = this.playerHand.findIndex(
         (minion) => minion.uniqueID == uniqueID
       )
 
@@ -189,8 +193,7 @@ export class GameState {
       // DO MORE ERROR CHECKS
       // notifyClient('tryMinionPlayed', false, this.toJSON())
 
-      /** @type {Minion} */
-      const minion = this.playerHand[index]
+      const minion: Minion = this.playerHand[index]
       // TRY TO DO BATTLECRY SOMEWHERE HERE ???
       this.playerHand.splice(index, 1)[0]
       this.playerBoard.splice(boardIndex, 0, minion)
@@ -206,9 +209,8 @@ export class GameState {
     }
   }
 
-  tryEffect(targetID) {
-    /** @type {Minion} */
-    const target = this.getBoardMinion(targetID)
+  tryEffect(targetID: number): void {
+    const target: Minion | null = this.getBoardMinion(targetID)
 
     if (!target) {
       notifyClient('target', false, this.toJSON())
@@ -225,10 +227,9 @@ export class GameState {
     this.cardWaitingForTarget = { card: null, waiting: false }
   }
 
-  tryAttack(attackerID, targetID) {
-    /** @type {Minion} */
-    const attacker = this.getBoardMinion(attackerID),
-      target = this.getBoardMinion(targetID)
+  tryAttack(attackerID: number, targetID: number): void {
+    const attacker: Minion | null = this.getBoardMinion(attackerID),
+      target: Minion | null = this.getBoardMinion(targetID)
 
     if (!attacker) {
       notifyClient('tryAttack', false, this.toJSON())
@@ -258,7 +259,7 @@ export class GameState {
     this.checkHealth()
   }
 
-  checkHealth() {
+  checkHealth(): void {
     if (this.playerHealth < 1 && this.opponentHealth > 0) {
       // kill player hero
       return
@@ -293,7 +294,7 @@ export class GameState {
     ])
   }
 
-  onEndTurn() {
+  onEndTurn(): void {
     ;[...this.playerBoard, ...this.opponentBoard].forEach((m) => {
       m.canAttack = !m.canAttack
     })
@@ -305,7 +306,7 @@ export class GameState {
     }
   }
 
-  simulateOpponentTurn() {
+  simulateOpponentTurn(): void {
     setTimeout(() => {
       engine.queueEvent([
         {
@@ -316,9 +317,11 @@ export class GameState {
     }, 2 * 1000)
   }
 
-  getBoardMinion(uniqueID: number): Minion | undefined {
-    return [...this.playerBoard, ...this.opponentBoard].find(
-      (minion) => minion.uniqueID === uniqueID
+  getBoardMinion(uniqueID: number): Minion | null {
+    return (
+      [...this.playerBoard, ...this.opponentBoard].find(
+        (minion) => minion.uniqueID === uniqueID
+      ) || null
     )
   }
 }

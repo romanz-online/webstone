@@ -6,64 +6,56 @@ import { notifyClient } from './ws'
 class EffectStack {
   private stack: Effect[]
   private waiting: boolean
+  private gameState: GameState
 
-  constructor() {
+  constructor(gameState: GameState) {
     this.stack = []
     this.waiting = false
+    this.gameState = gameState
   }
 
-  // Push a new effect onto the stack
-  push(effect: Effect): number {
+  push(effect: Effect): void {
     this.stack.push(effect)
     this.waiting = true
-    return this.stack.length
+  }
+
+  runStack(): void {
+    while (this.stack.length > 0) {
+      this.processTopEffect()
+    }
   }
 
   // Process the top effect with the given target
-  processTopEffect(gameState: GameState, targetID: number): boolean {
+  processTopEffect(): void {
     if (this.stack.length === 0) {
       console.error('No effects in stack to process')
-      return false
+      return
     }
 
     const currentEffect: Effect = this.stack[this.stack.length - 1]
-    const target: Minion | null = gameState.getBoardMinion(targetID)
+    const target: Minion | null = currentEffect.target
 
-    if (!target) {
-      console.error('Could not find target with ID', targetID, 'on board')
-      notifyClient('target', false, gameState.toJSON())
-      return false
-    }
+    // if (!target) {
+    //   console.error('Could not find target with ID', targetID, 'on board')
+    //   notifyClient('target', false, this.gameState.toJSON())
+    //   return false
+    // }
 
     // Process the effect
-    currentEffect.source.doBattlecry(gameState, target)
+    currentEffect.source.doBattlecry(this.gameState, target)
 
     // Remove the processed effect
     this.stack.pop()
-
-    // Check if we have more effects waiting
-    this.waiting = this.stack.length > 0
 
     // If we have more effects waiting, notify client to get another target
     if (this.waiting) {
       const nextEffect: Effect = this.stack[this.stack.length - 1]
       notifyClient('getTarget', true, { minion: nextEffect.source })
     }
-
-    return true
   }
 
-  // Check if there are any effects waiting for targets
   isWaiting(): boolean {
     return this.waiting
-  }
-
-  // Get the current effect that's waiting for a target
-  getCurrentEffect(): Effect | null {
-    if (!this.waiting || this.stack.length === 0) {
-      return null
-    }
-    return this.stack[this.stack.length - 1]
   }
 
   clear(): void {
