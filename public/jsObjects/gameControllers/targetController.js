@@ -83,7 +83,7 @@ export class TargetController {
 
     if (event.target.classList.contains('cardInPlay--opponent')) {
       if (!this.attackerCard) {
-        GAME.triggerEvent('tryEffect', {
+        GAME.triggerEvent('targetEffect', {
           targetID: JSON.parse(event.target.dataset.minion).uniqueID,
         })
       } else {
@@ -98,7 +98,7 @@ export class TargetController {
         targetID: -2, // TODO: make a list of shared enums between server and client for stuff like this
       })
     } else if (!this.attackerCard && this.targetting) {
-      GAME.triggerEvent('cancelEffect', {})
+      GAME.triggerEvent('cancel', {})
     }
 
     this.resetAttack()

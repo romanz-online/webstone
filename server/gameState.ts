@@ -3,6 +3,8 @@ import { notifyClient } from './ws'
 import { generateMinion } from './minionData/generateMinion'
 import MINION_ID from './minionData/minionID.json'
 import Minion from './minionData/minion'
+import Effect from './effectData/effect'
+import EffectStack from './effectStack'
 
 const playerDeckStorage: number[] = [
     MINION_ID.TIRION_FORDRING,
@@ -28,7 +30,7 @@ export class GameState {
   playerBoard: Minion[]
   opponentBoard: Minion[]
   whoseTurn: number
-  cardWaitingForTarget: any
+  effectStack: EffectStack
 
   constructor() {
     this.uniqueMinionNumber = 0
@@ -65,7 +67,7 @@ export class GameState {
     this.opponentBoard.forEach((m) => (m.inPlay = true))
 
     this.whoseTurn = OPPONENT_ID
-    this.cardWaitingForTarget = { card: null, waiting: false }
+    this.effectStack = new EffectStack(this)
 
     this.startGame()
 
@@ -82,9 +84,9 @@ export class GameState {
 
     engine.addGameElementListener(
       'gameState', // TRY CHANGING THIS TO "this"
-      'tryMinionPlayed', // AND GET RID OF THIS. JUST HAVE engine DIRECTLY EXECUTE LISTENERS WITH this.listener(data, done)
+      'playMinion', // AND GET RID OF THIS. JUST HAVE engine DIRECTLY EXECUTE LISTENERS WITH this.listener(data, done)
       (data, done) => {
-        this.tryMinionPlayed(data.isPlayer, data.boardIndex, data.uniqueID)
+        this.playMinion(data.boardIndex, data.uniqueID)
         done()
       }
     )
@@ -104,8 +106,13 @@ export class GameState {
       done()
     })
 
-    engine.addGameElementListener('gameState', 'tryEffect', (data, done) => {
-      this.tryEffect(data.targetID)
+    engine.addGameElementListener('gameState', 'cancel', (data, done) => {
+      this.cancel()
+      done()
+    })
+
+    engine.addGameElementListener('gameState', 'targetEffect', (data, done) => {
+      this.targetEffect(data.targetID)
       done()
     })
 
@@ -174,57 +181,64 @@ export class GameState {
     }
   }
 
-  tryMinionPlayed(
-    isPlayer: boolean,
-    boardIndex: number,
-    uniqueID: number
-  ): void {
-    if (isPlayer) {
-      const index: number = this.playerHand.findIndex(
-        (minion) => minion.uniqueID == uniqueID
-      )
+  cancel(): void {
+    this.effectStack.clear()
+    notifyClient('cancel', true, {})
+  }
 
-      if (index === -1) {
-        notifyClient('tryMinionPlayed', false, this.toJSON())
-        console.error(`Could not find minion ${uniqueID}`)
-        return
-      }
+  playMinion(boardIndex: number, uniqueID: number): void {
+    const minion: Minion | null = this.getHandMinion(uniqueID)
 
-      // DO MORE ERROR CHECKS
-      // notifyClient('tryMinionPlayed', false, this.toJSON())
+    if (!minion) {
+      notifyClient('playMinion', false, this.toJSON())
+      console.error(`Could not find minion with ID ${uniqueID} in hand`)
+      return
+    }
 
-      const minion: Minion = this.playerHand[index]
-      // TRY TO DO BATTLECRY SOMEWHERE HERE ???
-      this.playerHand.splice(index, 1)[0]
-      this.playerBoard.splice(boardIndex, 0, minion)
-      minion.inPlay = true
+    // DO MORE ERROR CHECKS
+    // notifyClient('playMinion', false, this.toJSON())
 
-      notifyClient('minionPlayed', true, {
-        minion: minion,
-      })
+    const needTarget = this.effectStack.push('playMinion', {
+      minion: minion,
+      boardIndex: boardIndex,
+      hand: minion.player === PLAYER_ID ? this.playerHand : this.opponentHand,
+      board:
+        minion.player === PLAYER_ID ? this.playerBoard : this.opponentBoard,
+    })
 
-      this.cardWaitingForTarget = { card: minion, waiting: minion.doPlay(this) } // INSTEAD OF DOING THIS, TRY MAKING A "CARD STACK"
-      // SOMETIMES THERE WILL BE MULTIPLE CARDS IN THE STACK, LIKE FOR "CHOOSE ONE" AND YOU CAN GO BACKWARDS THROUGH THEM TO
-      // TRIGGER EACH EFFECT. "CHOOSE ONE EFFECT" -> "CHOOSE ONE SPLIT SPELL" -> PLAY MINION
+    if (needTarget) {
+      notifyClient('getTarget', true, {})
     }
   }
 
-  tryEffect(targetID: number): void {
+  targetEffect(targetID: number): void {
     const target: Minion | null = this.getBoardMinion(targetID)
 
     if (!target) {
       notifyClient('target', false, this.toJSON())
       console.error('Could not find target with ID', targetID, 'on board')
       return
-    } else if (!this.cardWaitingForTarget.waiting) {
+    } else if (!this.effectStack.isWaiting) {
       notifyClient('target', false, this.toJSON())
       console.error('No card is waiting for a target')
       return
     }
 
-    this.cardWaitingForTarget.card.doBattlecry(this, target)
+    const effect: Effect | null =
+      this.effectStack.getTop().data.minion.effects.battlecry
+    if (!effect || !effect.canTarget) {
+      notifyClient('target', false, this.toJSON())
+      console.error('No effect is waiting for a target')
+      return
+    }
+    effect.target = target
+    effect.gameState = this
+    this.effectStack.push('battlecry', effect)
 
-    this.cardWaitingForTarget = { card: null, waiting: false }
+    const current: any = this.effectStack.getTop().data
+    if (current instanceof Effect) {
+      this.effectStack.executeStack()
+    }
   }
 
   tryAttack(attackerID: number, targetID: number): void {
@@ -320,6 +334,14 @@ export class GameState {
   getBoardMinion(uniqueID: number): Minion | null {
     return (
       [...this.playerBoard, ...this.opponentBoard].find(
+        (minion) => minion.uniqueID === uniqueID
+      ) || null
+    )
+  }
+
+  getHandMinion(uniqueID: number): Minion | null {
+    return (
+      [...this.playerHand, ...this.opponentHand].find(
         (minion) => minion.uniqueID === uniqueID
       ) || null
     )

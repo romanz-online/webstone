@@ -1,19 +1,20 @@
 import EFFECT_DATA from './baseEffectData'
 import { GameState } from '../gameState'
 import Minion from '../minionData/minion'
-import { CLASS, RARITY, TRIBE, EFFECT_TYPE } from '../constants'
+import { HeroClass, Rarity, Tribe, EffectType } from '../constants'
 
 class Effect {
   baseID: number
   player: number
+  gameState: GameState
   source: Minion
   target: Minion | null
   fileName: string
-  type: EFFECT_TYPE
-  class: CLASS
+  type: EffectType
+  class: HeroClass
   name: string
   baseDescription: string
-  rarity: RARITY
+  rarity: Rarity
   cost: number
   amount: number[]
   affectedBySpellpower: boolean
@@ -35,11 +36,11 @@ class Effect {
     this.target = target
 
     this.fileName = baseData.fileName || ''
-    this.type = baseData.type || EFFECT_TYPE.GENERIC
-    this.class = baseData.class || CLASS.NEUTRAL
+    this.type = baseData.type || EffectType.GENERIC
+    this.class = baseData.class || HeroClass.NEUTRAL
     this.name = baseData.name || '???'
     this.baseDescription = baseData.baseDescription || ''
-    this.rarity = baseData.rarity || RARITY.FREE
+    this.rarity = baseData.rarity || Rarity.FREE
     this.cost = baseData.cost || 0
     this.amount = baseData.amount || [0]
     this.affectedBySpellpower = baseData.affectedBySpellpower || false
@@ -47,6 +48,28 @@ class Effect {
     this.canTarget = baseData.canTarget || false
     this.requiresTarget = baseData.requiresTarget || false
     this.obtainable = baseData.obtainable || false
+  }
+
+  toJSON(): any {
+    return {
+      baseID: this.baseID,
+      player: this.player,
+      sourceID: this.source.uniqueID,
+      targetID: this.target?.uniqueID || '',
+      fileName: this.fileName,
+      type: this.type,
+      class: this.class,
+      name: this.name,
+      description: this.getDescription(),
+      rarity: this.rarity,
+      cost: this.cost,
+      amount: this.getAmount(),
+      affectedBySpellpower: this.affectedBySpellpower,
+      overload: this.overload,
+      canTarget: this.canTarget,
+      requiresTarget: this.requiresTarget,
+      obtainable: this.obtainable,
+    }
   }
 
   getAmount(): number {
@@ -62,7 +85,7 @@ class Effect {
     return desc
   }
 
-  apply(gameState: GameState, source: Minion, target: Minion | null): void {
+  apply(): void {
     throw new Error('apply() method must be implemented by subclasses')
   }
 }

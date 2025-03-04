@@ -104,7 +104,7 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
-      event: 'minionPlayed',
+      event: 'playMinion',
       onSuccess: (data) => {
         console.log(`${data.minion.uniqueID} played`)
         // this.playerBoardView.playMinion(data.minion, data.boardIndex)

@@ -8,20 +8,24 @@ class FireElementalBattlecry extends Effect {
     super(EFFECT_ID.FIRE_ELEMENTAL_BATTLECRY, player, source, null)
   }
 
-  apply(gameState: GameState, source: Minion, target: Minion | null): void {
-    if (!target) {
+  apply(): void {
+    if (!this.gameState || !this.source) {
+      console.error('Missing values to properly execute effect')
+    }
+
+    if (!this.target) {
       if (
         this.requiresTarget ||
-        (gameState.opponentBoard.length > 0 && this.canTarget)
+        (this.gameState.opponentBoard.length > 0 && this.canTarget)
       ) {
         console.error('Target required for targeted damage effect')
       }
     }
 
-    if (target) {
-      target.takeDamage(source, this.getAmount())
+    if (this.target) {
+      this.target.takeDamage(this.source, this.getAmount())
       console.log(
-        `${source.name} deals ${this.getAmount()} damage to ${target.name}`
+        `${this.source.name} deals ${this.getAmount()} damage to ${this.target.name}`
       )
     }
   }

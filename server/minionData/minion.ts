@@ -1,7 +1,7 @@
 import { engine } from '../engine'
 import { notifyClient } from '../ws'
 import MINION_DATA from './baseMinionData'
-import { CLASS, RARITY, TRIBE, EFFECT_TYPE } from '../constants'
+import { HeroClass, Rarity, Tribe, EffectType } from '../constants'
 import { GameState } from '../gameState'
 import { gameState } from '../wsEvents'
 
@@ -15,9 +15,9 @@ class Minion {
   canAttack: boolean
   name: string
   description: string
-  class: CLASS
-  rarity: RARITY
-  tribe: TRIBE
+  class: HeroClass
+  rarity: Rarity
+  tribe: Tribe
   overload: number
   baseMana: number
   baseAttack: number
@@ -49,9 +49,9 @@ class Minion {
     this.fileName = baseData.fileName || ''
     this.name = baseData.name || '???'
     this.description = baseData.description || ''
-    this.class = baseData.class || CLASS.NEUTRAL
-    this.rarity = baseData.rarity || RARITY.FREE
-    this.tribe = baseData.tribe || TRIBE.NONE
+    this.class = baseData.class || HeroClass.NEUTRAL
+    this.rarity = baseData.rarity || Rarity.FREE
+    this.tribe = baseData.tribe || Tribe.NONE
     this.overload = baseData.overload || 0
     this.baseMana = baseData.mana || 0
     this.baseAttack = baseData.attack || 0
@@ -76,12 +76,44 @@ class Minion {
     })
   }
 
+  toJSON(): any {
+    return {
+      baseID: this.baseID,
+      uniqueID: this.uniqueID,
+      player: this.player,
+      inPlay: this.inPlay,
+      attacksThisTurn: this.attacksThisTurn,
+      canAttack: this.canAttack,
+      fileName: this.fileName,
+      name: this.name,
+      description: this.description,
+      class: this.class,
+      rarity: this.rarity,
+      tribe: this.tribe,
+      overload: this.overload,
+      baseMana: this.mana,
+      baseAttack: this.attack,
+      baseHealth: this.health,
+      maxHealth: this.health,
+      mana: this.mana,
+      attack: this.attack,
+      health: this.health,
+      charge: this.charge,
+      taunt: this.taunt,
+      divineShield: this.divineShield,
+      stealth: this.stealth,
+      windfury: this.windfury,
+      elusive: this.elusive,
+      poison: this.poison,
+    }
+  }
+
   doBattlecry(gameState: GameState, target: Minion | null): void {}
 
   doPlay(gameState: GameState) {
     engine.queueEvent([
       {
-        event: 'minionPlayed',
+        event: 'playMinion',
         data: {
           minion: this,
         },
@@ -124,6 +156,8 @@ class Minion {
     if (this.health < 1) {
       // STORE A "killedBy" VALUE HERE IF NEEDED
     }
+
+    console.log(`${this.name} takes ${damage} damage`)
 
     notifyClient('applyDamage', true, { minion: this, damage: damage })
   }

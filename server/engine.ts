@@ -18,7 +18,11 @@ class Engine extends EventEmitter {
   private processing: boolean = false
   private listenerQueue: Listener[] = []
 
-  addGameElementListener(elementID: string | number, event: string, listener: EventListener): void {
+  addGameElementListener(
+    elementID: string | number,
+    event: string,
+    listener: EventListener
+  ): void {
     this.listenerQueue.push({ elementID, event, listener })
   }
 

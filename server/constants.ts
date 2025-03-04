@@ -1,4 +1,4 @@
-export enum CLASS {
+export enum HeroClass {
   DRUID,
   HUNTER,
   MAGE,
@@ -11,7 +11,7 @@ export enum CLASS {
   NEUTRAL,
 }
 
-export enum RARITY {
+export enum Rarity {
   COMMON,
   FREE,
   RARE,
@@ -19,7 +19,7 @@ export enum RARITY {
   LEGENDARY,
 }
 
-export enum TRIBE {
+export enum Tribe {
   NONE,
   BEAST,
   TOTEM,
@@ -31,7 +31,7 @@ export enum TRIBE {
   DRAGON,
 }
 
-export enum EFFECT_TYPE {
+export enum EffectType {
   SPELL,
   CHOOSE_ONE,
   COMBO,

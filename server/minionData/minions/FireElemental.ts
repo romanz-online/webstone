@@ -11,23 +11,8 @@ class FireElemental extends Minion {
     super(baseID, uniqueID, player)
 
     this.effects = {
-      battlecry: new FireElementalBattlecry(player),
+      battlecry: new FireElementalBattlecry(player, this),
     }
-  }
-
-  doPlay(gameState: any): boolean {
-    // THIS TARGETTING ISN'T QUITE RIGHT YET
-    if (this.effects.battlecry.canTarget) {
-      notifyClient('getTarget', true, { minion: this })
-      return true
-    } else {
-      this.doBattlecry(gameState, null)
-      return false
-    }
-  }
-
-  doBattlecry(gameState: any, target: any): void {
-    this.effects.battlecry.apply(gameState, this, target)
   }
 }
 

@@ -8,15 +8,15 @@ class ManaWyrm extends Minion {
 
     engine.addGameElementListener(
       this.uniqueID,
-      'minionPlayed',
+      'playMinion',
       (data: any, done: () => void) => {
-        this.onMinionPlayed(data.minion)
+        this.onPlayMinion(data.minion)
         done()
       }
     )
   }
 
-  onMinionPlayed(minion: Minion) {
+  onPlayMinion(minion: Minion) {
     if (!this.inPlay || this === minion) {
       return
     }

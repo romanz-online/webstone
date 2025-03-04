@@ -2,9 +2,16 @@ import { GameState } from './gameState'
 import Minion from './minionData/minion'
 import Effect from './effectData/effect'
 import { notifyClient } from './ws'
+import { engine } from './engine'
+
+interface QueuedEvent {
+  event: string
+  data: any
+}
 
 class EffectStack {
-  private stack: Effect[]
+  private stack: QueuedEvent[] = [] // CONVERT THIS TO SOMETHING WHICH ALSO HOLDS A 'PLAY MINION' EVENT
+  // LIKE AN "EVENT STACK"?
   private waiting: boolean
   private gameState: GameState
 
@@ -14,15 +21,26 @@ class EffectStack {
     this.gameState = gameState
   }
 
-  push(effect: Effect): void {
-    this.stack.push(effect)
-    this.waiting = true
+  push(event: string, data: any): boolean {
+    this.stack.push({ event: event, data: data })
+    if (event === 'playMinion') {
+      // CHECK FOR BATTLECRY, CHOOSE ONE, COMBO
+      const minion: Minion = data.minion
+      if (minion) {
+        this.waiting = !!minion.effects.battlecry
+      }
+    }
+    return this.waiting
   }
 
-  runStack(): void {
+  executeStack(): void {
     while (this.stack.length > 0) {
       this.processTopEffect()
     }
+  }
+
+  getTop(): any {
+    return this.stack[this.stack.length - 1]
   }
 
   // Process the top effect with the given target
@@ -32,25 +50,30 @@ class EffectStack {
       return
     }
 
-    const currentEffect: Effect = this.stack[this.stack.length - 1]
-    const target: Minion | null = currentEffect.target
+    const current: any = this.stack[this.stack.length - 1].data
+    if (current instanceof Effect) {
+      current.apply()
 
-    // if (!target) {
-    //   console.error('Could not find target with ID', targetID, 'on board')
-    //   notifyClient('target', false, this.gameState.toJSON())
-    //   return false
-    // }
+      engine.queueEvent([
+        {
+          event: 'effect',
+          data: {
+            effect: current,
+          },
+        },
+      ])
 
-    // Process the effect
-    currentEffect.source.doBattlecry(this.gameState, target)
+      this.stack.pop()
+    } else {
+      current.hand.splice(current.hand.indexOf(current.minion), 1)[0]
+      current.board.splice(current.boardIndex, 0, current.minion)
+      current.minion.inPlay = true
 
-    // Remove the processed effect
-    this.stack.pop()
+      notifyClient('playMinion', true, {
+        minion: current.minion,
+      })
 
-    // If we have more effects waiting, notify client to get another target
-    if (this.waiting) {
-      const nextEffect: Effect = this.stack[this.stack.length - 1]
-      notifyClient('getTarget', true, { minion: nextEffect.source })
+      this.stack.pop()
     }
   }
 
