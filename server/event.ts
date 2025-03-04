@@ -92,6 +92,8 @@ export class Event {
           return false
         }
 
+        // ADD EventType.Target ? I'M NOT SURE :(
+
         effect.apply()
 
         notifyClient('battlecry', true, {})
