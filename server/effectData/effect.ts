@@ -36,7 +36,7 @@ class Effect {
     this.target = target
 
     this.fileName = baseData.fileName || ''
-    this.type = baseData.type || EffectType.GENERIC
+    this.type = baseData.type || EffectType.Generic
     this.class = baseData.class || HeroClass.NEUTRAL
     this.name = baseData.name || '???'
     this.baseDescription = baseData.baseDescription || ''

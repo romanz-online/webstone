@@ -32,11 +32,31 @@ export enum Tribe {
 }
 
 export enum EffectType {
-  SPELL,
-  CHOOSE_ONE,
-  COMBO,
-  BATTLECRY,
-  DEATHRATTLE,
-  AURA,
-  GENERIC, // not any of the others; shouldn't trigger any additional effects
+  Spell,
+  ChooseOne,
+  Combo,
+  Battlecry,
+  Deathrattle,
+  Aura,
+  Generic, // not any of the others; shouldn't trigger any additional effects
+}
+
+export enum EventType {
+  PlayMinion,
+  SummonMinion,
+  KillMinion,
+  Attack,
+  Spell,
+  Battlecry,
+  ChooseOne,
+  Combo,
+  Deathrattle,
+  Damage,
+  DrawCard,
+  DiscardCard,
+  Overdraw,
+  Fatigue,
+  ChangeStats,
+  EndTurn,
+  HeroPower,
 }

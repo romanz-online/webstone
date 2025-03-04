@@ -121,32 +121,6 @@ class Minion {
     ])
   }
 
-  doAttack(target: Minion) {
-    if (!this.inPlay) {
-      return
-    }
-
-    this.attacksThisTurn++
-
-    if (
-      (this.attacksThisTurn > 0 && !this.windfury) ||
-      (this.attacksThisTurn > 1 && this.windfury)
-    ) {
-      this.canAttack = false
-    }
-
-    target.receiveAttack(this)
-  }
-
-  receiveAttack(attacker: Minion) {
-    if (!this.inPlay) {
-      return
-    }
-
-    this.takeDamage(attacker, attacker.attack)
-    attacker.takeDamage(this, this.attack)
-  }
-
   takeDamage(source: Minion, damage: number) {
     // CHECK DIVINE SHIELD
     // CHECK POISON

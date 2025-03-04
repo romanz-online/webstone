@@ -10,8 +10,7 @@ interface QueuedEvent {
 }
 
 class EffectStack {
-  private stack: QueuedEvent[] = [] // CONVERT THIS TO SOMETHING WHICH ALSO HOLDS A 'PLAY MINION' EVENT
-  // LIKE AN "EVENT STACK"?
+  private stack: QueuedEvent[] = []
   private waiting: boolean
   private gameState: GameState
 
@@ -43,7 +42,6 @@ class EffectStack {
     return this.stack[this.stack.length - 1]
   }
 
-  // Process the top effect with the given target
   processTopEffect(): void {
     if (this.stack.length === 0) {
       console.error('No effects in stack to process')

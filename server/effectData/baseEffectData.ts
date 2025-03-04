@@ -6,7 +6,7 @@ const EFFECT_DATA = [
 
   // DRUID
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'innervate', // for card displays on spells and "choose one"
     class: HeroClass.DRUID,
     name: 'Innervate',
@@ -21,7 +21,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'moonfire',
     class: HeroClass.DRUID,
     name: 'Moonfire',
@@ -36,7 +36,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'claw',
     class: HeroClass.DRUID,
     name: 'Claw',
@@ -51,7 +51,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'naturalize',
     class: HeroClass.DRUID,
     name: 'Naturalize',
@@ -66,7 +66,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'savagery',
     class: HeroClass.DRUID,
     name: 'Savagery',
@@ -81,7 +81,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'mark_of_the_wild',
     class: HeroClass.DRUID,
     name: 'Mark of the Wild',
@@ -97,7 +97,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.CHOOSE_ONE,
+    type: EffectType.ChooseOne,
     fileName: 'power_of_the_wild',
     class: HeroClass.DRUID,
     name: 'Power of the Wild',
@@ -113,7 +113,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'power_of_the_wild_leader_of_the_pack',
     class: HeroClass.DRUID,
     name: 'Leader of the Pack',
@@ -128,7 +128,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'power_of_the_wild_summon_a_panther',
     class: HeroClass.DRUID,
     name: 'Summon a Panther',
@@ -143,7 +143,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'wild_growth',
     class: HeroClass.DRUID,
     name: 'Wild Growth',
@@ -158,7 +158,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.CHOOSE_ONE,
+    type: EffectType.ChooseOne,
     fileName: 'wrath',
     class: HeroClass.DRUID,
     name: 'Wrath',
@@ -174,7 +174,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'wrath_natures_wrath',
     class: HeroClass.DRUID,
     name: "Nature's Wrath",
@@ -189,7 +189,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'wrath_solar_wrath',
     class: HeroClass.DRUID,
     name: 'Solar Wrath',
@@ -204,7 +204,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'healing_touch',
     class: HeroClass.DRUID,
     name: 'Healing Touch',
@@ -219,7 +219,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.CHOOSE_ONE,
+    type: EffectType.ChooseOne,
     fileName: 'mark_of_nature',
     class: HeroClass.DRUID,
     name: 'Mark of Nature',
@@ -235,7 +235,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'mark_of_nature_tigers_fury',
     class: HeroClass.DRUID,
     name: "Tiger's Fury",
@@ -250,7 +250,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'mark_of_nature_thick_hide',
     class: HeroClass.DRUID,
     name: 'Thick Hide',
@@ -265,7 +265,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'savage_roar',
     class: HeroClass.DRUID,
     name: 'Savage Roar',
@@ -280,7 +280,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'bite',
     class: HeroClass.DRUID,
     name: 'Bite',
@@ -295,7 +295,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'soul_of_the_forest',
     class: HeroClass.DRUID,
     name: 'Soul of the Forest',
@@ -311,7 +311,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'swipe',
     class: HeroClass.DRUID,
     name: 'Swipe',
@@ -327,7 +327,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.CHOOSE_ONE,
+    type: EffectType.ChooseOne,
     fileName: 'nourish',
     class: HeroClass.DRUID,
     name: 'Nourish',
@@ -343,7 +343,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'nourish_enrich',
     class: HeroClass.DRUID,
     name: 'Enrich',
@@ -358,7 +358,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'nourish_rampant_growth',
     class: HeroClass.DRUID,
     name: 'Rampant Growth',
@@ -373,7 +373,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.CHOOSE_ONE,
+    type: EffectType.ChooseOne,
     fileName: 'starfall',
     class: HeroClass.DRUID,
     name: 'Starfall',
@@ -389,7 +389,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'starfall_starlord',
     class: HeroClass.DRUID,
     name: 'Starlord',
@@ -404,7 +404,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'starfall_stellar_drift',
     class: HeroClass.DRUID,
     name: 'Stellar Drift',
@@ -419,7 +419,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'force_of_nature',
     class: HeroClass.DRUID,
     name: 'Force of Nature',
@@ -435,7 +435,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'starfire',
     class: HeroClass.DRUID,
     name: 'Starfire',
@@ -451,7 +451,7 @@ const EFFECT_DATA = [
   },
   // HUNTER
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'hunters_mark',
     class: HeroClass.HUNTER,
     name: "Hunter's Mark",
@@ -466,7 +466,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'arcane_shot',
     class: HeroClass.HUNTER,
     name: 'Arcane Shot',
@@ -481,7 +481,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'bestial_wrath',
     class: HeroClass.HUNTER,
     name: 'Bestial Wrath',
@@ -496,7 +496,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'flare',
     class: HeroClass.HUNTER,
     name: 'Flare',
@@ -512,7 +512,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'tracking',
     class: HeroClass.HUNTER,
     name: 'Tracking',
@@ -528,7 +528,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'explosive_trap',
     class: HeroClass.HUNTER,
     name: 'Explosive Trap',
@@ -544,7 +544,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'freezing_trap',
     class: HeroClass.HUNTER,
     name: 'Freezing Trap',
@@ -560,7 +560,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'misdirection',
     class: HeroClass.HUNTER,
     name: 'Misdirection',
@@ -576,7 +576,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'snake_trap',
     class: HeroClass.HUNTER,
     name: 'Snake Trap',
@@ -592,7 +592,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'snipe',
     class: HeroClass.HUNTER,
     name: 'Snipe',
@@ -608,7 +608,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'animal_companion',
     class: HeroClass.HUNTER,
     name: 'Animal Companion',
@@ -623,7 +623,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'deadly_shot',
     class: HeroClass.HUNTER,
     name: 'Deadly Shot',
@@ -638,7 +638,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'kill_command',
     class: HeroClass.HUNTER,
     name: 'Kill Command',
@@ -654,7 +654,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'unleash_the_hounds',
     class: HeroClass.HUNTER,
     name: 'Unleash the Hounds',
@@ -670,7 +670,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'multi_shot',
     class: HeroClass.HUNTER,
     name: 'Multi-Shot',
@@ -685,7 +685,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'explosive_shot',
     class: HeroClass.HUNTER,
     name: 'Explosive Shot',
@@ -702,7 +702,7 @@ const EFFECT_DATA = [
   },
   // MAGE
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'arcane_missiles',
     class: HeroClass.MAGE,
     name: 'Arcane Missiles',
@@ -718,7 +718,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'ice_lance',
     class: HeroClass.MAGE,
     name: 'Ice Lance',
@@ -734,7 +734,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'mirror_image',
     class: HeroClass.MAGE,
     name: 'Mirror Image',
@@ -749,7 +749,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'arcane_explosion',
     class: HeroClass.MAGE,
     name: 'Arcane Explosion',
@@ -764,7 +764,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'frostbolt',
     class: HeroClass.MAGE,
     name: 'Frostbolt',
@@ -780,7 +780,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'arcane_intellect',
     class: HeroClass.MAGE,
     name: 'Arcane Intellect',
@@ -795,7 +795,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'counterspell',
     class: HeroClass.MAGE,
     name: 'Counterspell',
@@ -811,7 +811,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'frost_nova',
     class: HeroClass.MAGE,
     name: 'Frost Nova',
@@ -826,7 +826,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'ice_barrier',
     class: HeroClass.MAGE,
     name: 'Ice Barrier',
@@ -842,7 +842,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'ice_block',
     class: HeroClass.MAGE,
     name: 'Ice Block',
@@ -858,7 +858,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'mirror_entity',
     class: HeroClass.MAGE,
     name: 'Mirror Entity',
@@ -874,7 +874,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'spellbender',
     class: HeroClass.MAGE,
     name: 'Spellbender',
@@ -890,7 +890,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'vaporize',
     class: HeroClass.MAGE,
     name: 'Vaporize',
@@ -906,7 +906,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'cone_of_cold',
     class: HeroClass.MAGE,
     name: 'Cone of Cold',
@@ -922,7 +922,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'fireball',
     class: HeroClass.MAGE,
     name: 'Fireball',
@@ -937,7 +937,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'polymorph',
     class: HeroClass.MAGE,
     name: 'Polymorph',
@@ -952,7 +952,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'blizzard',
     class: HeroClass.MAGE,
     name: 'Blizzard',
@@ -968,7 +968,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'flamestrike',
     class: HeroClass.MAGE,
     name: 'Flamestrike',
@@ -983,7 +983,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'pyroblast',
     class: HeroClass.MAGE,
     name: 'Pyroblast',
@@ -999,7 +999,7 @@ const EFFECT_DATA = [
   },
   // PALADIN
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'blessing_of_might',
     class: HeroClass.PALADIN,
     name: 'Blessing of Might',
@@ -1014,7 +1014,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'blessing_of_wisdom',
     class: HeroClass.PALADIN,
     name: 'Blessing of Wisdom',
@@ -1029,7 +1029,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'eye_for_an_eye',
     class: HeroClass.PALADIN,
     name: 'Eye for an Eye',
@@ -1045,7 +1045,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'hand_of_protection',
     class: HeroClass.PALADIN,
     name: 'Hand of Protection',
@@ -1060,7 +1060,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'humility',
     class: HeroClass.PALADIN,
     name: 'Humility',
@@ -1075,7 +1075,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'noble_sacrifice',
     class: HeroClass.PALADIN,
     name: 'Noble Sacrifice',
@@ -1091,7 +1091,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'redemption',
     class: HeroClass.PALADIN,
     name: 'Redemption',
@@ -1107,7 +1107,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'repentance',
     class: HeroClass.PALADIN,
     name: 'Repentance',
@@ -1123,7 +1123,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'equality',
     class: HeroClass.PALADIN,
     name: 'Equality',
@@ -1138,7 +1138,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'holy_light',
     class: HeroClass.PALADIN,
     name: 'Holy Light',
@@ -1153,7 +1153,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'divine_favor',
     class: HeroClass.PALADIN,
     name: 'Divine Favor',
@@ -1169,7 +1169,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'blessing_of_kings',
     class: HeroClass.PALADIN,
     name: 'Blessing of Kings',
@@ -1184,7 +1184,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'consecration',
     class: HeroClass.PALADIN,
     name: 'Consecration',
@@ -1199,7 +1199,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'hammer_of_wrath',
     class: HeroClass.PALADIN,
     name: 'Hammer of Wrath',
@@ -1214,7 +1214,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'blessed_champion',
     class: HeroClass.PALADIN,
     name: 'Blessed Champion',
@@ -1229,7 +1229,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'holy_wrath',
     class: HeroClass.PALADIN,
     name: 'Holy Wrath',
@@ -1244,7 +1244,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'avenging_wrath',
     class: HeroClass.PALADIN,
     name: 'Avenging Wrath',
@@ -1260,7 +1260,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'lay_on_hands',
     class: HeroClass.PALADIN,
     name: 'Lay on Hands',
@@ -1276,7 +1276,7 @@ const EFFECT_DATA = [
   },
   // PRIEST
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'circle_of_healing',
     class: HeroClass.PRIEST,
     name: 'Circle of Healing',
@@ -1291,7 +1291,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'silence',
     class: HeroClass.PRIEST,
     name: 'Silence',
@@ -1306,7 +1306,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'holy_smite',
     class: HeroClass.PRIEST,
     name: 'Holy Smite',
@@ -1321,7 +1321,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'inner_fire',
     class: HeroClass.PRIEST,
     name: 'Inner Fire',
@@ -1336,7 +1336,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'mind_vision',
     class: HeroClass.PRIEST,
     name: 'Mind Vision',
@@ -1352,7 +1352,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'power_word_shield',
     class: HeroClass.PRIEST,
     name: 'Power Word: Shield',
@@ -1367,7 +1367,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'divine_spirit',
     class: HeroClass.PRIEST,
     name: 'Divine Spirit',
@@ -1382,7 +1382,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'mind_blast',
     class: HeroClass.PRIEST,
     name: 'Mind Blast',
@@ -1397,7 +1397,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'shadow_word_pain',
     class: HeroClass.PRIEST,
     name: 'Shadow Word: Pain',
@@ -1412,7 +1412,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'shadow_word_death',
     class: HeroClass.PRIEST,
     name: 'Shadow Word: Death',
@@ -1427,7 +1427,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'shadowform',
     class: HeroClass.PRIEST,
     name: 'Shadowform',
@@ -1443,7 +1443,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'thoughtsteal',
     class: HeroClass.PRIEST,
     name: 'Thoughtsteal',
@@ -1459,7 +1459,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'mass_dispel',
     class: HeroClass.PRIEST,
     name: 'Mass Dispel',
@@ -1474,7 +1474,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'mindgames',
     class: HeroClass.PRIEST,
     name: 'Mindgames',
@@ -1490,7 +1490,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'shadow_madness',
     class: HeroClass.PRIEST,
     name: 'Shadow Madness',
@@ -1506,7 +1506,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'holy_nova',
     class: HeroClass.PRIEST,
     name: 'Holy Nova',
@@ -1522,7 +1522,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'holy_fire',
     class: HeroClass.PRIEST,
     name: 'Holy Fire',
@@ -1538,7 +1538,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'mind_control',
     class: HeroClass.PRIEST,
     name: 'Mind Control',
@@ -1554,7 +1554,7 @@ const EFFECT_DATA = [
   },
   // ROGUE
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'backstab',
     class: HeroClass.ROGUE,
     name: 'Backstab',
@@ -1569,7 +1569,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'preparation',
     class: HeroClass.ROGUE,
     name: 'Preparation',
@@ -1584,7 +1584,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'shadowstep',
     class: HeroClass.ROGUE,
     name: 'Shadowstep',
@@ -1600,7 +1600,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'cold_blood',
     class: HeroClass.ROGUE,
     name: 'Cold Blood',
@@ -1616,7 +1616,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'conceal',
     class: HeroClass.ROGUE,
     name: 'Conceal',
@@ -1631,7 +1631,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'deadly_poison',
     class: HeroClass.ROGUE,
     name: 'Deadly Poison',
@@ -1646,7 +1646,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'sinister_strike',
     class: HeroClass.ROGUE,
     name: 'Sinister Strike',
@@ -1661,7 +1661,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'betrayal',
     class: HeroClass.ROGUE,
     name: 'Betrayal',
@@ -1677,7 +1677,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'blade_flurry',
     class: HeroClass.ROGUE,
     name: 'Blade Flurry',
@@ -1692,7 +1692,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'eviscerate',
     class: HeroClass.ROGUE,
     name: 'Eviscerate',
@@ -1708,7 +1708,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'sap',
     class: HeroClass.ROGUE,
     name: 'Sap',
@@ -1723,7 +1723,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'shiv',
     class: HeroClass.ROGUE,
     name: 'Shiv',
@@ -1738,7 +1738,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'fan_of_knives',
     class: HeroClass.ROGUE,
     name: 'Fan of Knives',
@@ -1753,7 +1753,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'headcrack',
     class: HeroClass.ROGUE,
     name: 'Headcrack',
@@ -1769,7 +1769,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'assassinate',
     class: HeroClass.ROGUE,
     name: 'Assassinate',
@@ -1784,7 +1784,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'vanish',
     class: HeroClass.ROGUE,
     name: 'Vanish',
@@ -1799,7 +1799,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'sprint',
     class: HeroClass.ROGUE,
     name: 'Sprint',
@@ -1815,7 +1815,7 @@ const EFFECT_DATA = [
   },
   // SHAMAN
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'ancestral_healing',
     class: HeroClass.SHAMAN,
     name: 'Ancestral Healing',
@@ -1831,7 +1831,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'totemic_might',
     class: HeroClass.SHAMAN,
     name: 'Totemic Might',
@@ -1846,7 +1846,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'earth_shock',
     class: HeroClass.SHAMAN,
     name: 'Earth Shock',
@@ -1862,7 +1862,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'forked_lightning',
     class: HeroClass.SHAMAN,
     name: 'Forked Lightning',
@@ -1878,7 +1878,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'frost_shock',
     class: HeroClass.SHAMAN,
     name: 'Frost Shock',
@@ -1894,7 +1894,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'lightning_bolt',
     class: HeroClass.SHAMAN,
     name: 'Lightning Bolt',
@@ -1909,7 +1909,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'rockbiter_weapon',
     class: HeroClass.SHAMAN,
     name: 'Rockbiter Weapon',
@@ -1924,7 +1924,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'ancestral_spirit',
     class: HeroClass.SHAMAN,
     name: 'Ancestral Spirit',
@@ -1940,7 +1940,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'windfury',
     class: HeroClass.SHAMAN,
     name: 'Windfury',
@@ -1955,7 +1955,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'far_sight',
     class: HeroClass.SHAMAN,
     name: 'Far Sight',
@@ -1970,7 +1970,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'feral_spirit',
     class: HeroClass.SHAMAN,
     name: 'Feral Spirit',
@@ -1986,7 +1986,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'hex',
     class: HeroClass.SHAMAN,
     name: 'Hex',
@@ -2001,7 +2001,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'lava_burst',
     class: HeroClass.SHAMAN,
     name: 'Lava Burst',
@@ -2016,7 +2016,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'lightning_storm',
     class: HeroClass.SHAMAN,
     name: 'Lightning Storm',
@@ -2032,7 +2032,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'bloodlust',
     class: HeroClass.SHAMAN,
     name: 'Bloodlust',
@@ -2048,7 +2048,7 @@ const EFFECT_DATA = [
   },
   // WARLOCK
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'sacrificial_pact',
     class: HeroClass.WARLOCK,
     name: 'Sacrificial Pact',
@@ -2063,7 +2063,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'soulfire',
     class: HeroClass.WARLOCK,
     name: 'Soulfire',
@@ -2078,7 +2078,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'corruption',
     class: HeroClass.WARLOCK,
     name: 'Corruption',
@@ -2094,7 +2094,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'mortal_coil',
     class: HeroClass.WARLOCK,
     name: 'Mortal Coil',
@@ -2110,7 +2110,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'power_overwhelming',
     class: HeroClass.WARLOCK,
     name: 'Power Overwhelming',
@@ -2126,7 +2126,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'demonfire',
     class: HeroClass.WARLOCK,
     name: 'Demonfire',
@@ -2142,7 +2142,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'drain_life',
     class: HeroClass.WARLOCK,
     name: 'Drain Life',
@@ -2158,7 +2158,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'sense_demons',
     class: HeroClass.WARLOCK,
     name: 'Sense Demons',
@@ -2173,7 +2173,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'shadow_bolt',
     class: HeroClass.WARLOCK,
     name: 'Shadow Bolt',
@@ -2188,7 +2188,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'hellfire',
     class: HeroClass.WARLOCK,
     name: 'Hellfire',
@@ -2203,7 +2203,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'shadowflame',
     class: HeroClass.WARLOCK,
     name: 'Shadowflame',
@@ -2219,7 +2219,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'bane_of_doom',
     class: HeroClass.WARLOCK,
     name: 'Bane of Doom',
@@ -2235,7 +2235,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'siphon_soul',
     class: HeroClass.WARLOCK,
     name: 'Siphon Soul',
@@ -2250,7 +2250,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'twisting_nether',
     class: HeroClass.WARLOCK,
     name: 'Twisting Nether',
@@ -2266,7 +2266,7 @@ const EFFECT_DATA = [
   },
   // WARRIOR
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'inner_rage',
     class: HeroClass.WARRIOR,
     name: 'Inner Rage',
@@ -2281,7 +2281,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'execute',
     class: HeroClass.WARRIOR,
     name: 'Execute',
@@ -2296,7 +2296,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'shield_slam',
     class: HeroClass.WARRIOR,
     name: 'Shield Slam',
@@ -2311,7 +2311,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'upgrade',
     class: HeroClass.WARRIOR,
     name: 'Upgrade!',
@@ -2327,7 +2327,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'whirlwind',
     class: HeroClass.WARRIOR,
     name: 'Whirlwind',
@@ -2342,7 +2342,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'battle_rage',
     class: HeroClass.WARRIOR,
     name: 'Battle Rage',
@@ -2357,7 +2357,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'cleave',
     class: HeroClass.WARRIOR,
     name: 'Cleave',
@@ -2372,7 +2372,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'commanding_shout',
     class: HeroClass.WARRIOR,
     name: 'Commanding Shout',
@@ -2388,7 +2388,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'heroic_strike',
     class: HeroClass.WARRIOR,
     name: 'Heroic Strike',
@@ -2403,7 +2403,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'rampage',
     class: HeroClass.WARRIOR,
     name: 'Rampage',
@@ -2418,7 +2418,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'slam',
     class: HeroClass.WARRIOR,
     name: 'Slam',
@@ -2434,7 +2434,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'charge',
     class: HeroClass.WARRIOR,
     name: 'Charge',
@@ -2449,7 +2449,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'shield_block',
     class: HeroClass.WARRIOR,
     name: 'Shield Block',
@@ -2464,7 +2464,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'mortal_strike',
     class: HeroClass.WARRIOR,
     name: 'Mortal Strike',
@@ -2480,7 +2480,7 @@ const EFFECT_DATA = [
     obtainable: true,
   },
   {
-    type: EffectType.SPELL,
+    type: EffectType.Spell,
     fileName: 'brawl',
     class: HeroClass.WARRIOR,
     name: 'Brawl',
@@ -2499,7 +2499,7 @@ const EFFECT_DATA = [
 
   // DRUID
   {
-    type: EffectType.CHOOSE_ONE,
+    type: EffectType.ChooseOne,
     fileName: 'keeper_of_the_grove_choose_one',
     class: HeroClass.DRUID,
     name: 'Choose One',
@@ -2514,7 +2514,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.GENERIC,
+    type: EffectType.Generic,
     fileName: 'keeper_of_the_grove_choose_one_dispel',
     class: HeroClass.DRUID,
     name: 'Dispel',
@@ -2529,7 +2529,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.GENERIC,
+    type: EffectType.Generic,
     fileName: 'keeper_of_the_grove_choose_one_moonfire',
     class: HeroClass.DRUID,
     name: 'Moonfire',
@@ -2544,7 +2544,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.CHOOSE_ONE,
+    type: EffectType.ChooseOne,
     fileName: 'druid_of_the_claw_choose_one',
     class: HeroClass.DRUID,
     name: 'Choose One',
@@ -2559,7 +2559,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.CHOOSE_ONE,
+    type: EffectType.ChooseOne,
     fileName: 'ancient_of_lore_choose_one',
     class: HeroClass.DRUID,
     name: 'Choose One',
@@ -2574,7 +2574,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.GENERIC,
+    type: EffectType.Generic,
     fileName: 'ancient_of_lore_choose_one_ancient_secrets',
     class: HeroClass.DRUID,
     name: 'Ancient Secrets',
@@ -2589,7 +2589,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.GENERIC,
+    type: EffectType.Generic,
     fileName: 'ancient_of_lore_choose_one_ancient_teachings',
     class: HeroClass.DRUID,
     name: 'Ancient Teachings',
@@ -2604,7 +2604,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.CHOOSE_ONE,
+    type: EffectType.ChooseOne,
     fileName: 'ancient_of_war_choose_one',
     class: HeroClass.DRUID,
     name: 'Choose One',
@@ -2619,7 +2619,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.GENERIC,
+    type: EffectType.Generic,
     fileName: 'ancient_of_war_choose_one_rooted',
     class: HeroClass.DRUID,
     name: 'Rooted',
@@ -2634,7 +2634,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.GENERIC,
+    type: EffectType.Generic,
     fileName: 'ancient_of_war_choose_one_uproot',
     class: HeroClass.DRUID,
     name: 'Uproot',
@@ -2649,7 +2649,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.CHOOSE_ONE,
+    type: EffectType.ChooseOne,
     fileName: 'cenarius_choose_one',
     class: HeroClass.DRUID,
     name: 'Choose One',
@@ -2664,7 +2664,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.GENERIC,
+    type: EffectType.Generic,
     fileName: 'cenarius_choose_one_demigods_favor',
     class: HeroClass.DRUID,
     name: "Demigod's Favor",
@@ -2679,7 +2679,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.GENERIC,
+    type: EffectType.Generic,
     fileName: 'cenarius_choose_one_shandos_lesson',
     class: HeroClass.DRUID,
     name: "Shan'do's Lesson",
@@ -2695,7 +2695,7 @@ const EFFECT_DATA = [
   },
   // HUNTER
   {
-    type: EffectType.AURA,
+    type: EffectType.Aura,
     fileName: 'timber_wolf_aura',
     class: HeroClass.HUNTER,
     name: '+1 Attack',
@@ -2710,7 +2710,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'houndmaster_battlecry',
     class: HeroClass.HUNTER,
     name: '+2/+2 and <b>Taunt</b>',
@@ -2725,7 +2725,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.AURA,
+    type: EffectType.Aura,
     fileName: 'tundra_rhino_aura',
     class: HeroClass.HUNTER,
     name: '<b>Charge</b>',
@@ -2740,7 +2740,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.DEATHRATTLE,
+    type: EffectType.Deathrattle,
     fileName: 'savannah_highmane_deathrattle',
     class: HeroClass.HUNTER,
     name: '<b>Deathrattle</b>',
@@ -2756,7 +2756,7 @@ const EFFECT_DATA = [
   },
   // MAGE
   {
-    type: EffectType.AURA,
+    type: EffectType.Aura,
     fileName: 'sorcerers_apprentice_aura',
     class: HeroClass.MAGE,
     name: 'Spells cost (1) less',
@@ -2771,7 +2771,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'kirin_tor_mage_battlecry',
     class: HeroClass.MAGE,
     name: 'The next <b>Secret</b> you play this turn costs (0)',
@@ -2787,7 +2787,7 @@ const EFFECT_DATA = [
   },
   // PALADIN
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'argent_protector_battlecry',
     class: HeroClass.PALADIN,
     name: '',
@@ -2802,7 +2802,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'aldor_peacekeeper_battlecry',
     class: HeroClass.PALADIN,
     name: 'Aldor Peacekeeper',
@@ -2817,7 +2817,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'guardian_of_kings_battlecry',
     class: HeroClass.PALADIN,
     name: '',
@@ -2832,7 +2832,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.DEATHRATTLE,
+    type: EffectType.Deathrattle,
     fileName: 'tirion_fordring_deathrattle',
     class: HeroClass.PALADIN,
     name: 'Equip a 5/3 Ashbringer',
@@ -2848,7 +2848,7 @@ const EFFECT_DATA = [
   },
   // PRIEST
   {
-    type: EffectType.AURA,
+    type: EffectType.Aura,
     fileName: 'auchenai_soulpriest_aura',
     class: HeroClass.PRIEST,
     name: 'Restoring Health deals damage instead',
@@ -2864,7 +2864,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'cabal_shadow_priest_battlecry',
     class: HeroClass.PRIEST,
     name: '',
@@ -2880,7 +2880,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'temple_enforcer_battlecry',
     class: HeroClass.PRIEST,
     name: '+3 Health',
@@ -2895,7 +2895,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.AURA,
+    type: EffectType.Aura,
     fileName: 'prophet_velen_aura',
     class: HeroClass.PRIEST,
     name: 'Double damage and healing of spells and Hero Power',
@@ -2912,7 +2912,7 @@ const EFFECT_DATA = [
   },
   // ROGUE
   {
-    type: EffectType.COMBO,
+    type: EffectType.Combo,
     fileName: 'defias_ringleader_combo',
     class: HeroClass.ROGUE,
     name: '',
@@ -2927,7 +2927,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.COMBO,
+    type: EffectType.Combo,
     fileName: 'edwin_vancleef_combo',
     class: HeroClass.ROGUE,
     name: '',
@@ -2942,7 +2942,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.COMBO,
+    type: EffectType.Combo,
     fileName: 'si7_agent_combo',
     class: HeroClass.ROGUE,
     name: '',
@@ -2957,7 +2957,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'master_of_disguise_battlecry',
     class: HeroClass.ROGUE,
     name: '<b>Stealth</b>',
@@ -2972,7 +2972,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.COMBO,
+    type: EffectType.Combo,
     fileName: 'kidnapper_combo',
     class: HeroClass.ROGUE,
     name: '',
@@ -2988,7 +2988,7 @@ const EFFECT_DATA = [
   },
   // SHAMAN
   {
-    type: EffectType.AURA,
+    type: EffectType.Aura,
     fileName: 'flametongue_totem_aura',
     class: HeroClass.SHAMAN,
     name: '+2 Attack',
@@ -3003,7 +3003,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'windspeaker_battlecry',
     class: HeroClass.SHAMAN,
     name: '<b>Windfury</b>',
@@ -3018,7 +3018,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'fire_elemental_battlecry',
     class: HeroClass.SHAMAN,
     name: '',
@@ -3034,7 +3034,7 @@ const EFFECT_DATA = [
   },
   // WARLOCK
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'flame_imp_battlecry',
     class: HeroClass.WARLOCK,
     name: '',
@@ -3049,7 +3049,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'felstalker_battlecry',
     class: HeroClass.WARLOCK,
     name: '',
@@ -3064,7 +3064,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'felguard_battlecry',
     class: HeroClass.WARLOCK,
     name: '',
@@ -3079,7 +3079,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'void_terror_battlecry',
     class: HeroClass.WARLOCK,
     name: '',
@@ -3095,7 +3095,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'pit_lord_battlecry',
     class: HeroClass.WARLOCK,
     name: '',
@@ -3110,7 +3110,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.AURA,
+    type: EffectType.Aura,
     fileName: 'summoning_portal_aura',
     class: HeroClass.WARLOCK,
     name: 'Minions cost (2) less',
@@ -3125,7 +3125,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'doomguard_battlecry',
     class: HeroClass.WARLOCK,
     name: '',
@@ -3140,7 +3140,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'dread_infernal_battlecry',
     class: HeroClass.WARLOCK,
     name: '',
@@ -3155,7 +3155,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'lord_jaraxxus_battlecry',
     class: HeroClass.WARLOCK,
     name: '',
@@ -3171,7 +3171,7 @@ const EFFECT_DATA = [
   },
   // WARRIOR
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'cruel_taskmaster_battlecry',
     class: HeroClass.WARRIOR,
     name: '+2 Attack',
@@ -3186,7 +3186,7 @@ const EFFECT_DATA = [
     obtainable: false,
   },
   {
-    type: EffectType.BATTLECRY,
+    type: EffectType.Battlecry,
     fileName: 'arathi_weaponsmith_battlecry',
     class: HeroClass.WARRIOR,
     name: '',
