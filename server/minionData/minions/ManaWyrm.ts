@@ -1,6 +1,6 @@
 import Minion from '../minion'
 import { notifyClient } from '../../ws'
-import { engine } from '../../engine'
+import { engine } from '../../Engine'
 
 class ManaWyrm extends Minion {
   constructor(ID: number, uniqueID: number, player: number) {

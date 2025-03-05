@@ -1,19 +1,22 @@
-import { GameState } from '../../gameState'
+import GameState from '../../GameState'
 import Minion from '../../minionData/minion'
 import Effect from '../effect'
 import EFFECT_ID from '../effectID.json'
+import { engine } from '../../Engine'
+import Event from '../../event'
+import { EventType } from '../../constants'
 
 class FireElementalBattlecry extends Effect {
   constructor(player: number, source: Minion) {
     super(EFFECT_ID.FIRE_ELEMENTAL_BATTLECRY, player, source, null)
   }
 
-  apply(): void {
-    if (!this.gameState || !this.source) {
+  apply(source: Minion, target: Minion | null): void {
+    if (!this.gameState || !source) {
       console.error('Missing values to properly execute effect')
     }
 
-    if (!this.target) {
+    if (!target) {
       if (
         this.requiresTarget ||
         (this.gameState.opponentBoard.length > 0 && this.canTarget)
@@ -22,11 +25,14 @@ class FireElementalBattlecry extends Effect {
       }
     }
 
-    if (this.target) {
-      this.target.takeDamage(this.source, this.getAmount())
-      console.log(
-        `${this.source.name} deals ${this.getAmount()} damage to ${this.target.name}`
-      )
+    if (target) {
+      engine.queueEvent([
+        new Event(EventType.Damage, {
+          source: this,
+          target: target,
+          amount: this.getAmount(),
+        }),
+      ])
     }
   }
 }

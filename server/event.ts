@@ -1,9 +1,10 @@
-import { HeroClass, Rarity, Tribe, EffectType, EventType } from './constants'
+import { EventType } from './constants'
 import { notifyClient } from './ws'
 import Minion from './minionData/minion'
 import Effect from './effectData/effect'
+import { engine } from './Engine'
 
-export class Event {
+class Event {
   type: EventType
   data: any
 
@@ -15,38 +16,54 @@ export class Event {
   execute(): boolean {
     switch (this.type) {
       case EventType.PlayMinion: {
-        this.data.hand.splice(this.data.hand.indexOf(this.data.minion), 1)[0]
-        this.data.board.splice(this.data.boardIndex, 0, this.data.minion)
-        this.data.minion.inPlay = true
+        const hand: any = this.data.hand,
+          board: any = this.data.board,
+          minion: Minion = this.data.minion,
+          boardIndex: number = this.data.boardIndex || board.length
+
+        if (!minion || !hand || !board) {
+          return false
+        }
+
+        hand.splice(hand.indexOf(minion), 1)[0]
 
         notifyClient('playMinion', true, {
-          minion: this.data.minion,
+          minion: minion,
         })
-        // notifyClient('summonMinion', true, {
-        //   minion: this.data.minion,
-        // })
+
+        engine.queueEvent([
+          new Event(EventType.SummonMinion, {
+            board: board,
+            minion: minion,
+            boardIndex: boardIndex,
+          }),
+        ])
+
         return true
       }
       case EventType.SummonMinion: {
-        this.data.hand.splice(this.data.hand.indexOf(this.data.minion), 1)[0]
-        this.data.board.splice(this.data.boardIndex, 0, this.data.minion)
-        this.data.minion.inPlay = true
+        const board: any = this.data.board,
+          minion: Minion = this.data.minion,
+          boardIndex: number = this.data.boardIndex || board.length
+
+        if (!minion || !board) {
+          return false
+        }
+
+        board.splice(boardIndex, 0, minion)
+        minion.inPlay = true
 
         notifyClient('summonMinion', true, {
           minion: this.data.minion,
         })
-        return true
-      }
-      case EventType.KillMinion: {
-        notifyClient('killMinion', true, {
-          minion: this.data.minion,
-        })
+
         return true
       }
       case EventType.Attack: {
         const attacker: Minion = this.data.attacker,
           target: Minion = this.data.target
-        if (!attacker.inPlay && !target.inPlay) {
+
+        if (!attacker && !target) {
           return false
         }
 
@@ -61,40 +78,72 @@ export class Event {
 
         notifyClient('attack', true, {})
 
-        target.takeDamage(attacker, attacker.attack)
-        notifyClient('applyDamage', true, {
-          minion: attacker,
-          damage: attacker.attack,
-        })
-
-        attacker.takeDamage(target, target.attack)
-        notifyClient('applyDamage', true, {
-          minion: target,
-          damage: target.attack,
-        })
+        engine.queueEvent([
+          new Event(EventType.Damage, {
+            source: attacker,
+            target: target,
+            amount: attacker.attack,
+          }),
+          new Event(EventType.Damage, {
+            source: target,
+            target: attacker,
+            amount: target.attack,
+          }),
+        ])
 
         return true
       }
-      case EventType.Spell: {
-        const effect: Effect | null = this.data.spell
-        if (!effect) {
+      case EventType.Damage: {
+        const source: Minion = this.data.source,
+          target: Minion = this.data.target,
+          amount: number = this.data.number || 0
+
+        if (!source || !target) {
           return false
         }
 
-        effect.apply()
+        target.health -= amount
+
+        if (target.health < 1) {
+          // STORE A "killedBy" VALUE HERE IF NEEDED
+        }
+
+        console.log(`${source.name} deals ${amount} damage to ${target.name}`)
+
+        notifyClient('damage', true, {})
+
+        return true
+      }
+      case EventType.KillMinion: {
+        notifyClient('killMinion', true, {
+          minion: this.data.minion,
+        })
+        return true
+      }
+      case EventType.Spell: {
+        const effect: Effect | null = this.data.effect,
+          source: Minion | null = this.data.source,
+          target: Minion | null = this.data.target
+
+        if (!effect || !source) {
+          return false
+        }
+
+        effect.apply(source, target)
 
         notifyClient('spell', true, {})
         return true
       }
       case EventType.Battlecry: {
-        const effect: Effect | null = this.data.minion.effects.battlecry
-        if (!effect) {
+        const effect: Effect | null = this.data.effect,
+          source: Minion | null = this.data.source,
+          target: Minion | null = this.data.target
+
+        if (!effect || !source) {
           return false
         }
 
-        // ADD EventType.Target ? I'M NOT SURE :(
-
-        effect.apply()
+        effect.apply(source, target)
 
         notifyClient('battlecry', true, {})
         return true
@@ -109,10 +158,6 @@ export class Event {
       }
       case EventType.Deathrattle: {
         notifyClient('deathrattle', true, {})
-        return true
-      }
-      case EventType.Damage: {
-        notifyClient('damage', true, {})
         return true
       }
       case EventType.DrawCard: {
@@ -147,3 +192,5 @@ export class Event {
     return false
   }
 }
+
+export default Event

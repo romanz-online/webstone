@@ -1,5 +1,5 @@
 import EFFECT_DATA from './baseEffectData'
-import { GameState } from '../gameState'
+import GameState from '../GameState'
 import Minion from '../minionData/minion'
 import { HeroClass, Rarity, Tribe, EffectType } from '../constants'
 
@@ -7,8 +7,8 @@ class Effect {
   baseID: number
   player: number
   gameState: GameState
-  source: Minion
-  target: Minion | null
+  // source: Minion
+  // target: Minion | null
   fileName: string
   type: EffectType
   class: HeroClass
@@ -32,8 +32,8 @@ class Effect {
     const baseData = EFFECT_DATA[baseID - 2000]
     this.baseID = baseID
     this.player = player
-    this.source = source
-    this.target = target
+    // this.source = source
+    // this.target = target
 
     this.fileName = baseData.fileName || ''
     this.type = baseData.type || EffectType.Generic
@@ -54,8 +54,8 @@ class Effect {
     return {
       baseID: this.baseID,
       player: this.player,
-      sourceID: this.source.uniqueID,
-      targetID: this.target?.uniqueID || '',
+      // sourceID: this.source.uniqueID,
+      // targetID: this.target?.uniqueID || '',
       fileName: this.fileName,
       type: this.type,
       class: this.class,
@@ -85,7 +85,7 @@ class Effect {
     return desc
   }
 
-  apply(): void {
+  apply(source: Minion, target: Minion | null): void {
     throw new Error('apply() method must be implemented by subclasses')
   }
 }

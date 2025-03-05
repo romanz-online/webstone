@@ -1,10 +1,18 @@
-import { engine } from './engine'
-import { GameState } from './gameState'
-import { setSocket } from './ws'
+import { engine } from './Engine'
+import GameState from './GameState'
+import Event from './event'
+import { notifyClient, setSocket } from './ws'
 
 export const gameState = new GameState()
 
 export const processEvent = async (ws: WebSocket, json: any): Promise<void> => {
   setSocket(ws)
-  engine.queueEvent([json])
+  if (json.event === 'getGameState') {
+    notifyClient(json.event, true, gameState.toJSON())
+  } else if (json.event === 'target') {
+    gameState.targetEffect(json.data.targetID)
+  } else {
+    // anything that can set off board interactions
+    engine.queuePlayerAction([new Event(json.event, json.data)])
+  }
 }

@@ -1,7 +1,7 @@
 import Minion from '../minion'
 import { notifyClient } from '../../ws'
 import GuardianOfKingsBattlecry from '../../effectData/effects/GuardianOfKingsBattlecry'
-import { GameState } from '../../gameState'
+import GameState from '../../GameState'
 
 class GuardianOfKings extends Minion {
   effects: { battlecry: GuardianOfKingsBattlecry }

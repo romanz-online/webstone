@@ -1,15 +1,16 @@
-import { engine } from '../engine'
+import { engine } from '../Engine'
 import { notifyClient } from '../ws'
 import MINION_DATA from './baseMinionData'
-import { HeroClass, Rarity, Tribe, EffectType } from '../constants'
-import { GameState } from '../gameState'
-import { gameState } from '../wsEvents'
+import { HeroClass, Rarity, Tribe, EffectType, PlayerID } from '../constants'
+import GameState from '../GameState'
+import Effect from '../effectData/effect'
 
 class Minion {
+  gameState: GameState
   baseID: number
   fileName: string
   uniqueID: number
-  player: number
+  playerOwner: PlayerID
   inPlay: boolean
   attacksThisTurn: number
   canAttack: boolean
@@ -40,7 +41,7 @@ class Minion {
 
     this.baseID = baseID
     this.uniqueID = uniqueID
-    this.player = player
+    this.playerOwner = player
 
     this.inPlay = false
     this.attacksThisTurn = 0
@@ -71,7 +72,7 @@ class Minion {
     this.effects = {}
 
     engine.addGameElementListener(this.uniqueID, 'killMinion', (data, done) => {
-      this.onKillMinion()
+      this.onKillMinions()
       done()
     })
   }
@@ -80,7 +81,7 @@ class Minion {
     return {
       baseID: this.baseID,
       uniqueID: this.uniqueID,
-      player: this.player,
+      player: this.playerOwner,
       inPlay: this.inPlay,
       attacksThisTurn: this.attacksThisTurn,
       canAttack: this.canAttack,
@@ -108,7 +109,9 @@ class Minion {
     }
   }
 
-  doBattlecry(gameState: GameState, target: Minion | null): void {}
+  getBattlecry(): Effect | null {
+    return this.effects.battlecry
+  }
 
   doPlay(gameState: GameState) {
     engine.queueEvent([
@@ -121,22 +124,7 @@ class Minion {
     ])
   }
 
-  takeDamage(source: Minion, damage: number) {
-    // CHECK DIVINE SHIELD
-    // CHECK POISON
-
-    this.health -= damage
-
-    if (this.health < 1) {
-      // STORE A "killedBy" VALUE HERE IF NEEDED
-    }
-
-    console.log(`${this.name} takes ${damage} damage`)
-
-    notifyClient('applyDamage', true, { minion: this, damage: damage })
-  }
-
-  onKillMinion() {
+  onKillMinions() {
     if (!this.inPlay || this.health > 0) {
       return
     }

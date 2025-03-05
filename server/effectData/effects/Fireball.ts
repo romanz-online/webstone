@@ -1,4 +1,4 @@
-import { GameState } from '../../gameState'
+import GameState from '../../GameState'
 import Minion from '../../minionData/minion'
 import Effect from '../effect'
 import * as EFFECT_ID from '../effectID.json'

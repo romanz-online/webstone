@@ -17,8 +17,8 @@ import { ManaOpponentView } from './jsObjects/views/ManaOpponentView.js'
 
 import { wsEventHandler } from './wsEventHandler.js'
 let ws
-const PLAYER_ID = 1,
-  OPPONENT_ID = 2
+const PLAYER_ID = 0,
+  OPPONENT_ID = 1
 
 class GAME {
   constructor() {

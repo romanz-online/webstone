@@ -1,10 +1,12 @@
-import { engine } from './engine'
+import { engine } from './Engine'
 import { notifyClient } from './ws'
 import { generateMinion } from './minionData/generateMinion'
 import MINION_ID from './minionData/minionID.json'
 import Minion from './minionData/minion'
 import Effect from './effectData/effect'
-import EffectStack from './effectStack'
+import EventStack from './EventStack'
+import Event from './event'
+import { EventType, PlayerID } from './constants'
 
 const playerDeckStorage: number[] = [
     MINION_ID.TIRION_FORDRING,
@@ -15,10 +17,7 @@ const playerDeckStorage: number[] = [
   ],
   opponentDeckStorage: number[] = []
 
-const PLAYER_ID: number = -1,
-  OPPONENT_ID: number = -2
-
-export class GameState {
+class GameState {
   uniqueMinionNumber: number
   playerHealth: number
   opponentHealth: number
@@ -30,7 +29,7 @@ export class GameState {
   playerBoard: Minion[]
   opponentBoard: Minion[]
   whoseTurn: number
-  effectStack: EffectStack
+  eventStack: EventStack
 
   constructor() {
     this.uniqueMinionNumber = 0
@@ -45,78 +44,81 @@ export class GameState {
     this.opponentHand = []
     this.playerBoard = []
     this.opponentBoard = [
-      generateMinion(MINION_ID.CENARIUS, this.getUniqueID(), OPPONENT_ID),
-      generateMinion(MINION_ID.KORKRON_ELITE, this.getUniqueID(), OPPONENT_ID),
+      generateMinion(MINION_ID.CENARIUS, this.getUniqueID(), PlayerID.Player2),
+      generateMinion(
+        MINION_ID.KORKRON_ELITE,
+        this.getUniqueID(),
+        PlayerID.Player2
+      ),
       generateMinion(
         MINION_ID.SUMMONING_PORTAL,
         this.getUniqueID(),
-        OPPONENT_ID
+        PlayerID.Player2
       ),
       generateMinion(
         MINION_ID.MANA_TIDE_TOTEM,
         this.getUniqueID(),
-        OPPONENT_ID
+        PlayerID.Player2
       ),
       generateMinion(
         MINION_ID.ARATHI_WEAPONSMITH,
         this.getUniqueID(),
-        OPPONENT_ID
+        PlayerID.Player2
       ),
     ]
 
     this.opponentBoard.forEach((m) => (m.inPlay = true))
 
-    this.whoseTurn = OPPONENT_ID
-    this.effectStack = new EffectStack(this)
+    this.whoseTurn = PlayerID.Player2
+    this.eventStack = new EventStack()
 
     this.startGame()
 
-    this.drawCard(PLAYER_ID)
-    this.drawCard(PLAYER_ID)
-    this.drawCard(PLAYER_ID)
-    this.drawCard(PLAYER_ID)
-    this.drawCard(PLAYER_ID)
+    this.drawCard(PlayerID.Player1)
+    this.drawCard(PlayerID.Player1)
+    this.drawCard(PlayerID.Player1)
+    this.drawCard(PlayerID.Player1)
+    this.drawCard(PlayerID.Player1)
 
-    engine.addGameElementListener('gameState', 'getGameState', (data, done) => {
-      notifyClient('getGameState', true, this.toJSON())
-      done()
-    })
+    engine.on('done', () => this.checkHealth)
 
     engine.addGameElementListener(
       'gameState', // TRY CHANGING THIS TO "this"
-      'playMinion', // AND GET RID OF THIS. JUST HAVE engine DIRECTLY EXECUTE LISTENERS WITH this.listener(data, done)
+      EventType.PlayMinion, // AND GET RID OF THIS. JUST HAVE engine DIRECTLY EXECUTE LISTENERS WITH this.listener(data, done)
       (data, done) => {
         this.playMinion(data.boardIndex, data.uniqueID)
         done()
       }
     )
 
-    engine.addGameElementListener('gameState', 'tryAttack', (data, done) => {
-      this.tryAttack(data.attackerID, data.targetID)
-      done()
-    })
+    engine.addGameElementListener(
+      'gameState',
+      EventType.Attack,
+      (data, done) => {
+        this.tryAttack(data.attackerID, data.targetID)
+        done()
+      }
+    )
 
-    engine.addGameElementListener('gameState', 'checkHealth', (data, done) => {
-      this.checkHealth()
-      done()
-    })
+    engine.addGameElementListener(
+      'gameState',
+      EventType.EndTurn,
+      (data, done) => {
+        this.onEndTurn()
+        done()
+      }
+    )
 
-    engine.addGameElementListener('gameState', 'endTurn', (data, done) => {
-      this.onEndTurn()
-      done()
-    })
+    engine.addGameElementListener(
+      'gameState',
+      EventType.Cancel,
+      (data, done) => {
+        this.cancel()
+        done()
+      }
+    )
 
-    engine.addGameElementListener('gameState', 'cancel', (data, done) => {
-      this.cancel()
-      done()
-    })
-
-    engine.addGameElementListener('gameState', 'targetEffect', (data, done) => {
-      this.targetEffect(data.targetID)
-      done()
-    })
-
-    engine.queueEvent([{ event: 'endTurn', data: {} }])
+    engine.queueEvent([new Event(EventType.EndTurn, {})])
   }
 
   toJSON(): any {
@@ -139,11 +141,11 @@ export class GameState {
 
   startGame(): void {
     this.playerDeck = playerDeckStorage.map((minion) =>
-      generateMinion(minion, this.getUniqueID(), PLAYER_ID)
+      generateMinion(minion, this.getUniqueID(), PlayerID.Player1)
     )
 
     this.opponentDeck = opponentDeckStorage.map((minion) =>
-      generateMinion(minion, this.getUniqueID(), OPPONENT_ID)
+      generateMinion(minion, this.getUniqueID(), PlayerID.Player2)
     )
 
     const shuffleDeck = (deck) => {
@@ -158,7 +160,7 @@ export class GameState {
   }
 
   drawCard(player: number): void {
-    if (player === PLAYER_ID) {
+    if (player === PlayerID.Player1) {
       const card = this.playerDeck.pop()
       if (card) {
         console.log('player draws a card')
@@ -167,7 +169,7 @@ export class GameState {
       } else {
         console.log('player overdraws')
       }
-    } else if (player === OPPONENT_ID) {
+    } else if (player === PlayerID.Player2) {
       const card = this.opponentDeck.pop()
       if (card) {
         console.log('opponent draws a card')
@@ -182,7 +184,7 @@ export class GameState {
   }
 
   cancel(): void {
-    this.effectStack.clear()
+    this.eventStack.clear()
     notifyClient('cancel', true, {})
   }
 
@@ -198,46 +200,65 @@ export class GameState {
     // DO MORE ERROR CHECKS
     // notifyClient('playMinion', false, this.toJSON())
 
-    const needTarget = this.effectStack.push('playMinion', {
-      minion: minion,
-      boardIndex: boardIndex,
-      hand: minion.player === PLAYER_ID ? this.playerHand : this.opponentHand,
-      board:
-        minion.player === PLAYER_ID ? this.playerBoard : this.opponentBoard,
-    })
+    const needPlayerInput = this.eventStack.push(
+      new Event(EventType.PlayMinion, {
+        minion: minion,
+        boardIndex: boardIndex,
+      })
+    )
 
-    if (needTarget) {
+    if (needPlayerInput) {
       notifyClient('getTarget', true, {})
+    } else {
+      this.eventStack.executeStack()
     }
   }
 
-  targetEffect(targetID: number): void {
+  target(targetID: number): void {
     const target: Minion | null = this.getBoardMinion(targetID)
 
     if (!target) {
       notifyClient('target', false, this.toJSON())
       console.error('Could not find target with ID', targetID, 'on board')
       return
-    } else if (!this.effectStack.isWaiting) {
+    } else if (!this.eventStack.isWaiting()) {
       notifyClient('target', false, this.toJSON())
       console.error('No card is waiting for a target')
       return
     }
 
-    const effect: Effect | null =
-      this.effectStack.getTop().data.minion.effects.battlecry
+    const event = this.eventStack.getTop()
+    if (!event) {
+      notifyClient('target', false, this.toJSON())
+      console.error('No events are queued in the stack')
+      return
+    }
+    const minion: Minion | null = event.data.minion
+    if (!minion) {
+      notifyClient('target', false, this.toJSON())
+      console.error('No minion in stacked event')
+      return
+    }
+    const effect: Effect | null = minion.getBattlecry()
     if (!effect || !effect.canTarget) {
       notifyClient('target', false, this.toJSON())
       console.error('No effect is waiting for a target')
       return
     }
-    effect.target = target
     effect.gameState = this
-    this.effectStack.push('battlecry', effect)
 
-    const current: any = this.effectStack.getTop().data
-    if (current instanceof Effect) {
-      this.effectStack.executeStack()
+    const needPlayerInput = this.eventStack.push(
+      new Event(EventType.Battlecry, {
+        effect: effect,
+        source: minion,
+        target: target,
+      })
+    )
+
+    if (needPlayerInput) {
+      notifyClient('getTarget', true, {})
+    } else {
+      this.eventStack.executeStack()
     }
   }
 
@@ -263,14 +284,14 @@ export class GameState {
       return
     }
 
-    notifyClient('attack', true, {
-      attacker: attacker,
-      target: target,
-    })
+    // notifyClient('attack', true, {
+    //   attacker: attacker,
+    //   target: target,
+    // })
 
-    attacker.doAttack(target)
+    // QUEUE ATTACK EVENT
 
-    this.checkHealth()
+    // DO ATTACK
   }
 
   checkHealth(): void {
@@ -285,9 +306,11 @@ export class GameState {
       return
     }
 
+    let ret = false
     this.playerBoard = this.playerBoard.filter((m) => {
       if (m.health < 1) {
         this.graveyard.push(m)
+        ret = true
         return false
       }
       return true
@@ -295,17 +318,15 @@ export class GameState {
     this.opponentBoard = this.opponentBoard.filter((m) => {
       if (m.health < 1) {
         this.graveyard.push(m)
+        ret = true
         return false
       }
       return true
     })
 
-    engine.queueEvent([
-      {
-        event: 'killMinion',
-        data: {},
-      },
-    ])
+    if (ret) {
+      engine.queueEvent([new Event(EventType.KillMinion, {})])
+    }
   }
 
   onEndTurn(): void {
@@ -313,21 +334,17 @@ export class GameState {
       m.canAttack = !m.canAttack
     })
 
-    this.whoseTurn = this.whoseTurn === PLAYER_ID ? OPPONENT_ID : PLAYER_ID
+    this.whoseTurn =
+      this.whoseTurn === PlayerID.Player1 ? PlayerID.Player2 : PlayerID.Player1
 
-    if (this.whoseTurn === OPPONENT_ID) {
+    if (this.whoseTurn === PlayerID.Player2) {
       this.simulateOpponentTurn()
     }
   }
 
   simulateOpponentTurn(): void {
     setTimeout(() => {
-      engine.queueEvent([
-        {
-          event: 'endTurn',
-          data: {},
-        },
-      ])
+      engine.queueEvent([new Event(EventType.EndTurn, {})])
     }, 2 * 1000)
   }
 
@@ -347,3 +364,5 @@ export class GameState {
     )
   }
 }
+
+export default GameState

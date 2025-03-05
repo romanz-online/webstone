@@ -59,4 +59,10 @@ export enum EventType {
   ChangeStats,
   EndTurn,
   HeroPower,
+  Cancel,
+}
+
+export enum PlayerID {
+  Player1,
+  Player2,
 }
