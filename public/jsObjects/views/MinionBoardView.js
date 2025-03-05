@@ -1,8 +1,10 @@
+import { PlayerID } from '../constants.js'
+
 export class MinionBoardView {
-  constructor(minion, boardIndex, isPlayer) {
+  constructor(minion, boardIndex, playerID) {
     this.minion = minion
     this.boardIndex = boardIndex
-    this.isPlayer = isPlayer
+    this.playerID = playerID
     this.element = this.generateElement()
     this.update()
   }
@@ -32,15 +34,18 @@ export class MinionBoardView {
       attackValue = document.createElement('div'),
       healthValue = document.createElement('div')
 
-    cardDiv.id = this.isPlayer
-      ? `playerCardInPlay${this.boardIndex}`
-      : `opponentCardInPlay${this.boardIndex}`
+    cardDiv.id =
+      this.playerID === PlayerID.Player1
+        ? `playerCardInPlay${this.boardIndex}`
+        : `opponentCardInPlay${this.boardIndex}`
     cardDiv.dataset.boardIndex = this.boardIndex
     cardDiv.dataset.minion = JSON.stringify(this.minion)
 
     cardDiv.classList.add('cardinplay')
     cardDiv.classList.add(
-      this.isPlayer ? 'cardInPlay--player' : 'cardInPlay--opponent'
+      this.playerID === PlayerID.Player1
+        ? 'cardInPlay--player'
+        : 'cardInPlay--opponent'
     )
     // cardDiv.classList.add('placeCardAnim');
     if (this.minion.canAttack) {

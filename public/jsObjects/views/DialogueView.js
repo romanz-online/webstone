@@ -1,3 +1,5 @@
+import { PlayerID } from '../constants.js'
+
 export class DialogueView {
   constructor(playerID) {
     this.dialogueText = '...'
@@ -5,8 +7,9 @@ export class DialogueView {
     this.audio = new Audio(
       '../media/sounds/voiceovers/jaina_tutorialbattle.mp3'
     )
-    this.isPlayer = playerID === 1
-    this.divID = this.isPlayer ? 'playerBubble' : 'opponentBubble'
+    this.playerID = playerID
+    this.divID =
+      this.playerID === PlayerID.Player1 ? 'playerBubble' : 'opponentBubble'
     this.update()
   }
 

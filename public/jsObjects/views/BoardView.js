@@ -1,12 +1,14 @@
 import GAME from '../../../game.js'
 import { MinionBoardView } from './MinionBoardView.js'
+import { PlayerID } from '../constants.js'
 
 export class BoardView {
   constructor(playerID) {
     this.board = []
     this.placeholderIndex = -1
-    this.isPlayer = playerID === 1
-    this.divID = this.isPlayer ? 'board--player' : 'board--opponent'
+    this.playerID = playerID
+    this.divID =
+      this.playerID === PlayerID.Player1 ? 'board--player' : 'board--opponent'
     this.update()
   }
 
@@ -21,7 +23,7 @@ export class BoardView {
   playMinion(minion, index) {
     this.board.splice(index, 0, minion)
 
-    const view = new MinionBoardView(this.board[index], index, this.isPlayer)
+    const view = new MinionBoardView(this.board[index], index, this.playerID)
     this.cardViews.splice(index, 0, view)
 
     this.getElement().insertBefore(
@@ -99,7 +101,7 @@ export class BoardView {
     this.cardViews = []
 
     for (let i = 0; i < this.board.length; i++) {
-      const view = new MinionBoardView(this.board[i], i, this.isPlayer)
+      const view = new MinionBoardView(this.board[i], i, this.playerID)
       this.cardViews.push(view)
       this.getElement().appendChild(view.getElement())
     }

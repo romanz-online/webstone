@@ -1,8 +1,11 @@
+import { PlayerID } from '../constants.js'
+
 export class DeckView {
   constructor(playerID) {
     this.cardCount = 0
-    this.isPlayer = playerID === 1
-    this.divID = this.isPlayer ? 'playerDeck' : 'opponentDeck'
+    this.playerID = playerID
+    this.divID =
+      this.playerID === PlayerID.Player1 ? 'playerDeck' : 'opponentDeck'
     this.update()
   }
 

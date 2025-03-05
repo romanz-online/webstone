@@ -1,4 +1,5 @@
 import GAME from '../../game.js'
+import { EventType, PlayerID } from '../constants.js'
 
 export class CardPlayController {
   constructor() {
@@ -26,8 +27,8 @@ export class CardPlayController {
       accept: '.card',
       drop: function (event, ui) {
         ui.helper.data('hovering-board', false)
-        GAME.triggerEvent('playMinion', {
-          isPlayer: true,
+        GAME.triggerEvent(EventType.PlayMinion, {
+          player: PlayerID.Player1,
           boardIndex:
             GAME.playerBoardView.placeholderIndex == -1
               ? 0

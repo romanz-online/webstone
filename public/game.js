@@ -16,9 +16,11 @@ import { ManaPlayerView } from './jsObjects/views/ManaPlayerView.js'
 import { ManaOpponentView } from './jsObjects/views/ManaOpponentView.js'
 
 import { wsEventHandler } from './wsEventHandler.js'
+
+import './jsObjects/constants.js'
+import { EventType, PlayerID } from './jsObjects/constants.js'
+
 let ws
-const PLAYER_ID = 0,
-  OPPONENT_ID = 1
 
 class GAME {
   constructor() {
@@ -82,7 +84,7 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
-      event: 'getTarget',
+      event: 'target',
       onSuccess: (data) => {
         console.log('Starting to target')
         const rect = this.playerHeroView.getElement().getBoundingClientRect()
@@ -103,7 +105,7 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
-      event: 'minionDied',
+      event: EventType.KillMinion,
       onSuccess: (data) => {
         console.log(`${data.minion.uniqueID} died`)
         this.triggerEvent('getGameState')
@@ -112,7 +114,7 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
-      event: 'playMinion',
+      event: EventType.PlayMinion,
       onSuccess: (data) => {
         console.log(`${data.minion.uniqueID} played`)
         // this.playerBoardView.playMinion(data.minion, data.boardIndex)
@@ -123,7 +125,7 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
-      event: 'changeStats',
+      event: EventType.ChangeStats,
       onSuccess: (data) => {
         console.log(
           `${data.minion.uniqueID} stats changed to ${data.minion.mana}-${data.minion.attack}-${data.minion.health}`
@@ -137,7 +139,7 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
-      event: 'applyDamage',
+      event: EventType.Damage,
       onSuccess: (data) => {
         console.log(`${data.minion.uniqueID} takes ${data.damage} damage`)
         this.triggerEvent('getGameState')
@@ -146,7 +148,7 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
-      event: 'attack',
+      event: EventType.Attack,
       onSuccess: (data) => {
         console.log(
           `${data.attacker.uniqueID} attacked ${data.target.uniqueID}`
@@ -157,10 +159,10 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
-      event: 'endTurn',
+      event: EventType.EndTurn,
       onSuccess: (data) => {
         console.log(`${data.whoseTurn}'s turn now`)
-        if (data.whoseTurn == PLAYER_ID) {
+        if (data.whoseTurn == PlayerID.Player1) {
           this.turnController.startPlayerTurn()
         } else {
           this.turnController.startOpponentTurn()
@@ -171,20 +173,20 @@ class GAME {
   }
 
   resetValues() {
-    this.playerDeckView = new DeckView(PLAYER_ID)
-    this.opponentDeckView = new DeckView(OPPONENT_ID)
+    this.playerDeckView = new DeckView(PlayerID.Player1)
+    this.opponentDeckView = new DeckView(PlayerID.Player2)
 
-    this.playerBoardView = new BoardView(PLAYER_ID)
-    this.opponentBoardView = new BoardView(OPPONENT_ID)
+    this.playerBoardView = new BoardView(PlayerID.Player1)
+    this.opponentBoardView = new BoardView(PlayerID.Player2)
 
     this.playerHandView = new HandPlayerView()
     this.opponentHandView = new HandOpponentView()
 
-    this.playerDialogueView = new DialogueView(PLAYER_ID)
-    this.opponentDialogueView = new DialogueView(OPPONENT_ID)
+    this.playerDialogueView = new DialogueView(PlayerID.Player1)
+    this.opponentDialogueView = new DialogueView(PlayerID.Player2)
 
-    this.playerHeroView = new HeroView(PLAYER_ID)
-    this.opponentHeroView = new HeroView(OPPONENT_ID)
+    this.playerHeroView = new HeroView(PlayerID.Player1)
+    this.opponentHeroView = new HeroView(PlayerID.Player2)
 
     this.playerMana = new Mana()
     this.opponentMana = new Mana()

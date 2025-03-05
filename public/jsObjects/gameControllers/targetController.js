@@ -1,4 +1,5 @@
 import GAME from '../../game.js'
+import { EventType } from '../constants.js'
 
 // maybe convert this into TargetController or something which handles all targeting (attacks, spells, hero powers, etc.)
 export class TargetController {
@@ -83,7 +84,7 @@ export class TargetController {
 
     if (event.target.classList.contains('cardInPlay--opponent')) {
       if (!this.attackerCard) {
-        GAME.triggerEvent('targetEffect', {
+        GAME.triggerEvent('target', {
           targetID: JSON.parse(event.target.dataset.minion).uniqueID,
         })
       } else {

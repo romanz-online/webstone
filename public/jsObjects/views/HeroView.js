@@ -1,8 +1,11 @@
+import { PlayerID } from '../constants.js'
+
 export class HeroView {
   constructor(playerID) {
     this.health = 0
-    this.isPlayer = playerID === 1
-    this.divID = this.isPlayer ? 'playerHero' : 'opponentHero'
+    this.playerID = playerID
+    this.divID =
+      this.playerID === PlayerID.Player1 ? 'playerHero' : 'opponentHero'
     this.update()
   }
 
@@ -17,7 +20,7 @@ export class HeroView {
   }
 
   update() {
-    $(this.isPlayer ? '#playerHeroHealth' : '#opponentHeroHealth').text(
+    $(this.playerID ? '#playerHeroHealth' : '#opponentHeroHealth').text(
       this.health
     )
   }
