@@ -1,7 +1,7 @@
 import { engine } from '../Engine'
 import { notifyClient } from '../ws'
 import MINION_DATA from './baseMinionData'
-import { HeroClass, Rarity, Tribe, EffectType, PlayerID } from '../constants'
+import { HeroClass, Rarity, Tribe, EventType, PlayerID } from '../constants'
 import GameState from '../GameState'
 import Effect from '../effectData/effect'
 
@@ -71,10 +71,14 @@ class Minion {
 
     this.effects = {}
 
-    engine.addGameElementListener(this.uniqueID, 'killMinion', (data, done) => {
-      this.onKillMinions()
-      done()
-    })
+    engine.addGameElementListener(
+      this.uniqueID,
+      EventType.KillMinion,
+      (data, done) => {
+        this.onKillMinions()
+        done()
+      }
+    )
   }
 
   toJSON(): any {
@@ -111,17 +115,6 @@ class Minion {
 
   getBattlecry(): Effect | null {
     return this.effects.battlecry
-  }
-
-  doPlay(gameState: GameState) {
-    engine.queueEvent([
-      {
-        event: 'playMinion',
-        data: {
-          minion: this,
-        },
-      },
-    ])
   }
 
   onKillMinions() {

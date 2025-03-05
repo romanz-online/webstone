@@ -1,7 +1,5 @@
 import Minion from '../minion'
-import { notifyClient } from '../../ws'
 import GuardianOfKingsBattlecry from '../../effectData/effects/GuardianOfKingsBattlecry'
-import GameState from '../../GameState'
 
 class GuardianOfKings extends Minion {
   effects: { battlecry: GuardianOfKingsBattlecry }
@@ -10,22 +8,8 @@ class GuardianOfKings extends Minion {
     super(baseID, uniqueID, player)
 
     this.effects = {
-      battlecry: new GuardianOfKingsBattlecry(player),
+      battlecry: new GuardianOfKingsBattlecry(player, this),
     }
-  }
-
-  doPlay(gameState: GameState): boolean {
-    if (this.effects.battlecry.requiresTarget) {
-      notifyClient('getTarget', true, { minion: this })
-      return true
-    } else {
-      this.doBattlecry(gameState, null)
-      return false
-    }
-  }
-
-  doBattlecry(gameState: GameState, target: Minion | null): void {
-    this.effects.battlecry.apply(gameState, this, target)
   }
 }
 

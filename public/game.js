@@ -95,6 +95,14 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
+      event: 'cancel',
+      onSuccess: (data) => {
+        this.triggerEvent('getGameState')
+      },
+    })
+
+    wsEventHandler({
+      socket: ws,
       event: 'minionDied',
       onSuccess: (data) => {
         console.log(`${data.minion.uniqueID} died`)

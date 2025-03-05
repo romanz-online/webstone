@@ -10,7 +10,7 @@ export const processEvent = async (ws: WebSocket, json: any): Promise<void> => {
   if (json.event === 'getGameState') {
     notifyClient(json.event, true, gameState.toJSON())
   } else if (json.event === 'target') {
-    gameState.targetEffect(json.data.targetID)
+    gameState.target(json.data.targetID)
   } else {
     // anything that can set off board interactions
     engine.queuePlayerAction([new Event(json.event, json.data)])
