@@ -2,6 +2,8 @@ import { EventEmitter } from 'events'
 import Event from './event'
 import { EventType } from './constants'
 
+const DEBUG_ENGINE = false
+
 type EventListener = (data: any, done: () => void) => void
 
 interface Listener {
@@ -34,6 +36,7 @@ class Engine extends EventEmitter {
   }
 
   removeGameElementListener(elementID: any, event: Event): void {
+    // MAY NEED TO REMOVE USE OF filter() IF IT MESSES WITH REFERENCES
     this.listenerQueue = this.listenerQueue.filter(
       (x) => !(x.elementID === elementID && x.eventType === event.type)
     )
@@ -41,7 +44,9 @@ class Engine extends EventEmitter {
 
   queuePlayerAction(eventList: Event[]): void {
     eventList.forEach((e) => {
-      console.log(`Queuing player action ${e.type}`)
+      if (DEBUG_ENGINE) {
+        console.log(`Queuing player action ${e}`)
+      }
       this.playerActionQueue.push(e)
     })
 
@@ -51,9 +56,11 @@ class Engine extends EventEmitter {
   queueEvent(eventList: Event[]): void {
     eventList.forEach((e) => {
       const queue = this.processing ? this.priorityQueue : this.eventQueue
-      console.log(
-        `Queuing event ${e.type} into ${this.processing ? 'priority queue' : 'normal queue'}`
-      )
+      if (DEBUG_ENGINE) {
+        console.log(
+          `Queuing event ${e} into ${this.processing ? 'priority queue' : 'normal queue'}`
+        )
+      }
       queue.push(e)
     })
 
@@ -66,7 +73,9 @@ class Engine extends EventEmitter {
 
     const e: Event | null = this.playerActionQueue.shift() || null
     if (e) {
-      console.log(`Processing next player action ${e.type}`)
+      if (DEBUG_ENGINE) {
+        console.log(`Processing next player action ${e}`)
+      }
       this.queueEvent([e])
     }
   }
@@ -81,7 +90,9 @@ class Engine extends EventEmitter {
           ? this.priorityQueue.shift()
           : this.eventQueue.shift()
       if (e) {
-        console.log(`Processing next event ${e.type}`)
+        if (DEBUG_ENGINE) {
+          console.log(`Processing next event ${e}`)
+        }
         await this.handleEvent(e)
       }
     }

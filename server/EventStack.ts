@@ -12,7 +12,7 @@ class EventStack {
     this.waiting = false
   }
 
-  push(event: Event): boolean {
+  push(event: Event): void {
     this.stack.push(event)
     if (event.type === EventType.PlayMinion) {
       // CHECK FOR BATTLECRY, CHOOSE ONE, COMBO
@@ -24,17 +24,23 @@ class EventStack {
       }
     } else {
       // CHECK FOR SPELL STUFF
+      this.waiting = false
     }
-    return this.waiting
   }
 
   executeStack(): void {
-    engine.queueEvent([...this.stack].reverse())
+    for (let i = this.stack.length - 1; i >= 0; i--) {
+      engine.queueEvent([this.stack[i]])
+    }
     this.clear()
   }
 
   getTop(): any {
     return this.stack[this.stack.length - 1]
+  }
+
+  length(): number {
+    return this.stack.length
   }
 
   isWaiting(): boolean {

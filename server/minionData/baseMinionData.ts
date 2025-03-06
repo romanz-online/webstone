@@ -609,7 +609,6 @@ const MINION_DATA = [
     rarity: Rarity.LEGENDARY,
     charge: true,
   },
-  // ...
   {
     class: HeroClass.NEUTRAL,
     name: 'Faerie Dragon',

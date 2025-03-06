@@ -73,7 +73,7 @@ class Effect {
   }
 
   getAmount(): number {
-    return this.amount[0] // Assuming you always use the first element of the amount array
+    return this.amount[0]
   }
 
   getDescription(): string {

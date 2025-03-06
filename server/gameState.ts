@@ -66,7 +66,6 @@ class GameState {
         PlayerID.Player2
       ),
     ]
-
     this.opponentBoard.forEach((m) => (m.inPlay = true))
 
     this.whoseTurn = PlayerID.Player2
@@ -80,7 +79,13 @@ class GameState {
     this.drawCard(PlayerID.Player1)
     this.drawCard(PlayerID.Player1)
 
-    engine.on('done', () => this.checkHealth)
+    engine.on('done', () => {
+      this.checkHealth()
+
+      if (!this.eventStack.isWaiting() && this.eventStack.length() > 0) {
+        this.eventStack.executeStack()
+      }
+    })
 
     engine.addGameElementListener(
       'gameState',
@@ -222,7 +227,7 @@ class GameState {
     // DO MORE ERROR CHECKS
     // notifyClient('playMinion', false, this.toJSON())
 
-    const needPlayerInput = this.eventStack.push(
+    this.eventStack.push(
       new Event(EventType.PlayMinion, {
         hand: player === PlayerID.Player1 ? this.playerHand : this.opponentHand,
         board:
@@ -232,10 +237,8 @@ class GameState {
       })
     )
 
-    if (needPlayerInput) {
+    if (this.eventStack.isWaiting()) {
       notifyClient(EventType.Target, true, {})
-    } else {
-      this.eventStack.executeStack()
     }
   }
 
@@ -272,7 +275,7 @@ class GameState {
     }
     effect.gameState = this
 
-    const needPlayerInput = this.eventStack.push(
+    this.eventStack.push(
       new Event(EventType.Battlecry, {
         effect: effect,
         source: minion,
@@ -280,10 +283,8 @@ class GameState {
       })
     )
 
-    if (needPlayerInput) {
+    if (this.eventStack.isWaiting()) {
       notifyClient(EventType.Target, true, {})
-    } else {
-      this.eventStack.executeStack()
     }
   }
 
@@ -332,22 +333,20 @@ class GameState {
     }
 
     let ret = false
-    this.playerBoard = this.playerBoard.filter((m) => {
-      if (m.health < 1) {
-        this.graveyard.push(m)
+    for (let i = this.playerBoard.length - 1; i >= 0; i--) {
+      if (this.playerBoard[i].health < 1) {
+        this.graveyard.push(this.playerBoard[i])
+        this.playerBoard.splice(i, 1)
         ret = true
-        return false
       }
-      return true
-    })
-    this.opponentBoard = this.opponentBoard.filter((m) => {
-      if (m.health < 1) {
-        this.graveyard.push(m)
+    }
+    for (let i = this.opponentBoard.length - 1; i >= 0; i--) {
+      if (this.opponentBoard[i].health < 1) {
+        this.graveyard.push(this.opponentBoard[i])
+        this.opponentBoard.splice(i, 1)
         ret = true
-        return false
       }
-      return true
-    })
+    }
 
     if (ret) {
       engine.queueEvent([new Event(EventType.KillMinion, {})])
@@ -355,9 +354,12 @@ class GameState {
   }
 
   onEndTurn(): void {
-    ;[...this.playerBoard, ...this.opponentBoard].forEach((m) => {
-      m.canAttack = !m.canAttack
-    })
+    for (const minion of this.playerBoard) {
+      minion.canAttack = !minion.canAttack
+    }
+    for (const minion of this.opponentBoard) {
+      minion.canAttack = !minion.canAttack
+    }
 
     this.whoseTurn =
       this.whoseTurn === PlayerID.Player1 ? PlayerID.Player2 : PlayerID.Player1
@@ -374,19 +376,23 @@ class GameState {
   }
 
   getBoardMinion(uniqueID: number): Minion | null {
-    return (
-      [...this.playerBoard, ...this.opponentBoard].find(
-        (minion) => minion.uniqueID === uniqueID
-      ) || null
-    )
+    for (const minion of this.playerBoard) {
+      if (minion.uniqueID === uniqueID) return minion
+    }
+    for (const minion of this.opponentBoard) {
+      if (minion.uniqueID === uniqueID) return minion
+    }
+    return null
   }
 
   getHandMinion(uniqueID: number): Minion | null {
-    return (
-      [...this.playerHand, ...this.opponentHand].find(
-        (minion) => minion.uniqueID === uniqueID
-      ) || null
-    )
+    for (const minion of this.playerHand) {
+      if (minion.uniqueID === uniqueID) return minion
+    }
+    for (const minion of this.opponentHand) {
+      if (minion.uniqueID === uniqueID) return minion
+    }
+    return null
   }
 }
 

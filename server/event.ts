@@ -13,7 +13,33 @@ class Event {
     this.data = data
   }
 
+  toString() {
+    return `${EventType[this.type]}: ${this.customStringify(this.data)}`
+  }
+
+  customStringify(data: any) {
+    return JSON.stringify(
+      data,
+      (key, value) => {
+        if (
+          value &&
+          typeof value === 'object' &&
+          'name' in value &&
+          'attack' in value &&
+          'health' in value &&
+          typeof value.toString === 'function'
+        ) {
+          return `${value.name}-${value.uniqueID}`
+        }
+        return value
+      },
+      2
+    )
+  }
+
   execute(): boolean {
+    // console.log(`${this}`)
+    console.log(`${EventType[this.type]}`)
     switch (this.type) {
       case EventType.PlayMinion: {
         const hand: any = this.data.hand,
@@ -22,9 +48,10 @@ class Event {
           boardIndex: number = this.data.boardIndex
 
         if (!minion || !hand || !board) {
-          console.log(`Could not execute event ${this.type}`)
+          console.log(`Could not execute event ${EventType[this.type]}`)
           return false
         }
+        // console.log(`Executing ${this}`)
 
         hand.splice(hand.indexOf(minion), 1)[0]
 
@@ -48,9 +75,10 @@ class Event {
           boardIndex: number = this.data.boardIndex || board.length
 
         if (!minion || !board) {
-          console.log(`Could not execute event ${this.type}`)
+          console.log(`Could not execute event ${EventType[this.type]}`)
           return false
         }
+        // console.log(`Executing ${this}`)
 
         board.splice(boardIndex, 0, minion)
         minion.inPlay = true
@@ -66,9 +94,10 @@ class Event {
           target: Minion = this.data.target
 
         if (!attacker && !target) {
-          console.log(`Could not execute event ${this.type}`)
+          console.log(`Could not execute event ${EventType[this.type]}`)
           return false
         }
+        // console.log(`Executing ${this}`)
 
         attacker.attacksThisTurn++
 
@@ -99,12 +128,13 @@ class Event {
       case EventType.Damage: {
         const source: Minion = this.data.source,
           target: Minion = this.data.target,
-          amount: number = this.data.number || 0
+          amount: number = this.data.amount || 0
 
         if (!source || !target) {
-          console.log(`Could not execute event ${this.type}`)
+          console.log(`Could not execute event ${EventType[this.type]}`)
           return false
         }
+        // console.log(`Executing ${this}`)
 
         target.health -= amount
 
@@ -112,7 +142,7 @@ class Event {
           // STORE A "killedBy" VALUE HERE IF NEEDED
         }
 
-        console.log(`${source.name} deals ${amount} damage to ${target.name}`)
+        console.log(`${source} deals ${amount} damage to ${target}`)
 
         notifyClient(this.type, true, {})
 
@@ -130,9 +160,10 @@ class Event {
           target: Minion | null = this.data.target
 
         if (!effect || !source) {
-          console.log(`Could not execute event ${this.type}`)
+          console.log(`Could not execute event ${EventType[this.type]}`)
           return false
         }
+        // console.log(`Executing ${this}`)
 
         effect.apply(source, target)
 
@@ -145,11 +176,13 @@ class Event {
           target: Minion | null = this.data.target
 
         if (!effect || !source) {
-          console.log(`Could not execute event ${this.type}`)
+          console.log(`Could not execute event ${EventType[this.type]}`)
           return false
         }
+        // console.log(`Executing ${this}`)
 
         effect.apply(source, target)
+        console.log(`${source} applies a battlecry to ${target}`)
 
         notifyClient(this.type, true, {})
         return true

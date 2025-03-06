@@ -81,6 +81,10 @@ class Minion {
     )
   }
 
+  toString(): string {
+    return `${this.name}${this.uniqueID}`
+  }
+
   toJSON(): any {
     return {
       baseID: this.baseID,
@@ -124,7 +128,7 @@ class Minion {
 
     this.inPlay = false
 
-    notifyClient('minionDied', true, { minion: this })
+    // notifyClient('minionDied', true, { minion: this })
 
     // CHECK DEATHRATTLE
   }

@@ -28,7 +28,7 @@ class FireElementalBattlecry extends Effect {
     if (target) {
       engine.queueEvent([
         new Event(EventType.Damage, {
-          source: this,
+          source: source,
           target: target,
           amount: this.getAmount(),
         }),

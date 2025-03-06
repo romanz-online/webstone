@@ -14,24 +14,3 @@ class GuardianOfKings extends Minion {
 }
 
 export default GuardianOfKings
-
-// FROSTWOLF WARLORD
-// {
-//   name: 'Battlecry',
-//   description:
-//     'Gain +1/+1 for each other friendly minion on the battlefield',
-//   requiresTarget: false,
-//   apply: (gameState, source) => {
-//     const friendlyCount = gameState.playerBoard.filter(
-//       (minion) => minion !== source
-//     ).length
-//     source.attack += friendlyCount
-//     source.health += friendlyCount
-//     source.maxHealth += friendlyCount
-//     console.log(
-//       `${source.name} gains +${friendlyCount}/+${friendlyCount} from battlecry`
-//     )
-
-//     notifyClient('changeStats', true, { minion: this })
-//   },
-// },
