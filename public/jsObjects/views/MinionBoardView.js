@@ -78,7 +78,7 @@ export class MinionBoardView {
       this.minion.health
     if (this.minion.health > this.minion.baseHealth) {
       this.getElement().querySelector('.healthValue').style.color = 'green'
-    } else if (this.minion.health < this.minion.baseHealth) {
+    } else if (this.minion.health < this.minion.maxHealth) {
       this.getElement().querySelector('.healthValue').style.color = 'red'
     }
 

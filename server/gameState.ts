@@ -310,14 +310,12 @@ class GameState {
       return
     }
 
-    // notifyClient('attack', true, {
-    //   attacker: attacker,
-    //   target: target,
-    // })
-
-    // QUEUE ATTACK EVENT
-
-    // DO ATTACK
+    engine.queueEvent([
+      new Event(EventType.Attack, {
+        attacker: attacker,
+        target: target,
+      }),
+    ])
   }
 
   checkHealth(): void {
