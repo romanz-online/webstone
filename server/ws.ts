@@ -1,3 +1,5 @@
+import { EventType } from './constants'
+
 let socket: WebSocket | null = null
 
 export const setSocket = (ws: WebSocket): void => {
@@ -5,7 +7,7 @@ export const setSocket = (ws: WebSocket): void => {
 }
 
 export const notifyClient = (
-  event: string,
+  event: EventType,
   success: boolean,
   data: any
 ): void => {

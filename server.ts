@@ -23,6 +23,7 @@ fs.writeFileSync(
   JSON.stringify(minionIDArray, null, 2),
   'utf8'
 )
+console.log('Generated minion IDs')
 
 const effectIDArray = {}
 for (let i = 0; i < EFFECT_DATA.length; i++) {
@@ -33,6 +34,42 @@ fs.writeFileSync(
   JSON.stringify(effectIDArray, null, 2),
   'utf8'
 )
+console.log('Generated effect IDs')
+
+try {
+  const tsContent = fs.readFileSync('./server/constants.ts', 'utf8'),
+    enumRegex = /export\s+enum\s+(\w+)\s*{([^}]*)}/g
+
+  let jsContent = '',
+    match
+
+  while ((match = enumRegex.exec(tsContent))) {
+    const enumName = match[1],
+      members = match[2]
+        .trim()
+        .split(',')
+        .map((item) => item.trim())
+        .filter((item) => item.length > 0)
+
+    jsContent += `export const ${enumName} = {\n`
+
+    members.forEach((member, index) => {
+      const [memberName, explicitValue] = member
+        .split('=')
+        .map((part) => part.trim())
+
+      const value = explicitValue !== undefined ? explicitValue : index
+      jsContent += `${memberName}:${value},\n`
+    })
+
+    jsContent += `}\nObject.freeze(${enumName})\n\n`
+  }
+
+  fs.writeFileSync('./public/jsObjects/constants.js', jsContent)
+  console.log('Converted constant enums')
+} catch (error) {
+  console.error('Error converting constant enums:', error.message)
+}
 
 const port = Number(process.env.PORT) || 5500
 uWS
@@ -58,12 +95,12 @@ uWS
       }
 
       res.cork(() => {
+        const lookupResult = mime.lookup(filePath)
+        const mimeType: string =
+          typeof lookupResult === 'string' ? lookupResult : 'text/plain'
         res
           .writeStatus(err ? '404 Not Found' : '200 OK')
-          .writeHeader(
-            'Content-Type',
-            err ? 'text/plain' : mime.lookup(filePath) || 'text/plain'
-          )
+          .writeHeader('Content-Type', mimeType)
           .end(err ? 'File Not Found' : data)
       })
     })
@@ -84,7 +121,7 @@ uWS
 
     message: async (ws, message, isBinary) => {
       const msg = Buffer.from(message).toString()
-      console.log('Received message:', msg)
+      // console.log('Received message:', msg)
 
       let parsedMessage
       try {

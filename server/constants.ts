@@ -38,7 +38,8 @@ export enum EffectType {
   Battlecry,
   Deathrattle,
   Aura,
-  Generic, // not any of the others; shouldn't trigger any additional effects
+  Silence,
+  Generic,
 }
 
 export enum EventType {
@@ -59,7 +60,13 @@ export enum EventType {
   ChangeStats,
   EndTurn,
   HeroPower,
+
   Cancel,
+  Target,
+  TryAttack,
+  TrySpell,
+  TryPlayMinion,
+  Load,
 }
 
 export enum PlayerID {

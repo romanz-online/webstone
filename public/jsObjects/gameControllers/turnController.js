@@ -1,4 +1,5 @@
 import GAME from '../../../game.js'
+import { EventType } from '../constants.js'
 
 export class TurnController {
   constructor() {
@@ -8,7 +9,7 @@ export class TurnController {
 
     document.getElementById('endturn').addEventListener('click', () => {
       this.endTurnSound.play()
-      GAME.triggerEvent('endTurn')
+      GAME.triggerEvent(EventType.EndTurn)
     })
   }
 

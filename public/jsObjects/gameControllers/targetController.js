@@ -84,22 +84,22 @@ export class TargetController {
 
     if (event.target.classList.contains('cardInPlay--opponent')) {
       if (!this.attackerCard) {
-        GAME.triggerEvent('target', {
+        GAME.triggerEvent(EventType.Target, {
           targetID: JSON.parse(event.target.dataset.minion).uniqueID,
         })
       } else {
-        GAME.triggerEvent('tryAttack', {
+        GAME.triggerEvent(EventType.TryAttack, {
           attackerID: JSON.parse(this.attackerCard.dataset.minion).uniqueID,
           targetID: JSON.parse(event.target.dataset.minion).uniqueID,
         })
       }
     } else if (event.target.id == 'opponentHero') {
-      GAME.triggerEvent('tryAttack', {
+      GAME.triggerEvent(EventType.TryAttack, {
         attackerID: JSON.parse(this.attackerCard.dataset.minion).uniqueID,
         targetID: -2, // TODO: make a list of shared enums between server and client for stuff like this
       })
     } else if (!this.attackerCard && this.targetting) {
-      GAME.triggerEvent('cancel', {})
+      GAME.triggerEvent(EventType.Cancel, {})
     }
 
     this.resetAttack()

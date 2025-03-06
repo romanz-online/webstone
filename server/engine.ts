@@ -40,14 +40,21 @@ class Engine extends EventEmitter {
   }
 
   queuePlayerAction(eventList: Event[]): void {
-    eventList.forEach((e) => this.playerActionQueue.push(e))
+    eventList.forEach((e) => {
+      console.log(`Queuing player action ${e.type}`)
+      this.playerActionQueue.push(e)
+    })
 
     this.processNextPlayerAction()
   }
 
   queueEvent(eventList: Event[]): void {
     eventList.forEach((e) => {
-      ;(this.processing ? this.priorityQueue : this.eventQueue).push(e)
+      const queue = this.processing ? this.priorityQueue : this.eventQueue
+      console.log(
+        `Queuing event ${e.type} into ${this.processing ? 'priority queue' : 'normal queue'}`
+      )
+      queue.push(e)
     })
 
     this.processEventQueue()
@@ -58,7 +65,10 @@ class Engine extends EventEmitter {
     if (this.isBusy()) return
 
     const e: Event | null = this.playerActionQueue.shift() || null
-    if (e) this.queueEvent([e])
+    if (e) {
+      console.log(`Processing next player action ${e.type}`)
+      this.queueEvent([e])
+    }
   }
 
   private async processEventQueue(): Promise<void> {
@@ -71,6 +81,7 @@ class Engine extends EventEmitter {
           ? this.priorityQueue.shift()
           : this.eventQueue.shift()
       if (e) {
+        console.log(`Processing next event ${e.type}`)
         await this.handleEvent(e)
       }
     }
@@ -85,12 +96,12 @@ class Engine extends EventEmitter {
   }
 
   private async handleEvent(e: Event): Promise<void> {
+    // do the event
+    e.execute()
     for (const { eventType, listener } of this.listenerQueue) {
       if (e.type === eventType) {
-        // do the event
-        e.execute()
         // then wait for listeners to react to it
-        await new Promise<void>((resolve) => listener(e, resolve))
+        await new Promise<void>((resolve) => listener(e.data, resolve))
         // before moving on
       }
     }

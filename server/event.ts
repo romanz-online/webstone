@@ -19,15 +19,16 @@ class Event {
         const hand: any = this.data.hand,
           board: any = this.data.board,
           minion: Minion = this.data.minion,
-          boardIndex: number = this.data.boardIndex || board.length
+          boardIndex: number = this.data.boardIndex
 
         if (!minion || !hand || !board) {
+          console.log(`Could not execute event ${this.type}`)
           return false
         }
 
         hand.splice(hand.indexOf(minion), 1)[0]
 
-        notifyClient('playMinion', true, {
+        notifyClient(this.type, true, {
           minion: minion,
         })
 
@@ -47,13 +48,14 @@ class Event {
           boardIndex: number = this.data.boardIndex || board.length
 
         if (!minion || !board) {
+          console.log(`Could not execute event ${this.type}`)
           return false
         }
 
         board.splice(boardIndex, 0, minion)
         minion.inPlay = true
 
-        notifyClient('summonMinion', true, {
+        notifyClient(this.type, true, {
           minion: this.data.minion,
         })
 
@@ -64,6 +66,7 @@ class Event {
           target: Minion = this.data.target
 
         if (!attacker && !target) {
+          console.log(`Could not execute event ${this.type}`)
           return false
         }
 
@@ -76,7 +79,7 @@ class Event {
           attacker.canAttack = false
         }
 
-        notifyClient('attack', true, {})
+        notifyClient(this.type, true, {})
 
         engine.queueEvent([
           new Event(EventType.Damage, {
@@ -99,6 +102,7 @@ class Event {
           amount: number = this.data.number || 0
 
         if (!source || !target) {
+          console.log(`Could not execute event ${this.type}`)
           return false
         }
 
@@ -110,12 +114,12 @@ class Event {
 
         console.log(`${source.name} deals ${amount} damage to ${target.name}`)
 
-        notifyClient('damage', true, {})
+        notifyClient(this.type, true, {})
 
         return true
       }
       case EventType.KillMinion: {
-        notifyClient('killMinion', true, {
+        notifyClient(this.type, true, {
           minion: this.data.minion,
         })
         return true
@@ -126,12 +130,13 @@ class Event {
           target: Minion | null = this.data.target
 
         if (!effect || !source) {
+          console.log(`Could not execute event ${this.type}`)
           return false
         }
 
         effect.apply(source, target)
 
-        notifyClient('spell', true, {})
+        notifyClient(this.type, true, {})
         return true
       }
       case EventType.Battlecry: {
@@ -140,52 +145,53 @@ class Event {
           target: Minion | null = this.data.target
 
         if (!effect || !source) {
+          console.log(`Could not execute event ${this.type}`)
           return false
         }
 
         effect.apply(source, target)
 
-        notifyClient('battlecry', true, {})
+        notifyClient(this.type, true, {})
         return true
       }
       case EventType.ChooseOne: {
-        notifyClient('choose_one', true, {})
+        notifyClient(this.type, true, {})
         return true
       }
       case EventType.Combo: {
-        notifyClient('combo', true, {})
+        notifyClient(this.type, true, {})
         return true
       }
       case EventType.Deathrattle: {
-        notifyClient('deathrattle', true, {})
+        notifyClient(this.type, true, {})
         return true
       }
       case EventType.DrawCard: {
-        notifyClient('draw_card', true, {})
+        notifyClient(this.type, true, {})
         return true
       }
       case EventType.DiscardCard: {
-        notifyClient('discard_card', true, {})
+        notifyClient(this.type, true, {})
         return true
       }
       case EventType.Overdraw: {
-        notifyClient('overdraw', true, {})
+        notifyClient(this.type, true, {})
         return true
       }
       case EventType.Fatigue: {
-        notifyClient('fatigue', true, {})
+        notifyClient(this.type, true, {})
         return true
       }
       case EventType.ChangeStats: {
-        notifyClient('change_stats', true, {})
+        notifyClient(this.type, true, {})
         return true
       }
       case EventType.EndTurn: {
-        notifyClient('end_turn', true, {})
+        notifyClient(this.type, true, {})
         return true
       }
       case EventType.HeroPower: {
-        notifyClient('hero_power', true, {})
+        notifyClient(this.type, true, {})
         return true
       }
     }

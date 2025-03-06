@@ -27,7 +27,7 @@ export class CardPlayController {
       accept: '.card',
       drop: function (event, ui) {
         ui.helper.data('hovering-board', false)
-        GAME.triggerEvent(EventType.PlayMinion, {
+        GAME.triggerEvent(EventType.TryPlayMinion, {
           player: PlayerID.Player1,
           boardIndex:
             GAME.playerBoardView.placeholderIndex == -1

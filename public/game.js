@@ -61,7 +61,7 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
-      event: 'getGameState',
+      event: EventType.Load,
       onSuccess: (data) => {
         this.playerHandView.hand = data.playerHand
         this.playerHandView.update()
@@ -77,14 +77,14 @@ class GAME {
       },
       onFailure: (data) => {
         setTimeout(() => {
-          this.triggerEvent('getGameState') // retry
+          this.triggerEvent(EventType.Load) // retry
         }, 5 * 1000)
       },
     })
 
     wsEventHandler({
       socket: ws,
-      event: 'target',
+      event: EventType.Target,
       onSuccess: (data) => {
         console.log('Starting to target')
         const rect = this.playerHeroView.getElement().getBoundingClientRect()
@@ -97,9 +97,10 @@ class GAME {
 
     wsEventHandler({
       socket: ws,
-      event: 'cancel',
+      event: EventType.Cancel,
       onSuccess: (data) => {
-        this.triggerEvent('getGameState')
+        this.targetController.resetAttack()
+        this.triggerEvent(EventType.Load)
       },
     })
 
@@ -108,7 +109,7 @@ class GAME {
       event: EventType.KillMinion,
       onSuccess: (data) => {
         console.log(`${data.minion.uniqueID} died`)
-        this.triggerEvent('getGameState')
+        this.triggerEvent(EventType.Load)
       },
     })
 
@@ -119,7 +120,7 @@ class GAME {
         console.log(`${data.minion.uniqueID} played`)
         // this.playerBoardView.playMinion(data.minion, data.boardIndex)
         // this.playerHandView.removeCard(data.minion)
-        this.triggerEvent('getGameState')
+        this.triggerEvent(EventType.Load)
       },
     })
 
@@ -133,7 +134,7 @@ class GAME {
         // TODO: find a better way to do this. maybe have some minion pool shared between the two objects?
         // this.playerBoardView.changeStats(data.uniqueID, data.stats)
         // this.playerHandView.changeStats(data.uniqueID, data.stats)
-        this.triggerEvent('getGameState')
+        this.triggerEvent(EventType.Load)
       },
     })
 
@@ -142,7 +143,7 @@ class GAME {
       event: EventType.Damage,
       onSuccess: (data) => {
         console.log(`${data.minion.uniqueID} takes ${data.damage} damage`)
-        this.triggerEvent('getGameState')
+        this.triggerEvent(EventType.Load)
       },
     })
 
@@ -153,7 +154,7 @@ class GAME {
         console.log(
           `${data.attacker.uniqueID} attacked ${data.target.uniqueID}`
         )
-        this.triggerEvent('getGameState')
+        this.triggerEvent(EventType.Load)
       },
     })
 
@@ -167,7 +168,7 @@ class GAME {
         } else {
           this.turnController.startOpponentTurn()
         }
-        this.triggerEvent('getGameState')
+        this.triggerEvent(EventType.Load)
       },
     })
   }
@@ -195,7 +196,7 @@ class GAME {
     this.playerManaView = new ManaPlayerView(this.playerMana)
     this.opponentManaView = new ManaOpponentView(this.opponentMana)
 
-    this.triggerEvent('getGameState')
+    this.triggerEvent(EventType.Load)
   }
 
   triggerEvent(event, data = {}) {

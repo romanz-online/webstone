@@ -83,24 +83,6 @@ class GameState {
     engine.on('done', () => this.checkHealth)
 
     engine.addGameElementListener(
-      'gameState', // TRY CHANGING THIS TO "this"
-      EventType.PlayMinion, // AND GET RID OF THIS. JUST HAVE engine DIRECTLY EXECUTE LISTENERS WITH this.listener(data, done)
-      (data, done) => {
-        this.playMinion(data.boardIndex, data.uniqueID)
-        done()
-      }
-    )
-
-    engine.addGameElementListener(
-      'gameState',
-      EventType.Attack,
-      (data, done) => {
-        this.tryAttack(data.attackerID, data.targetID)
-        done()
-      }
-    )
-
-    engine.addGameElementListener(
       'gameState',
       EventType.EndTurn,
       (data, done) => {
@@ -114,6 +96,46 @@ class GameState {
       EventType.Cancel,
       (data, done) => {
         this.cancel()
+        done()
+      }
+    )
+
+    engine.addGameElementListener(
+      'gameState',
+      EventType.Target,
+      (data, done) => {
+        this.target(data.targetID)
+        done()
+      }
+    )
+
+    engine.addGameElementListener('gameState', EventType.Load, (data, done) => {
+      notifyClient(EventType.Load, true, this.toJSON())
+      done()
+    })
+
+    engine.addGameElementListener(
+      'gameState',
+      EventType.TryPlayMinion,
+      (data, done) => {
+        this.tryPlayMinion(data.player, data.boardIndex, data.uniqueID)
+        done()
+      }
+    )
+
+    engine.addGameElementListener(
+      'gameState',
+      EventType.TryAttack,
+      (data, done) => {
+        this.tryAttack(data.attackerID, data.targetID)
+        done()
+      }
+    )
+
+    engine.addGameElementListener(
+      'gameState',
+      EventType.TrySpell,
+      (data, done) => {
         done()
       }
     )
@@ -165,7 +187,7 @@ class GameState {
       if (card) {
         console.log('player draws a card')
         this.playerHand.push(card)
-        notifyClient('drawCard', true, this.toJSON())
+        notifyClient(EventType.DrawCard, true, this.toJSON())
       } else {
         console.log('player overdraws')
       }
@@ -174,7 +196,7 @@ class GameState {
       if (card) {
         console.log('opponent draws a card')
         this.opponentHand.push(card)
-        notifyClient('drawCard', true, this.toJSON())
+        notifyClient(EventType.DrawCard, true, this.toJSON())
       } else {
         console.log('opponent overdraws')
       }
@@ -185,14 +207,14 @@ class GameState {
 
   cancel(): void {
     this.eventStack.clear()
-    notifyClient('cancel', true, {})
+    notifyClient(EventType.Cancel, true, {})
   }
 
-  playMinion(boardIndex: number, uniqueID: number): void {
+  tryPlayMinion(player: PlayerID, boardIndex: number, uniqueID: number): void {
     const minion: Minion | null = this.getHandMinion(uniqueID)
 
     if (!minion) {
-      notifyClient('playMinion', false, this.toJSON())
+      notifyClient(EventType.PlayMinion, false, this.toJSON())
       console.error(`Could not find minion with ID ${uniqueID} in hand`)
       return
     }
@@ -202,13 +224,16 @@ class GameState {
 
     const needPlayerInput = this.eventStack.push(
       new Event(EventType.PlayMinion, {
+        hand: player === PlayerID.Player1 ? this.playerHand : this.opponentHand,
+        board:
+          player === PlayerID.Player1 ? this.playerBoard : this.opponentBoard,
         minion: minion,
         boardIndex: boardIndex,
       })
     )
 
     if (needPlayerInput) {
-      notifyClient('getTarget', true, {})
+      notifyClient(EventType.Target, true, {})
     } else {
       this.eventStack.executeStack()
     }
@@ -218,30 +243,30 @@ class GameState {
     const target: Minion | null = this.getBoardMinion(targetID)
 
     if (!target) {
-      notifyClient('target', false, this.toJSON())
+      notifyClient(EventType.Target, false, this.toJSON())
       console.error('Could not find target with ID', targetID, 'on board')
       return
     } else if (!this.eventStack.isWaiting()) {
-      notifyClient('target', false, this.toJSON())
+      notifyClient(EventType.Target, false, this.toJSON())
       console.error('No card is waiting for a target')
       return
     }
 
     const event = this.eventStack.getTop()
     if (!event) {
-      notifyClient('target', false, this.toJSON())
+      notifyClient(EventType.Target, false, this.toJSON())
       console.error('No events are queued in the stack')
       return
     }
     const minion: Minion | null = event.data.minion
     if (!minion) {
-      notifyClient('target', false, this.toJSON())
+      notifyClient(EventType.Target, false, this.toJSON())
       console.error('No minion in stacked event')
       return
     }
     const effect: Effect | null = minion.getBattlecry()
     if (!effect || !effect.canTarget) {
-      notifyClient('target', false, this.toJSON())
+      notifyClient(EventType.Target, false, this.toJSON())
       console.error('No effect is waiting for a target')
       return
     }
@@ -256,7 +281,7 @@ class GameState {
     )
 
     if (needPlayerInput) {
-      notifyClient('getTarget', true, {})
+      notifyClient(EventType.Target, true, {})
     } else {
       this.eventStack.executeStack()
     }
@@ -267,19 +292,19 @@ class GameState {
       target: Minion | null = this.getBoardMinion(targetID)
 
     if (!attacker) {
-      notifyClient('tryAttack', false, this.toJSON())
+      notifyClient(EventType.TryAttack, false, this.toJSON())
       console.error('Could not find attacker with ID', attackerID, 'on board')
       return
     } else if (!target) {
-      notifyClient('tryAttack', false, this.toJSON())
+      notifyClient(EventType.TryAttack, false, this.toJSON())
       console.error('Could not find target with ID', targetID, 'on board')
       return
     } else if (!attacker.canAttack) {
-      notifyClient('tryAttack', false, this.toJSON())
+      notifyClient(EventType.TryAttack, false, this.toJSON())
       console.error('Minion cannot attack')
       return
     } else if (!target.taunt && this.opponentBoard.some((m) => m.taunt)) {
-      notifyClient('tryAttack', false, this.toJSON())
+      notifyClient(EventType.TryAttack, false, this.toJSON())
       console.error('Taunt is in the way')
       return
     }
