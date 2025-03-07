@@ -24,7 +24,6 @@ class Effect extends Card {
 
   constructor(baseID: number, uniqueID: number, player: number) {
     super(uniqueID)
-    this._isEffect = true
     const baseData = EffectData[baseID - 2000]
     this.baseID = baseID
     this.player = player

@@ -2,7 +2,8 @@ import { engine } from '@engine'
 import { notifyClient } from '@ws'
 import Event from '@event'
 import EventStack from '@eventStack'
-import { CardType, EventType, Keyword, PlayerID } from '@constants'
+import { CardType, EventType, PlayerID } from '@constants'
+import Card from '@card'
 import Character from '@character'
 import Hero from '@hero'
 import Minion from '@minion'
@@ -25,17 +26,19 @@ const playerDeckStorage: number[] = [
 
 class GameState {
   uniqueMinionNumber: number
-  graveyard: any[]
-  playerDeck: any[]
-  opponentDeck: any[]
-  playerHand: any[]
-  opponentHand: any[]
-  playerBoard: any[]
-  opponentBoard: any[]
-  whoseTurn: number
+  graveyard: Minion[]
+  playerDeck: Card[]
+  opponentDeck: Card[]
+  playerHand: Card[]
+  opponentHand: Card[]
+  playerBoard: Minion[]
+  opponentBoard: Minion[]
+  whoseTurn: PlayerID
   eventStack: EventStack
   player1: Hero
   player2: Hero
+  player1Fatigue: number
+  player2Fatigue: number
 
   constructor() {
     this.uniqueMinionNumber = 0
@@ -51,6 +54,9 @@ class GameState {
       this.getUniqueID(),
       PlayerID.Player2
     )
+
+    this.player1Fatigue = 0
+    this.player2Fatigue = 0
 
     this.graveyard = []
     this.playerDeck = []
@@ -447,20 +453,20 @@ class GameState {
 
   getHandMinion(uniqueID: number): Minion | null {
     for (const x of this.playerHand) {
-      if (x.uniqueID === uniqueID && x._isMinion) return x
+      if (x.uniqueID === uniqueID && x instanceof Minion) return x
     }
     for (const x of this.opponentHand) {
-      if (x.uniqueID === uniqueID && x._isMinion) return x
+      if (x.uniqueID === uniqueID && x instanceof Minion) return x
     }
     return null
   }
 
   getHandSpell(uniqueID: number): Effect | null {
     for (const x of this.playerHand) {
-      if (x.uniqueID === uniqueID && x._isEffect) return x
+      if (x.uniqueID === uniqueID && x instanceof Effect) return x
     }
     for (const x of this.opponentHand) {
-      if (x.uniqueID === uniqueID && x._isEffect) return x
+      if (x.uniqueID === uniqueID && x instanceof Effect) return x
     }
     return null
   }

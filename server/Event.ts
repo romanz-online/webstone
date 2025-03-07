@@ -4,6 +4,7 @@ import { engine } from '@engine'
 import Minion from '@minion'
 import Effect from '@effect'
 import Character from '@character'
+import Hero from '@hero'
 
 class Event {
   type: EventType
@@ -85,7 +86,7 @@ class Event {
         minion.inPlay = true
 
         notifyClient(this.type, true, {
-          minion: this.data.minion,
+          minion: minion,
         })
 
         return true
@@ -123,7 +124,8 @@ class Event {
           ])
         }
 
-        if (target._isMinion && target.attack > 0) {
+        // heroes don't hit back
+        if (target instanceof Minion && target.attack > 0) {
           engine.queueEvent([
             new Event(EventType.Damage, {
               source: target,
@@ -148,14 +150,13 @@ class Event {
 
         target.health -= amount
 
-        if (target.health < 1) {
-          // STORE A "killedBy" VALUE HERE IF NEEDED
-        }
+        // if (target.health < 1) {
+        //   // STORE A "killedBy" VALUE HERE IF NEEDED
+        // }
 
         console.log(`${source} deals ${amount} damage to ${target}`)
 
         notifyClient(this.type, true, {})
-
         return true
       }
       case EventType.RestoreHealth: {
@@ -180,7 +181,6 @@ class Event {
         console.log(`${source} restores ${amountRestored} health to ${target}`)
 
         notifyClient(this.type, true, {})
-
         return true
       }
       case EventType.Kill: {
@@ -247,6 +247,22 @@ class Event {
         return true
       }
       case EventType.Fatigue: {
+        const player: Hero = this.data.player,
+          damage = this.data.fatigue
+
+        if (!player || damage === 0) {
+          console.log(`Could not execute event ${EventType[this.type]}`)
+          return false
+        }
+
+        engine.queueEvent([
+          new Event(EventType.Damage, {
+            source: player,
+            target: player,
+            amount: damage,
+          }),
+        ])
+
         notifyClient(this.type, true, {})
         return true
       }
