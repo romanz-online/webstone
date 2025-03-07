@@ -1,6 +1,6 @@
 import Minion from './minionData/minion'
 import { engine } from './Engine'
-import Event from './event'
+import Event from './Event'
 import { EventType } from './constants'
 
 class EventStack {
@@ -14,7 +14,7 @@ class EventStack {
 
   push(event: Event): void {
     this.stack.push(event)
-    if (event.type === EventType.PlayMinion) {
+    if (event.type === EventType.PlayCard) {
       // CHECK FOR BATTLECRY, CHOOSE ONE, COMBO
       const minion: Minion = event.data.minion
       if (minion) {

@@ -1,4 +1,4 @@
-import Effect from './effect'
+import Effect from './Effect'
 import EFFECT_ID from './effectID.json'
 import Fireball from './effects/fireball'
 

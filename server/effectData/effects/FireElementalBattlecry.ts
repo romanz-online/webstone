@@ -16,15 +16,6 @@ class FireElementalBattlecry extends Effect {
       console.error('Missing values to properly execute effect')
     }
 
-    if (!target) {
-      if (
-        this.requiresTarget ||
-        (this.gameState.opponentBoard.length > 0 && this.canTarget)
-      ) {
-        console.error('Target required for targeted damage effect')
-      }
-    }
-
     if (target) {
       engine.queueEvent([
         new Event(EventType.Damage, {
@@ -33,6 +24,11 @@ class FireElementalBattlecry extends Effect {
           amount: this.getAmount(),
         }),
       ])
+    } else if (
+      this.requiresTarget ||
+      (this.gameState.opponentBoard.length > 0 && this.canTarget)
+    ) {
+      console.error('Target required for targeted damage effect')
     }
   }
 }

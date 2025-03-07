@@ -9,32 +9,44 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const staticDir = path.join(__dirname, '/public')
 import { processEvent } from './server/wsEvents'
-import MINION_DATA from './server/minionData/baseMinionData'
-import EFFECT_DATA from './server/effectData/baseEffectData'
+import HeroData from './server/characterData/heroData/BaseHeroData'
+import MinionData from './server/characterData/minionData/BaseMinionData'
+import EffectData from './server/effectData/BaseEffectData'
 
 // const clients = new Map();
 
 const minionIDArray = {}
-for (let i = 0; i < MINION_DATA.length; i++) {
-  minionIDArray[MINION_DATA[i].fileName.toUpperCase()] = 1000 + i
+for (let i = 0; i < MinionData.length; i++) {
+  minionIDArray[MinionData[i].fileName.toUpperCase()] = 1000 + i
 }
 fs.writeFileSync(
-  './server/minionData/minionID.json',
+  './server/characterData/minionData/MinionID.json',
   JSON.stringify(minionIDArray, null, 2),
   'utf8'
 )
 console.log('Generated minion IDs')
 
 const effectIDArray = {}
-for (let i = 0; i < EFFECT_DATA.length; i++) {
-  effectIDArray[EFFECT_DATA[i].fileName.toUpperCase()] = 2000 + i
+for (let i = 0; i < EffectData.length; i++) {
+  effectIDArray[EffectData[i].fileName.toUpperCase()] = 2000 + i
 }
 fs.writeFileSync(
-  './server/effectData/effectID.json',
+  './server/effectData/EffectID.json',
   JSON.stringify(effectIDArray, null, 2),
   'utf8'
 )
 console.log('Generated effect IDs')
+
+const heroIDArray = {}
+for (let i = 0; i < HeroData.length; i++) {
+  heroIDArray[HeroData[i].fileName.toUpperCase()] = 3000 + i
+}
+fs.writeFileSync(
+  './server/characterData/heroData/HeroID.json',
+  JSON.stringify(heroIDArray, null, 2),
+  'utf8'
+)
+console.log('Generated hero IDs')
 
 try {
   const tsContent = fs.readFileSync('./server/constants.ts', 'utf8'),

@@ -1,34 +1,34 @@
 export enum HeroClass {
-  DRUID,
-  HUNTER,
-  MAGE,
-  PALADIN,
-  PRIEST,
-  ROGUE,
-  SHAMAN,
-  WARLOCK,
-  WARRIOR,
-  NEUTRAL,
+  Druid,
+  Hunter,
+  Mage,
+  Paladin,
+  Priest,
+  Rogue,
+  Shaman,
+  Warlock,
+  Warrior,
+  Neutral,
 }
 
 export enum Rarity {
-  COMMON,
-  FREE,
-  RARE,
-  EPIC,
-  LEGENDARY,
+  Common,
+  Free,
+  Rare,
+  Epic,
+  Legendary,
 }
 
 export enum Tribe {
-  NONE,
-  BEAST,
-  TOTEM,
-  DEMON,
-  MURLOC,
-  PIRATE,
-  MECH,
-  UNDEAD,
-  DRAGON,
+  None,
+  Beast,
+  Totem,
+  Demon,
+  Murloc,
+  Pirate,
+  Mech,
+  Undead,
+  Dragon,
 }
 
 export enum EffectType {
@@ -43,9 +43,10 @@ export enum EffectType {
 }
 
 export enum EventType {
-  PlayMinion,
+  PlayCard,
   SummonMinion,
-  KillMinion,
+  Kill,
+  Death,
   Attack,
   Spell,
   Battlecry,
@@ -65,11 +66,27 @@ export enum EventType {
   Target,
   TryAttack,
   TrySpell,
-  TryPlayMinion,
+  TryPlayCard,
   Load,
+}
+
+export enum CardType {
+  Minion,
+  Spell,
+  Weapon,
 }
 
 export enum PlayerID {
   Player1,
   Player2,
+}
+
+export enum Keyword {
+  Taunt,
+  Stealth,
+  Poison,
+  Windfury,
+  Charge,
+  DivineShield,
+  Elusive,
 }

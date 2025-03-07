@@ -3,10 +3,10 @@ import { notifyClient } from './ws'
 import { generateMinion } from './minionData/generateMinion'
 import MINION_ID from './minionData/minionID.json'
 import Minion from './minionData/minion'
-import Effect from './effectData/effect'
+import Effect from './effectData/Effect'
 import EventStack from './EventStack'
 import Event from './event'
-import { EventType, PlayerID } from './constants'
+import { CardType, EventType, PlayerID } from './constants'
 
 const playerDeckStorage: number[] = [
     MINION_ID.TIRION_FORDRING,
@@ -21,13 +21,13 @@ class GameState {
   uniqueMinionNumber: number
   playerHealth: number
   opponentHealth: number
-  graveyard: Minion[]
-  playerDeck: Minion[]
-  opponentDeck: Minion[]
-  playerHand: Minion[]
-  opponentHand: Minion[]
-  playerBoard: Minion[]
-  opponentBoard: Minion[]
+  graveyard: any[]
+  playerDeck: any[]
+  opponentDeck: any[]
+  playerHand: any[]
+  opponentHand: any[]
+  playerBoard: any[]
+  opponentBoard: any[]
   whoseTurn: number
   eventStack: EventStack
 
@@ -121,9 +121,9 @@ class GameState {
 
     engine.addGameElementListener(
       'gameState',
-      EventType.TryPlayMinion,
+      EventType.TryPlayCard,
       (data, done) => {
-        this.tryPlayMinion(data.player, data.boardIndex, data.uniqueID)
+        this.tryPlayCard(data.type, data)
         done()
       }
     )
@@ -215,35 +215,73 @@ class GameState {
     notifyClient(EventType.Cancel, true, {})
   }
 
-  tryPlayMinion(player: PlayerID, boardIndex: number, uniqueID: number): void {
-    const minion: Minion | null = this.getHandMinion(uniqueID)
+  // NEED TO ADD PLAYER HERO OBJECTS
+  // WHICH WILL INHERIT FROM THE GENERIC "Character" OBJECT
+  // WHICH WILL ONLY HAVE A HEALTH AND NAME ATTRIBUTE TO START WITH
 
-    if (!minion) {
-      notifyClient(EventType.PlayMinion, false, this.toJSON())
-      console.error(`Could not find minion with ID ${uniqueID} in hand`)
-      return
-    }
+  tryPlayCard(type: CardType, data: any): void {
+    switch (type) {
+      case CardType.Minion:
+        {
+          const player: number = data.player,
+            boardIndex: number = data.boardIndex,
+            uniqueID: number = data.uniqueID
 
-    // DO MORE ERROR CHECKS
-    // notifyClient('playMinion', false, this.toJSON())
+          const minion: Minion | null = this.getHandMinion(uniqueID)
+          if (!minion) {
+            notifyClient(EventType.PlayCard, false, this.toJSON())
+            console.error(`Could not find minion with ID ${uniqueID} in hand`)
+            return
+          }
 
-    this.eventStack.push(
-      new Event(EventType.PlayMinion, {
-        hand: player === PlayerID.Player1 ? this.playerHand : this.opponentHand,
-        board:
-          player === PlayerID.Player1 ? this.playerBoard : this.opponentBoard,
-        minion: minion,
-        boardIndex: boardIndex,
-      })
-    )
+          // DO MORE ERROR CHECKS
+          // notifyClient('playMinion', false, this.toJSON())
 
-    if (this.eventStack.isWaiting()) {
-      notifyClient(EventType.Target, true, {})
+          const hand =
+              player === PlayerID.Player1 ? this.playerHand : this.opponentHand,
+            board =
+              player === PlayerID.Player1
+                ? this.playerBoard
+                : this.opponentBoard
+          this.eventStack.push(
+            new Event(EventType.PlayCard, {
+              hand: hand,
+              board: board,
+              minion: minion,
+              boardIndex: boardIndex,
+            })
+          )
+
+          if (this.eventStack.isWaiting()) {
+            notifyClient(EventType.Target, true, {})
+          }
+        }
+        break
+      case CardType.Spell:
+        {
+          const player: number = data.player,
+            uniqueID: number = data.uniqueID
+
+          const spell: Effect | null = this.getHandSpell(uniqueID)
+          if (!spell) {
+            notifyClient(EventType.PlayCard, false, this.toJSON())
+            console.error(`Could not find minion with ID ${uniqueID} in hand`)
+            return
+          }
+        }
+        break
+      case CardType.Weapon:
+        break
+      default: {
+        notifyClient(EventType.PlayCard, false, this.toJSON())
+        console.error(`Invalid card type ${type}`)
+        return
+      }
     }
   }
 
   target(targetID: number): void {
-    const target: Minion | null = this.getBoardMinion(targetID)
+    const target: Minion | null = this.getBoardCard(targetID)
 
     if (!target) {
       notifyClient(EventType.Target, false, this.toJSON())
@@ -289,8 +327,8 @@ class GameState {
   }
 
   tryAttack(attackerID: number, targetID: number): void {
-    const attacker: Minion | null = this.getBoardMinion(attackerID),
-      target: Minion | null = this.getBoardMinion(targetID)
+    const attacker: Minion | null = this.getBoardCard(attackerID),
+      target: Minion | null = this.getBoardCard(targetID)
 
     if (!attacker) {
       notifyClient(EventType.TryAttack, false, this.toJSON())
@@ -347,7 +385,7 @@ class GameState {
     }
 
     if (ret) {
-      engine.queueEvent([new Event(EventType.KillMinion, {})])
+      engine.queueEvent([new Event(EventType.Kill, {})])
     }
   }
 
@@ -373,22 +411,32 @@ class GameState {
     }, 2 * 1000)
   }
 
-  getBoardMinion(uniqueID: number): Minion | null {
-    for (const minion of this.playerBoard) {
-      if (minion.uniqueID === uniqueID) return minion
+  getBoardCard(uniqueID: number): Minion | null {
+    for (const x of this.playerBoard) {
+      if (x.uniqueID === uniqueID) return x
     }
-    for (const minion of this.opponentBoard) {
-      if (minion.uniqueID === uniqueID) return minion
+    for (const x of this.opponentBoard) {
+      if (x.uniqueID === uniqueID) return x
     }
     return null
   }
 
   getHandMinion(uniqueID: number): Minion | null {
-    for (const minion of this.playerHand) {
-      if (minion.uniqueID === uniqueID) return minion
+    for (const x of this.playerHand) {
+      if (x.uniqueID === uniqueID && x._isMinion) return x
     }
-    for (const minion of this.opponentHand) {
-      if (minion.uniqueID === uniqueID) return minion
+    for (const x of this.opponentHand) {
+      if (x.uniqueID === uniqueID && x._isMinion) return x
+    }
+    return null
+  }
+
+  getHandSpell(uniqueID: number): Effect | null {
+    for (const x of this.playerHand) {
+      if (x.uniqueID === uniqueID && x._isEffect) return x
+    }
+    for (const x of this.opponentHand) {
+      if (x.uniqueID === uniqueID && x._isEffect) return x
     }
     return null
   }

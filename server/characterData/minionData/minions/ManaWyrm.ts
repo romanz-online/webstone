@@ -1,6 +1,8 @@
 import Minion from '../minion'
-import { notifyClient } from '../../ws'
-import { engine } from '../../Engine'
+import { notifyClient } from '../../../ws'
+import { engine } from '../../../Engine'
+import Event from '../../../event'
+import { EventType } from '../../../constants'
 
 class ManaWyrm extends Minion {
   constructor(ID: number, uniqueID: number, player: number) {
@@ -8,7 +10,7 @@ class ManaWyrm extends Minion {
 
     engine.addGameElementListener(
       this.uniqueID,
-      'playMinion',
+      EventType.PlayCard,
       (data: any, done: () => void) => {
         this.onPlayMinion(data.minion)
         done()
@@ -21,9 +23,9 @@ class ManaWyrm extends Minion {
       return
     }
 
-    this.attack += 1
-
-    notifyClient('changeStats', true, { minion: this })
+    engine.queueEvent([
+      new Event(EventType.ChangeStats, { target: [this], attack: 1 }),
+    ])
   }
 }
 

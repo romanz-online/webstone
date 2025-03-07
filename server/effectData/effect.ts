@@ -1,14 +1,13 @@
-import EFFECT_DATA from './baseEffectData'
+import EffectData from './BaseEffectData'
 import GameState from '../GameState'
-import Minion from '../minionData/minion'
-import { HeroClass, Rarity, Tribe, EffectType } from '../constants'
+import Minion from '../characterData/minionData/minion'
+import { HeroClass, Rarity, EffectType } from '../constants'
 
 class Effect {
+  _isEffect: boolean
   baseID: number
   player: number
   gameState: GameState
-  // source: Minion
-  // target: Minion | null
   fileName: string
   type: EffectType
   class: HeroClass
@@ -23,24 +22,18 @@ class Effect {
   requiresTarget: boolean
   obtainable: boolean
 
-  constructor(
-    baseID: number,
-    player: number,
-    source: Minion,
-    target: Minion | null
-  ) {
-    const baseData = EFFECT_DATA[baseID - 2000]
+  constructor(baseID: number, player: number) {
+    this._isEffect = true
+    const baseData = EffectData[baseID - 2000]
     this.baseID = baseID
     this.player = player
-    // this.source = source
-    // this.target = target
 
     this.fileName = baseData.fileName || ''
     this.type = baseData.type || EffectType.Generic
-    this.class = baseData.class || HeroClass.NEUTRAL
+    this.class = baseData.class || HeroClass.Neutral
     this.name = baseData.name || '???'
     this.baseDescription = baseData.baseDescription || ''
-    this.rarity = baseData.rarity || Rarity.FREE
+    this.rarity = baseData.rarity || Rarity.Free
     this.cost = baseData.cost || 0
     this.amount = baseData.amount || [0]
     this.affectedBySpellpower = baseData.affectedBySpellpower || false

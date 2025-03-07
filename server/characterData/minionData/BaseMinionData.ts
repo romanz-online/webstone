@@ -1,6 +1,6 @@
-import { HeroClass, Rarity, Tribe, EffectType } from '../constants'
+import { HeroClass, Rarity, Tribe, Keyword } from '../../constants'
 
-const MINION_DATA = [
+const MinionData = [
   // minion objects will have more data than this
   // these are just the baseline stats for each minion, before manipulation
 
@@ -49,7 +49,7 @@ const MINION_DATA = [
     attack: 8,
     health: 8,
     rarity: Rarity.Free,
-    taunt: true,
+    keywords: [Keyword.Taunt],
   },
   {
     class: HeroClass.Druid,
@@ -222,7 +222,7 @@ const MINION_DATA = [
     attack: 6,
     health: 6,
     rarity: Rarity.Legendary,
-    taunt: true,
+    keywords: [Keyword.Taunt],
   },
   // PRIEST
   {
@@ -306,8 +306,7 @@ const MINION_DATA = [
     attack: 1,
     health: 1,
     rarity: Rarity.Rare,
-    stealth: true,
-    poison: true,
+    keywords: [Keyword.Stealth, Keyword.Poison],
   },
   {
     class: HeroClass.Rogue,
@@ -356,7 +355,7 @@ const MINION_DATA = [
     health: 1,
     rarity: Rarity.Common,
     overload: 2,
-    windfury: true,
+    keywords: [Keyword.Windfury],
   },
   {
     class: HeroClass.Shaman,
@@ -405,7 +404,7 @@ const MINION_DATA = [
     health: 8,
     rarity: Rarity.Epic,
     overload: 3,
-    taunt: true,
+    keywords: [Keyword.Taunt],
   },
   {
     class: HeroClass.Shaman,
@@ -424,10 +423,12 @@ const MINION_DATA = [
     attack: 3,
     health: 5,
     rarity: Rarity.Legendary,
-    charge: true,
-    taunt: true,
-    divineShield: true,
-    windfury: true,
+    keywords: [
+      Keyword.Windfury,
+      Keyword.Charge,
+      Keyword.Taunt,
+      Keyword.DivineShield,
+    ],
   },
   // WARLOCK
   {
@@ -439,7 +440,7 @@ const MINION_DATA = [
     health: 1,
     rarity: Rarity.Common,
     tribe: Tribe.Demon,
-    stealth: true,
+    keywords: [Keyword.Stealth],
   },
   {
     class: HeroClass.Warlock,
@@ -460,7 +461,7 @@ const MINION_DATA = [
     health: 3,
     rarity: Rarity.Free,
     tribe: Tribe.Demon,
-    taunt: true,
+    keywords: [Keyword.Taunt],
   },
   {
     class: HeroClass.Warlock,
@@ -481,7 +482,7 @@ const MINION_DATA = [
     health: 5,
     rarity: Rarity.Rare,
     tribe: Tribe.Demon,
-    taunt: true,
+    keywords: [Keyword.Taunt],
   },
   {
     class: HeroClass.Warlock,
@@ -521,7 +522,7 @@ const MINION_DATA = [
     health: 7,
     rarity: Rarity.Rare,
     tribe: Tribe.Demon,
-    charge: true,
+    keywords: [Keyword.Charge],
   },
   {
     class: HeroClass.Warlock,
@@ -597,7 +598,7 @@ const MINION_DATA = [
     attack: 4,
     health: 3,
     rarity: Rarity.Free,
-    charge: true,
+    keywords: [Keyword.Charge],
   },
   {
     class: HeroClass.Warrior,
@@ -607,7 +608,7 @@ const MINION_DATA = [
     attack: 4,
     health: 9,
     rarity: Rarity.Legendary,
-    charge: true,
+    keywords: [Keyword.Charge],
   },
   {
     class: HeroClass.Neutral,
@@ -617,8 +618,8 @@ const MINION_DATA = [
     attack: 3,
     health: 2,
     rarity: Rarity.Common,
-    elusive: true,
+    keywords: [Keyword.Elusive],
   },
 ]
 
-export default MINION_DATA
+export default MinionData

@@ -1,13 +1,11 @@
 import { engine } from '../Engine'
-import { notifyClient } from '../ws'
-import MINION_DATA from './baseMinionData'
 import { HeroClass, Rarity, Tribe, EventType, PlayerID } from '../constants'
 import GameState from '../GameState'
-import Effect from '../effectData/effect'
+import Effect from '../effectData/Effect'
+import { Keyword } from '../constants'
 
-class Minion {
+class Character {
   gameState: GameState
-  baseID: number
   fileName: string
   uniqueID: number
   playerOwner: PlayerID
@@ -27,19 +25,10 @@ class Minion {
   mana: number
   attack: number
   health: number
-  charge: boolean
-  taunt: boolean
-  divineShield: boolean
-  stealth: boolean
-  windfury: boolean
-  elusive: boolean
-  poison: boolean
+  keywords: Keyword[]
   effects: { [key: string]: any }
 
-  constructor(baseID: number, uniqueID: number, player: number) {
-    const baseData = MINION_DATA[baseID - 1000]
-
-    this.baseID = baseID
+  constructor(uniqueID: number, player: number, baseData: any) {
     this.uniqueID = uniqueID
     this.playerOwner = player
 
@@ -50,9 +39,9 @@ class Minion {
     this.fileName = baseData.fileName || ''
     this.name = baseData.name || '???'
     this.description = baseData.description || ''
-    this.class = baseData.class || HeroClass.NEUTRAL
-    this.rarity = baseData.rarity || Rarity.FREE
-    this.tribe = baseData.tribe || Tribe.NONE
+    this.class = baseData.class || HeroClass.Neutral
+    this.rarity = baseData.rarity || Rarity.Free
+    this.tribe = baseData.tribe || Tribe.None
     this.overload = baseData.overload || 0
     this.baseMana = baseData.mana || 0
     this.baseAttack = baseData.attack || 0
@@ -61,19 +50,13 @@ class Minion {
     this.mana = baseData.mana || 0
     this.attack = baseData.attack || 0
     this.health = baseData.health || 1
-    this.charge = baseData.charge || false
-    this.taunt = baseData.taunt || false
-    this.divineShield = baseData.divineShield || false
-    this.stealth = baseData.stealth || false
-    this.windfury = baseData.windfury || false
-    this.elusive = baseData.elusive || false
-    this.poison = baseData.poison || false
+    this.keywords = baseData.keywords || []
 
     this.effects = {}
 
     engine.addGameElementListener(
       this.uniqueID,
-      EventType.KillMinion,
+      EventType.Kill,
       (data, done) => {
         this.onKillMinions()
         done()
@@ -87,7 +70,6 @@ class Minion {
 
   toJSON(): any {
     return {
-      baseID: this.baseID,
       uniqueID: this.uniqueID,
       player: this.playerOwner,
       inPlay: this.inPlay,
@@ -107,13 +89,6 @@ class Minion {
       mana: this.mana,
       attack: this.attack,
       health: this.health,
-      charge: this.charge,
-      taunt: this.taunt,
-      divineShield: this.divineShield,
-      stealth: this.stealth,
-      windfury: this.windfury,
-      elusive: this.elusive,
-      poison: this.poison,
     }
   }
 
@@ -134,4 +109,4 @@ class Minion {
   }
 }
 
-export default Minion
+export default Character

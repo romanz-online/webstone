@@ -1,7 +1,7 @@
-import { EventType } from './constants'
+import { EventType, CardType, Keyword } from './constants'
 import { notifyClient } from './ws'
-import Minion from './minionData/minion'
-import Effect from './effectData/effect'
+import Minion from './characterData/minionData/minion'
+import Effect from './effectData/Effect'
 import { engine } from './Engine'
 
 class Event {
@@ -41,7 +41,7 @@ class Event {
     // console.log(`${this}`)
     console.log(`${EventType[this.type]}`)
     switch (this.type) {
-      case EventType.PlayMinion: {
+      case EventType.PlayCard: {
         const hand: any = this.data.hand,
           board: any = this.data.board,
           minion: Minion = this.data.minion,
@@ -102,8 +102,10 @@ class Event {
         attacker.attacksThisTurn++
 
         if (
-          (attacker.attacksThisTurn > 0 && !attacker.windfury) ||
-          (attacker.attacksThisTurn > 1 && attacker.windfury)
+          (attacker.attacksThisTurn > 0 &&
+            !(Keyword.Windfury in attacker.keywords)) ||
+          (attacker.attacksThisTurn > 1 &&
+            Keyword.Windfury in attacker.keywords)
         ) {
           attacker.canAttack = false
         }
@@ -148,7 +150,7 @@ class Event {
 
         return true
       }
-      case EventType.KillMinion: {
+      case EventType.Kill: {
         notifyClient(this.type, true, {
           minion: this.data.minion,
         })
@@ -216,7 +218,36 @@ class Event {
         return true
       }
       case EventType.ChangeStats: {
-        notifyClient(this.type, true, {})
+        const target: Minion[] = this.data.minion,
+          mana: number = this.data.mana || 0,
+          attack: number = this.data.attack || 0,
+          health: number = this.data.health || 0
+
+        if (target.length === 0) {
+          console.log(`Could not execute event ${EventType[this.type]}`)
+          return false
+        }
+        // console.log(`Executing ${this}`)
+
+        for (let i = 0; i < target.length; i++) {
+          const changes: string[] = []
+          if (mana !== 0) changes.push(`${mana > 0 ? '+' : ''}${mana} mana`)
+          if (attack !== 0)
+            changes.push(`${attack > 0 ? '+' : ''}${attack} attack`)
+          if (health !== 0)
+            changes.push(`${health > 0 ? '+' : ''}${health} health`)
+
+          target[i].mana += mana
+          target[i].attack += attack
+          target[i].health += health
+
+          console.log(
+            `${target}: ${changes.length > 0 ? changes.join(', ') : 'no stat changes'}`
+          )
+
+          notifyClient(this.type, true, this.data)
+        }
+
         return true
       }
       case EventType.EndTurn: {
