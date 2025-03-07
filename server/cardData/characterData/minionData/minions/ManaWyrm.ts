@@ -23,7 +23,11 @@ class ManaWyrm extends Minion {
     }
 
     engine.queueEvent([
-      new Event(EventType.ChangeStats, { target: [this], attack: 1 }),
+      new Event(EventType.ChangeStats, {
+        source: this,
+        target: [this],
+        attack: 1,
+      }),
     ])
   }
 }

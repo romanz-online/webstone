@@ -1,14 +1,16 @@
 import { getGameState } from 'wsEvents.ts'
+import Minion from '@minion'
 import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
 import Event from '@event'
 import { EventType, PlayerID } from '@constants'
 import Character from '@character'
+import GameState from '@gameState'
 
-class Fireball extends Effect {
+class MarkOfTheWild extends Effect {
   constructor(uniqueID: number, playerOwner: PlayerID) {
-    super(EffectID.FIREBALL, uniqueID, playerOwner)
+    super(EffectID.MARK_OF_THE_WILD, uniqueID, playerOwner)
   }
 
   apply(source: Character, target: Character | null): void {
@@ -19,10 +21,12 @@ class Fireball extends Effect {
 
     if (target) {
       engine.queueEvent([
-        new Event(EventType.Damage, {
+        // ALSO NEED SOME WAY TO GIVE IT TAUNT
+        new Event(EventType.ChangeStats, {
           source: source,
-          target: target,
-          amount: this.getAmount(),
+          target: [target],
+          attack: 2,
+          health: 2,
         }),
       ])
     } else if (
@@ -32,6 +36,14 @@ class Fireball extends Effect {
       console.error('Target required for targeted damage effect')
     }
   }
+
+  validateTarget(gameState: GameState, target: Character): boolean {
+    if (!gameState) {
+      console.error('Missing GameState')
+    }
+
+    return target instanceof Minion
+  }
 }
 
-export default Fireball
+export default MarkOfTheWild

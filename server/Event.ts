@@ -273,18 +273,19 @@ class Event {
         return true
       }
       case EventType.ChangeStats: {
-        const target: Minion[] = this.data.minion,
+        const source: Character = this.data.source,
+          targets: Character[] = this.data.target,
           mana: number = this.data.mana || 0,
           attack: number = this.data.attack || 0,
           health: number = this.data.health || 0
 
-        if (target.length === 0) {
+        if (targets.length === 0) {
           console.log(`Could not execute event ${EventType[this.type]}`)
           return false
         }
         // console.log(`Executing ${this}`)
 
-        for (let i = 0; i < target.length; i++) {
+        for (const target of targets) {
           const changes: string[] = []
           if (mana !== 0) changes.push(`${mana > 0 ? '+' : ''}${mana} mana`)
           if (attack !== 0)
@@ -292,12 +293,12 @@ class Event {
           if (health !== 0)
             changes.push(`${health > 0 ? '+' : ''}${health} health`)
 
-          target[i].mana += mana
-          target[i].attack += attack
-          target[i].health += health
+          target.mana += mana
+          target.attack += attack
+          target.health += health
 
           console.log(
-            `${target}: ${changes.length > 0 ? changes.join(', ') : 'no stat changes'}`
+            `${targets}: ${changes.length > 0 ? changes.join(', ') : 'no stat changes'}`
           )
 
           notifyClient(this.type, true, this.data)
