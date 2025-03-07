@@ -1,5 +1,5 @@
 import Minion from '@minion'
-import FireElementalBattlecry from '@effects/FireElementalBattlecry'
+import FireElementalBattlecry from '@effects/FireElementalBattlecry.ts'
 
 class FireElemental extends Minion {
   constructor(baseID: number, uniqueID: number, player: number) {

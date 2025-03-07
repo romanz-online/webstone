@@ -1,6 +1,6 @@
 import Minion from '@minion'
 import Effect from '@effect'
-import EffectID from '@effectID'
+import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
 import Event from '@event'
 import { EventType } from '@constants'

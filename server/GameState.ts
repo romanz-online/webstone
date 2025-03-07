@@ -8,8 +8,8 @@ import Character from '@character'
 import Hero from '@hero'
 import Minion from '@minion'
 import Effect from '@effect'
-import HeroID from '@heroID'
-import MinionID from '@minionID'
+import HeroID from '@heroID' with { type: 'json' }
+import MinionID from '@minionID' with { type: 'json' }
 import { generateHero } from '@generateHero'
 import { generateMinion } from '@generateMinion'
 import { generateEffect } from '@generateEffect'
@@ -272,7 +272,7 @@ class GameState {
             new Event(EventType.PlayCard, {
               hand: hand,
               board: board,
-              minion: minion,
+              card: minion,
               boardIndex: boardIndex,
             })
           )
@@ -293,6 +293,12 @@ class GameState {
             console.error(`Could not find minion with ID ${uniqueID} in hand`)
             return
           }
+
+          this.eventStack.push(
+            new Event(EventType.PlayCard, {
+              card: spell,
+            })
+          )
         }
         break
       case CardType.Weapon:

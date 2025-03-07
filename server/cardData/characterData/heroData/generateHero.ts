@@ -1,7 +1,7 @@
-import HeroID from '@heroID'
-import AnduinWrynn from '@heroes/AnduinWrynn'
-import JainaProudmoore from '@heroes/JainaProudmoore'
-import Hogger from '@heroes/Hogger'
+import HeroID from '@heroID' with { type: 'json' }
+import AnduinWrynn from '@heroes/AnduinWrynn.ts'
+import JainaProudmoore from '@heroes/JainaProudmoore.ts'
+import Hogger from '@heroes/Hogger.ts'
 import Hero from '@hero'
 
 function generateHero(ID: number, uniqueID: number, player: number): Hero {

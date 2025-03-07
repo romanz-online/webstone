@@ -1,14 +1,14 @@
 import GameState from '@gameState'
 import Minion from '@minion'
 import Effect from '@effect'
-import EffectID from '@/effectData/EffectID.json'
+import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
 import Event from '@event'
 import { EventType } from '@constants'
 
 class FireElementalBattlecry extends Effect {
   constructor(player: number, source: Minion) {
-    super(EffectID.FIRE_ELEMENTAL_BATTLECRY, player)
+    super(EffectID.FIRE_ELEMENTAL_BATTLECRY, -1, player)
   }
 
   apply(source: Minion, target: Minion | null): void {

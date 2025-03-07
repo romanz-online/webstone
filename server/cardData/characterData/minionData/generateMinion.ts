@@ -1,8 +1,8 @@
-import MinionID from '@minionID'
+import MinionID from '@minionID' with { type: 'json' }
 import Minion from '@minion'
-import GuardianOfKings from '@minions/GuardianOfKings'
-import ManaWyrm from '@minions/ManaWyrm'
-import FireElemental from '@minions/FireElemental'
+import GuardianOfKings from '@minions/GuardianOfKings.ts'
+import ManaWyrm from '@minions/ManaWyrm.ts'
+import FireElemental from '@minions/FireElemental.ts'
 
 function generateMinion(ID: number, uniqueID: number, player: number): Minion {
   switch (ID) {

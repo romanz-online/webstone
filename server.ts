@@ -8,10 +8,10 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const staticDir = path.join(__dirname, '/public')
-import { processEvent } from './server/wsEvents'
-import HeroData from './server/cardData/characterData/heroData/HeroData'
-import MinionData from './server/cardData/characterData/minionData/MinionData'
-import EffectData from './server/cardData/effectData/EffectData'
+import { processEvent } from './server/wsEvents.ts'
+import HeroData from './server/cardData/characterData/heroData/HeroData.ts'
+import MinionData from './server/cardData/characterData/minionData/MinionData.ts'
+import EffectData from './server/cardData/effectData/EffectData.ts'
 
 // const clients = new Map();
 

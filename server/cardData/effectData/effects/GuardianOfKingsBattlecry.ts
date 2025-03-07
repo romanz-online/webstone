@@ -1,11 +1,11 @@
 import GameState from '@gameState'
 import Minion from '@minion'
 import Effect from '@effect'
-import EffectID from '@effectID'
+import EffectID from '@effectID' with { type: 'json' }
 
 class GuardianOfKingsBattlecry extends Effect {
   constructor(player: number, source: Minion) {
-    super(EffectID.GUARDIAN_OF_KINGS_BATTLECRY, player)
+    super(EffectID.GUARDIAN_OF_KINGS_BATTLECRY, -1, player)
   }
 
   apply(source: Minion, target: Minion | null): void {

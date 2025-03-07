@@ -1,5 +1,5 @@
 import Minion from '@minion'
-import GuardianOfKingsBattlecry from '@effects/GuardianOfKingsBattlecry'
+import GuardianOfKingsBattlecry from '@effects/GuardianOfKingsBattlecry.ts'
 
 class GuardianOfKings extends Minion {
   constructor(baseID: number, uniqueID: number, player: number) {
