@@ -9,9 +9,9 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const staticDir = path.join(__dirname, '/public')
 import { processEvent } from './server/wsEvents'
-import HeroData from './server/characterData/heroData/HeroData'
-import MinionData from './server/characterData/minionData/MinionData'
-import EffectData from './server/effectData/EffectData'
+import HeroData from './server/cardData/characterData/heroData/HeroData'
+import MinionData from './server/cardData/characterData/minionData/MinionData'
+import EffectData from './server/cardData/effectData/EffectData'
 
 // const clients = new Map();
 

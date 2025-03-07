@@ -1,7 +1,7 @@
-import { engine } from './Engine'
-import GameState from './GameState'
-import Event from './event'
-import { setSocket } from './ws'
+import { engine } from '@engine'
+import GameState from '@gameState'
+import Event from '@event'
+import { setSocket } from '@ws'
 
 export const gameState = new GameState()
 

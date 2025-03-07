@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./server",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "paths": {
+      "@engine": ["Engine"],
+      "@ws": ["ws"],
+      "@event": ["Event"],
+      "@eventStack": ["EventStack"],
+      "@gameState": ["GameState"],
+      "@constants": ["constants"],
+
+      "@minionData": ["cardData/characterData/minionData/MinionData"],
+      "@heroData": ["cardData/characterData/heroData/HeroData"],
+      "@effectData": ["cardData/effectData/EffectData"],
+
+      "@minionID": ["cardData/characterData/minionData/MinionID.json"],
+      "@heroID": ["cardData/characterData/heroData/HeroID.json"],
+      "@effectID": ["cardData/effectData/EffectID.json"],
+
+      "@generateMinion": ["cardData/characterData/minionData/generateMinion"],
+      "@generateHero": ["cardData/characterData/heroData/generateHero"],
+      "@generateEffect": ["cardData/effectData/generateEffect"],
+
+      "@heroes/*": ["cardData/characterData/heroData/heroes/*"],
+      "@minions/*": ["cardData/characterData/minionData/minions/*"],
+      "@effects/*": ["cardData/effectData/effects/*"],
+
+      "@card": ["cardData/Card"],
+      "@effect": ["cardData/effectData/Effect"],
+      "@character": ["cardData/characterData/Character"],
+      "@minion": ["cardData/characterData/minionData/Minion"],
+      "@hero": ["cardData/characterData/heroData/Hero"]
+    }
+  }
+}

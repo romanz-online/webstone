@@ -1,16 +1,17 @@
-import { engine } from './Engine'
-import { notifyClient } from './ws'
-import { generateMinion } from './characterData/minionData/generateMinion'
-import MinionID from './characterData/minionData/MinionID.json'
-import Minion from './characterData/minionData/Minion'
-import Effect from './effectData/Effect'
-import EventStack from './EventStack'
-import Event from './Event'
-import Hero from './characterData/heroData/Hero'
-import { CardType, EventType, Keyword, PlayerID } from './constants'
-import './characterData/heroData/heroes/JainaProudmoore'
-import HeroID from './characterData/heroData/HeroID.json'
-import { generateHero } from './characterData/heroData/generateHero'
+import { engine } from '@engine'
+import { notifyClient } from '@ws'
+import Event from '@event'
+import EventStack from '@eventStack'
+import { CardType, EventType, Keyword, PlayerID } from '@constants'
+import Character from '@character'
+import Hero from '@hero'
+import Minion from '@minion'
+import Effect from '@effect'
+import HeroID from '@heroID'
+import MinionID from '@minionID'
+import { generateHero } from '@generateHero'
+import { generateMinion } from '@generateMinion'
+import { generateEffect } from '@generateEffect'
 
 const playerDeckStorage: number[] = [
     MinionID.TIRION_FORDRING,
@@ -180,15 +181,23 @@ class GameState {
   }
 
   startGame(): void {
-    this.playerDeck = playerDeckStorage.map((minion) =>
-      generateMinion(minion, this.getUniqueID(), PlayerID.Player1)
-    )
+    this.playerDeck = playerDeckStorage.map((id) => {
+      if (id >= 2000) {
+        return generateEffect(id, PlayerID.Player1)
+      } else if (id >= 1000) {
+        return generateMinion(id, this.getUniqueID(), PlayerID.Player1)
+      }
+    })
 
-    this.opponentDeck = opponentDeckStorage.map((minion) =>
-      generateMinion(minion, this.getUniqueID(), PlayerID.Player2)
-    )
+    this.opponentDeck = opponentDeckStorage.map((id) => {
+      if (id >= 2000) {
+        return generateEffect(id, PlayerID.Player2)
+      } else if (id >= 1000) {
+        return generateMinion(id, this.getUniqueID(), PlayerID.Player2)
+      }
+    })
 
-    const shuffleDeck = (deck) => {
+    const shuffleDeck = (deck: any) => {
       for (let i = deck.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1))
         ;[deck[i], deck[j]] = [deck[j], deck[i]]
@@ -199,7 +208,7 @@ class GameState {
     shuffleDeck(this.opponentDeck)
   }
 
-  drawCard(player: number): void {
+  drawCard(player: PlayerID): void {
     if (player === PlayerID.Player1) {
       const card = this.playerDeck.pop()
       if (card) {
@@ -227,10 +236,6 @@ class GameState {
     this.eventStack.clear()
     notifyClient(EventType.Cancel, true, {})
   }
-
-  // NEED TO ADD PLAYER HERO OBJECTS
-  // WHICH WILL INHERIT FROM THE GENERIC "Character" OBJECT
-  // WHICH WILL ONLY HAVE A HEALTH AND NAME ATTRIBUTE TO START WITH
 
   tryPlayCard(type: CardType, data: any): void {
     switch (type) {
@@ -294,7 +299,7 @@ class GameState {
   }
 
   target(targetID: number): void {
-    const target: Minion | null = this.getBoardCard(targetID)
+    const target: Minion | null = this.getBoardCharacter(targetID)
 
     if (!target) {
       notifyClient(EventType.Target, false, this.toJSON())
@@ -340,8 +345,8 @@ class GameState {
   }
 
   tryAttack(attackerID: number, targetID: number): void {
-    const attacker: Minion | null = this.getBoardCard(attackerID),
-      target: Minion | null = this.getBoardCard(targetID)
+    const attacker: Minion | null = this.getBoardCharacter(attackerID),
+      target: Minion | null = this.getBoardCharacter(targetID)
 
     if (!attacker) {
       notifyClient(EventType.TryAttack, false, this.toJSON())
@@ -427,7 +432,13 @@ class GameState {
     }, 2 * 1000)
   }
 
-  getBoardCard(uniqueID: number): Minion | null {
+  // GOING TO NEED TO MODIFY THESE METHODS AT THE BOTTOM TO ALSO ACCOUNT FOR HEROES
+  // SOMETHING LIKE "getBoardCharacter"
+
+  getBoardCharacter(uniqueID: number): Character | null {
+    if (this.player1.uniqueID === uniqueID) return this.player1
+    else if (this.player2.uniqueID === uniqueID) return this.player2
+
     for (const x of this.playerBoard) {
       if (x.uniqueID === uniqueID) return x
     }

@@ -1,9 +1,9 @@
-import { EventType, Keyword } from './constants'
-import { notifyClient } from './ws'
-import Minion from './characterData/minionData/Minion'
-import Effect from './effectData/Effect'
-import { engine } from './Engine'
-import Character from './characterData/Character'
+import { EventType, Keyword } from '@constants'
+import { notifyClient } from '@ws'
+import { engine } from '@engine'
+import Minion from '@minion'
+import Effect from '@effect'
+import Character from '@character'
 
 class Event {
   type: EventType

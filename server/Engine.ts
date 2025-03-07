@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
-import Event from './event'
-import { EventType } from './constants'
+import Event from '@event'
+import { EventType } from '@constants'
 
 const DEBUG_ENGINE = false
 

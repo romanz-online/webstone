@@ -1,7 +1,7 @@
-import Minion from './characterData/minionData/Minion'
-import { engine } from './Engine'
-import Event from './Event'
-import { EventType } from './constants'
+import { engine } from '@engine'
+import { EventType } from '@constants'
+import Event from '@event'
+import Minion from '@minion'
 
 class EventStack {
   private stack: Event[] = []
