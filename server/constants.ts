@@ -61,6 +61,7 @@ export enum EventType {
   ChangeStats,
   EndTurn,
   HeroPower,
+  RestoreHealth,
 
   Cancel,
   Target,

@@ -1,26 +1,28 @@
 import { engine } from './Engine'
 import { notifyClient } from './ws'
-import { generateMinion } from './minionData/generateMinion'
-import MINION_ID from './minionData/minionID.json'
-import Minion from './minionData/minion'
+import { generateMinion } from './characterData/minionData/generateMinion'
+import MinionID from './characterData/minionData/MinionID.json'
+import Minion from './characterData/minionData/Minion'
 import Effect from './effectData/Effect'
 import EventStack from './EventStack'
-import Event from './event'
-import { CardType, EventType, PlayerID } from './constants'
+import Event from './Event'
+import Hero from './characterData/heroData/Hero'
+import { CardType, EventType, Keyword, PlayerID } from './constants'
+import './characterData/heroData/heroes/JainaProudmoore'
+import HeroID from './characterData/heroData/HeroID.json'
+import { generateHero } from './characterData/heroData/generateHero'
 
 const playerDeckStorage: number[] = [
-    MINION_ID.TIRION_FORDRING,
-    MINION_ID.MANA_WYRM,
-    MINION_ID.LIGHTWELL,
-    MINION_ID.GUARDIAN_OF_KINGS,
-    MINION_ID.FIRE_ELEMENTAL,
+    MinionID.TIRION_FORDRING,
+    MinionID.MANA_WYRM,
+    MinionID.LIGHTWELL,
+    MinionID.GUARDIAN_OF_KINGS,
+    MinionID.FIRE_ELEMENTAL,
   ],
   opponentDeckStorage: number[] = []
 
 class GameState {
   uniqueMinionNumber: number
-  playerHealth: number
-  opponentHealth: number
   graveyard: any[]
   playerDeck: any[]
   opponentDeck: any[]
@@ -30,12 +32,23 @@ class GameState {
   opponentBoard: any[]
   whoseTurn: number
   eventStack: EventStack
+  player1: Hero
+  player2: Hero
 
   constructor() {
     this.uniqueMinionNumber = 0
 
-    this.playerHealth = 20
-    this.opponentHealth = 10
+    this.player1 = generateHero(
+      HeroID.JAINA_PROUDMOORE,
+      this.getUniqueID(),
+      PlayerID.Player1
+    )
+
+    this.player2 = generateHero(
+      HeroID.HOGGER,
+      this.getUniqueID(),
+      PlayerID.Player2
+    )
 
     this.graveyard = []
     this.playerDeck = []
@@ -44,24 +57,24 @@ class GameState {
     this.opponentHand = []
     this.playerBoard = []
     this.opponentBoard = [
-      generateMinion(MINION_ID.CENARIUS, this.getUniqueID(), PlayerID.Player2),
+      generateMinion(MinionID.CENARIUS, this.getUniqueID(), PlayerID.Player2),
       generateMinion(
-        MINION_ID.KORKRON_ELITE,
+        MinionID.KORKRON_ELITE,
         this.getUniqueID(),
         PlayerID.Player2
       ),
       generateMinion(
-        MINION_ID.SUMMONING_PORTAL,
+        MinionID.SUMMONING_PORTAL,
         this.getUniqueID(),
         PlayerID.Player2
       ),
       generateMinion(
-        MINION_ID.MANA_TIDE_TOTEM,
+        MinionID.MANA_TIDE_TOTEM,
         this.getUniqueID(),
         PlayerID.Player2
       ),
       generateMinion(
-        MINION_ID.ARATHI_WEAPONSMITH,
+        MinionID.ARATHI_WEAPONSMITH,
         this.getUniqueID(),
         PlayerID.Player2
       ),
@@ -152,8 +165,8 @@ class GameState {
     return {
       playerDeck: this.playerDeck,
       opponentDeck: this.opponentDeck,
-      playerHealth: this.playerHealth,
-      opponentHealth: this.opponentHealth,
+      playerHealth: this.player1.health,
+      opponentHealth: this.player2.health,
       playerHand: this.playerHand,
       opponentHand: this.opponentHand,
       playerBoard: this.playerBoard,
@@ -342,7 +355,10 @@ class GameState {
       notifyClient(EventType.TryAttack, false, this.toJSON())
       console.error('Minion cannot attack')
       return
-    } else if (!target.taunt && this.opponentBoard.some((m) => m.taunt)) {
+    } else if (
+      !target.hasKeyword(Keyword.Taunt) &&
+      this.opponentBoard.some((m) => m.hasKeyword(Keyword.Taunt))
+    ) {
       notifyClient(EventType.TryAttack, false, this.toJSON())
       console.error('Taunt is in the way')
       return
@@ -357,13 +373,13 @@ class GameState {
   }
 
   checkHealth(): void {
-    if (this.playerHealth < 1 && this.opponentHealth > 0) {
+    if (this.player1.health < 1 && this.player2.health > 0) {
       // kill player hero
       return
-    } else if (this.opponentHealth < 1 && this.playerHealth > 0) {
+    } else if (this.player2.health < 1 && this.player1.health > 0) {
       // kill opponent
       return
-    } else if (this.playerHealth < 1 && this.opponentHealth < 1) {
+    } else if (this.player1.health < 1 && this.player2.health < 1) {
       // tie
       return
     }

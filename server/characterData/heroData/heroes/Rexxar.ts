@@ -1,6 +1,6 @@
-import Character from '../../Character'
+import Hero from '../Hero'
 
-class Rexxar extends Character {
+class Rexxar extends Hero {
   effects: {
     heroPower: null
   }

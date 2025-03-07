@@ -1,4 +1,4 @@
-import Minion from '../minion'
+import Minion from '../Minion'
 import GuardianOfKingsBattlecry from '../../../effectData/effects/GuardianOfKingsBattlecry'
 
 class GuardianOfKings extends Minion {

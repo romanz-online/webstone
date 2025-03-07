@@ -2,7 +2,7 @@ import { engine } from '../../Engine'
 import { EventType } from '../../constants'
 import Effect from '../../effectData/Effect'
 import Character from '../Character'
-import MinionData from './BaseMinionData'
+import MinionData from './MinionData'
 
 class Minion extends Character {
   _isMinion: boolean

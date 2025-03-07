@@ -1,6 +1,6 @@
 import Hero from '../Hero'
 
-class Thrall extends Hero {
+class Hogger extends Hero {
   effects: {
     heroPower: null
   }
@@ -14,4 +14,4 @@ class Thrall extends Hero {
   }
 }
 
-export default Thrall
+export default Hogger

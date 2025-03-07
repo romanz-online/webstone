@@ -82,6 +82,16 @@ const HeroData = [
     health: 30,
     rarity: Rarity.Free,
   },
+  // OTHER
+  {
+    class: HeroClass.Neutral,
+    name: 'Hogger',
+    fileName: 'hogger',
+    mana: 0,
+    attack: 0,
+    health: 10,
+    rarity: Rarity.Free,
+  },
 ]
 
 export default HeroData

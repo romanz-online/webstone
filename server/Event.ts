@@ -1,8 +1,9 @@
-import { EventType, CardType, Keyword } from './constants'
+import { EventType, Keyword } from './constants'
 import { notifyClient } from './ws'
-import Minion from './characterData/minionData/minion'
+import Minion from './characterData/minionData/Minion'
 import Effect from './effectData/Effect'
 import { engine } from './Engine'
+import Character from './characterData/Character'
 
 class Event {
   type: EventType
@@ -90,8 +91,8 @@ class Event {
         return true
       }
       case EventType.Attack: {
-        const attacker: Minion = this.data.attacker,
-          target: Minion = this.data.target
+        const attacker: Character = this.data.attacker,
+          target: Character = this.data.target
 
         if (!attacker && !target) {
           console.log(`Could not execute event ${EventType[this.type]}`)
@@ -103,33 +104,40 @@ class Event {
 
         if (
           (attacker.attacksThisTurn > 0 &&
-            !(Keyword.Windfury in attacker.keywords)) ||
+            !attacker.hasKeyword(Keyword.Windfury)) ||
           (attacker.attacksThisTurn > 1 &&
-            Keyword.Windfury in attacker.keywords)
+            attacker.hasKeyword(Keyword.Windfury))
         ) {
           attacker.canAttack = false
         }
 
         notifyClient(this.type, true, {})
 
-        engine.queueEvent([
-          new Event(EventType.Damage, {
-            source: attacker,
-            target: target,
-            amount: attacker.attack,
-          }),
-          new Event(EventType.Damage, {
-            source: target,
-            target: attacker,
-            amount: target.attack,
-          }),
-        ])
+        if (attacker.attack > 0) {
+          engine.queueEvent([
+            new Event(EventType.Damage, {
+              source: attacker,
+              target: target,
+              amount: attacker.attack,
+            }),
+          ])
+        }
+
+        if (target._isMinion && target.attack > 0) {
+          engine.queueEvent([
+            new Event(EventType.Damage, {
+              source: target,
+              target: attacker,
+              amount: target.attack,
+            }),
+          ])
+        }
 
         return true
       }
       case EventType.Damage: {
-        const source: Minion = this.data.source,
-          target: Minion = this.data.target,
+        const source: Character = this.data.source,
+          target: Character = this.data.target,
           amount: number = this.data.amount || 0
 
         if (!source || !target) {
@@ -150,6 +158,31 @@ class Event {
 
         return true
       }
+      case EventType.RestoreHealth: {
+        const source: Character = this.data.source,
+          target: Character = this.data.target,
+          amount: number = this.data.amount || 0
+
+        if (!source || !target) {
+          console.log(`Could not execute event ${EventType[this.type]}`)
+          return false
+        }
+        // console.log(`Executing ${this}`)
+
+        let amountRestored = amount
+        if (target.health + amount > target.maxHealth) {
+          amountRestored = target.maxHealth - target.health
+          target.health = target.maxHealth
+        } else {
+          target.health += amount
+        }
+
+        console.log(`${source} restores ${amountRestored} health to ${target}`)
+
+        notifyClient(this.type, true, {})
+
+        return true
+      }
       case EventType.Kill: {
         notifyClient(this.type, true, {
           minion: this.data.minion,
@@ -158,8 +191,8 @@ class Event {
       }
       case EventType.Spell: {
         const effect: Effect | null = this.data.effect,
-          source: Minion | null = this.data.source,
-          target: Minion | null = this.data.target
+          source: Character | null = this.data.source,
+          target: Character | null = this.data.target
 
         if (!effect || !source) {
           console.log(`Could not execute event ${EventType[this.type]}`)
@@ -175,7 +208,7 @@ class Event {
       case EventType.Battlecry: {
         const effect: Effect | null = this.data.effect,
           source: Minion | null = this.data.source,
-          target: Minion | null = this.data.target
+          target: Character | null = this.data.target
 
         if (!effect || !source) {
           console.log(`Could not execute event ${EventType[this.type]}`)

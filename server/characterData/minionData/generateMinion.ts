@@ -1,5 +1,5 @@
 import MinionID from './MinionID.json'
-import Minion from './minion'
+import Minion from './Minion'
 import GuardianOfKings from './minions/GuardianOfKings'
 import ManaWyrm from './minions/ManaWyrm'
 import FireElemental from './minions/FireElemental'

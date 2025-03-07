@@ -1,4 +1,4 @@
-import Minion from '../minion'
+import Minion from '../Minion'
 import FireElementalBattlecry from '../../../effectData/effects/FireElementalBattlecry'
 
 class FireElemental extends Minion {

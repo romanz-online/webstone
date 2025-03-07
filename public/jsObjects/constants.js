@@ -1,36 +1,36 @@
 export const HeroClass = {
-DRUID:0,
-HUNTER:1,
-MAGE:2,
-PALADIN:3,
-PRIEST:4,
-ROGUE:5,
-SHAMAN:6,
-WARLOCK:7,
-WARRIOR:8,
-NEUTRAL:9,
+Druid:0,
+Hunter:1,
+Mage:2,
+Paladin:3,
+Priest:4,
+Rogue:5,
+Shaman:6,
+Warlock:7,
+Warrior:8,
+Neutral:9,
 }
 Object.freeze(HeroClass)
 
 export const Rarity = {
-COMMON:0,
-FREE:1,
-RARE:2,
-EPIC:3,
-LEGENDARY:4,
+Common:0,
+Free:1,
+Rare:2,
+Epic:3,
+Legendary:4,
 }
 Object.freeze(Rarity)
 
 export const Tribe = {
-NONE:0,
-BEAST:1,
-TOTEM:2,
-DEMON:3,
-MURLOC:4,
-PIRATE:5,
-MECH:6,
-UNDEAD:7,
-DRAGON:8,
+None:0,
+Beast:1,
+Totem:2,
+Demon:3,
+Murloc:4,
+Pirate:5,
+Mech:6,
+Undead:7,
+Dragon:8,
 }
 Object.freeze(Tribe)
 
@@ -47,35 +47,54 @@ Generic:7,
 Object.freeze(EffectType)
 
 export const EventType = {
-PlayMinion:0,
+PlayCard:0,
 SummonMinion:1,
-KillMinion:2,
-Attack:3,
-Spell:4,
-Battlecry:5,
-ChooseOne:6,
-Combo:7,
-Deathrattle:8,
-Damage:9,
-DrawCard:10,
-DiscardCard:11,
-Overdraw:12,
-Fatigue:13,
-ChangeStats:14,
-EndTurn:15,
-HeroPower:16,
-Cancel:17,
-Target:18,
-TryAttack:19,
-TrySpell:20,
-TryPlayMinion:21,
-Load:22,
+Kill:2,
+Death:3,
+Attack:4,
+Spell:5,
+Battlecry:6,
+ChooseOne:7,
+Combo:8,
+Deathrattle:9,
+Damage:10,
+DrawCard:11,
+DiscardCard:12,
+Overdraw:13,
+Fatigue:14,
+ChangeStats:15,
+EndTurn:16,
+HeroPower:17,
+Cancel:18,
+Target:19,
+TryAttack:20,
+TrySpell:21,
+TryPlayCard:22,
+Load:23,
 }
 Object.freeze(EventType)
+
+export const CardType = {
+Minion:0,
+Spell:1,
+Weapon:2,
+}
+Object.freeze(CardType)
 
 export const PlayerID = {
 Player1:0,
 Player2:1,
 }
 Object.freeze(PlayerID)
+
+export const Keyword = {
+Taunt:0,
+Stealth:1,
+Poison:2,
+Windfury:3,
+Charge:4,
+DivineShield:5,
+Elusive:6,
+}
+Object.freeze(Keyword)
 

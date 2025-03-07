@@ -1,7 +1,7 @@
-import Minion from '../minion'
+import Minion from '../Minion'
 import { notifyClient } from '../../../ws'
 import { engine } from '../../../Engine'
-import Event from '../../../event'
+import Event from '../../../Event'
 import { EventType } from '../../../constants'
 
 class ManaWyrm extends Minion {

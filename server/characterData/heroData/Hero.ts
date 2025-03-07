@@ -1,5 +1,5 @@
 import Character from '../Character'
-import HeroData from './BaseHeroData'
+import HeroData from './HeroData'
 
 class Hero extends Character {
   _isHero: boolean

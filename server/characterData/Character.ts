@@ -5,6 +5,8 @@ import Effect from '../effectData/Effect'
 import { Keyword } from '../constants'
 
 class Character {
+  _isHero: boolean
+  _isMinion: boolean
   gameState: GameState
   fileName: string
   uniqueID: number
@@ -29,6 +31,9 @@ class Character {
   effects: { [key: string]: any }
 
   constructor(uniqueID: number, player: number, baseData: any) {
+    this._isHero = false
+    this._isMinion = false
+
     this.uniqueID = uniqueID
     this.playerOwner = player
 
@@ -90,6 +95,10 @@ class Character {
       attack: this.attack,
       health: this.health,
     }
+  }
+
+  hasKeyword(keyword: Keyword): boolean {
+    return keyword in this.keywords
   }
 
   getBattlecry(): Effect | null {

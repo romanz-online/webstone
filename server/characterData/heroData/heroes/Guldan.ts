@@ -1,6 +1,6 @@
-import Character from '../../characterData/Character'
+import Hero from '../Hero'
 
-class Guldan extends Character {
+class Guldan extends Hero {
   effects: {
     heroPower: null
   }

@@ -1,4 +1,4 @@
-import Minion from './minionData/minion'
+import Minion from './characterData/minionData/Minion'
 import { engine } from './Engine'
 import Event from './Event'
 import { EventType } from './constants'
