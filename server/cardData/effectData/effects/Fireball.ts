@@ -1,34 +1,61 @@
-import Minion from '@minion'
+import { getGameState } from 'wsEvents.ts'
 import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
 import Event from '@event'
-import { EventType } from '@constants'
+import { EventType, PlayerID } from '@constants'
+import Character from '@character'
 
 class Fireball extends Effect {
-  constructor(uniqueID: number, player: number) {
-    super(EffectID.FIREBALL, uniqueID, player)
+  constructor(uniqueID: number, playerOwner: PlayerID) {
+    super(EffectID.FIREBALL, uniqueID, playerOwner)
   }
 
-  apply(source: Minion, target: Minion | null): void {
-    if (!this.gameState || !source) {
+  apply(source: Character, target: Character | null): void {
+    const gameState = getGameState()
+    if (!gameState || !source) {
       console.error('Missing values to properly execute effect')
     }
 
-    if (target) {
-      engine.queueEvent([
-        new Event(EventType.Damage, {
-          source: source,
-          target: target,
-          amount: this.getAmount(),
-        }),
-      ])
-    } else if (
+    if (
       this.requiresTarget ||
-      (this.gameState.opponentBoard.length > 0 && this.canTarget)
+      (gameState.opponentBoard.length > 0 && this.canTarget)
     ) {
       console.error('Target required for targeted damage effect')
+      return
     }
+
+    const targetID = target.uniqueID,
+      targetOwner = target.playerOwner,
+      targetBoard =
+        targetOwner === PlayerID.Player1
+          ? gameState.playerBoard
+          : gameState.opponentBoard
+
+    let otherTargets: Character[]
+    for (let i = 0; i < targetBoard.length; i++) {
+      if (targetBoard[i].uniqueID !== targetID) {
+        otherTargets.push(targetBoard[i])
+      }
+    }
+    if (targetID !== PlayerID.Player1 && targetID !== PlayerID.Player2) {
+      otherTargets.push(
+        targetOwner === PlayerID.Player1 ? gameState.player2 : gameState.player1
+      )
+    }
+
+    engine.queueEvent([
+      new Event(EventType.Damage, {
+        source: source,
+        target: target,
+        amount: this.amount[0],
+      }),
+      new Event(EventType.Damage, {
+        source: source,
+        target: otherTargets, // IMPLEMENT TARGETTING MULTIPLE TARGETS AT ONCE
+        amount: this.amount[1],
+      }),
+    ])
   }
 }
 

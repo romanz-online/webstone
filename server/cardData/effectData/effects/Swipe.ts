@@ -1,14 +1,16 @@
 import { getGameState } from 'wsEvents.ts'
-import Character from '@character'
+import Minion from '@minion'
 import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
 import Event from '@event'
-import { EventType } from '@constants'
+import { EventType, PlayerID } from '@constants'
+import Character from '@character'
+import GameState from '@gameState'
 
-class FireElementalBattlecry extends Effect {
-  constructor(playerOwner: number) {
-    super(EffectID.FIRE_ELEMENTAL_BATTLECRY, -1, playerOwner)
+class Swipe extends Effect {
+  constructor(uniqueID: number, playerOwner: PlayerID) {
+    super(EffectID.FIREBALL, uniqueID, playerOwner)
   }
 
   apply(source: Character, target: Character | null): void {
@@ -32,6 +34,14 @@ class FireElementalBattlecry extends Effect {
       console.error('Target required for targeted damage effect')
     }
   }
+
+  validateTarget(gameState: GameState, target: Character): boolean {
+    if (!gameState) {
+      console.error('Missing GameState')
+    }
+
+    return target.playerOwner !== this.playerOwner
+  }
 }
 
-export default FireElementalBattlecry
+export default Swipe

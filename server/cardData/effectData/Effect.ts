@@ -1,13 +1,12 @@
 import EffectData from '@effectData'
-import GameState from '@gameState'
-import Minion from '@minion'
-import { HeroClass, Rarity, EffectType } from '@constants'
+import { HeroClass, Rarity, EffectType, PlayerID } from '@constants'
 import Card from '@card'
+import Character from '@character'
+import GameState from '@gameState'
 
 class Effect extends Card {
   baseID: number
-  player: number
-  gameState: GameState
+  playerOwner: PlayerID
   fileName: string
   type: EffectType
   class: HeroClass
@@ -26,7 +25,7 @@ class Effect extends Card {
     super(uniqueID)
     const baseData = EffectData[baseID - 2000]
     this.baseID = baseID
-    this.player = player
+    this.playerOwner = player
 
     this.fileName = baseData.fileName || ''
     this.type = baseData.type || EffectType.Generic
@@ -46,9 +45,7 @@ class Effect extends Card {
   toJSON(): any {
     return {
       baseID: this.baseID,
-      player: this.player,
-      // sourceID: this.source.uniqueID,
-      // targetID: this.target?.uniqueID || '',
+      player: this.playerOwner,
       fileName: this.fileName,
       type: this.type,
       class: this.class,
@@ -78,8 +75,12 @@ class Effect extends Card {
     return desc
   }
 
-  apply(source: Minion, target: Minion | null): void {
+  apply(source: Character, target: Character | null): void {
     throw new Error('apply() method must be implemented by subclasses')
+  }
+
+  validateTarget(gameState: GameState, target: Character): boolean {
+    return true
   }
 }
 

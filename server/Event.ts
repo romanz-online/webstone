@@ -139,46 +139,52 @@ class Event {
       }
       case EventType.Damage: {
         const source: Character = this.data.source,
-          target: Character = this.data.target,
+          targets: Character[] = this.data.targets,
           amount: number = this.data.amount || 0
 
-        if (!source || !target) {
+        if (!source || targets.length === 0) {
           console.log(`Could not execute event ${EventType[this.type]}`)
           return false
         }
         // console.log(`Executing ${this}`)
 
-        target.health -= amount
+        for (const target of targets) {
+          target.health -= amount
 
-        // if (target.health < 1) {
-        //   // STORE A "killedBy" VALUE HERE IF NEEDED
-        // }
+          // if (target.health < 1) {
+          //   // STORE A "killedBy" VALUE HERE IF NEEDED
+          // }
+        }
 
-        console.log(`${source} deals ${amount} damage to ${target}`)
+        console.log(`${source} deals ${amount} damage to ${targets}`)
 
         notifyClient(this.type, true, {})
         return true
       }
       case EventType.RestoreHealth: {
         const source: Character = this.data.source,
-          target: Character = this.data.target,
+          targets: Character[] = this.data.target,
           amount: number = this.data.amount || 0
 
-        if (!source || !target) {
+        if (!source || targets.length === 0) {
           console.log(`Could not execute event ${EventType[this.type]}`)
           return false
         }
         // console.log(`Executing ${this}`)
 
-        let amountRestored = amount
-        if (target.health + amount > target.maxHealth) {
-          amountRestored = target.maxHealth - target.health
-          target.health = target.maxHealth
-        } else {
-          target.health += amount
+        for (const target of targets) {
+          let amountRestored = amount
+          if (target.health + amount > target.maxHealth) {
+            amountRestored = target.maxHealth - target.health
+            target.health = target.maxHealth
+          } else {
+            target.health += amount
+          }
         }
 
-        console.log(`${source} restores ${amountRestored} health to ${target}`)
+        console.log(
+          `${source} attempts to restore ${amount} health to ${targets}`
+        )
 
         notifyClient(this.type, true, {})
         return true
