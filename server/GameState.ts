@@ -12,6 +12,7 @@ import MinionID from '@minionID'
 import { generateHero } from '@generateHero'
 import { generateMinion } from '@generateMinion'
 import { generateEffect } from '@generateEffect'
+import { handleError } from '@errorHandler'
 
 const playerDeckStorage: number[] = [
     MinionID.TIRION_FORDRING,
@@ -183,7 +184,7 @@ class GameState {
   startGame(): void {
     this.playerDeck = playerDeckStorage.map((id) => {
       if (id >= 2000) {
-        return generateEffect(id, PlayerID.Player1)
+        return generateEffect(id, this.getUniqueID(), PlayerID.Player1)
       } else if (id >= 1000) {
         return generateMinion(id, this.getUniqueID(), PlayerID.Player1)
       }
@@ -191,7 +192,7 @@ class GameState {
 
     this.opponentDeck = opponentDeckStorage.map((id) => {
       if (id >= 2000) {
-        return generateEffect(id, PlayerID.Player2)
+        return generateEffect(id, this.getUniqueID(), PlayerID.Player2)
       } else if (id >= 1000) {
         return generateMinion(id, this.getUniqueID(), PlayerID.Player2)
       }
@@ -289,6 +290,8 @@ class GameState {
         }
         break
       case CardType.Weapon:
+        {
+        }
         break
       default: {
         notifyClient(EventType.PlayCard, false, this.toJSON())
@@ -348,24 +351,16 @@ class GameState {
     const attacker: Minion | null = this.getBoardCharacter(attackerID),
       target: Minion | null = this.getBoardCharacter(targetID)
 
-    if (!attacker) {
-      notifyClient(EventType.TryAttack, false, this.toJSON())
-      console.error('Could not find attacker with ID', attackerID, 'on board')
-      return
-    } else if (!target) {
-      notifyClient(EventType.TryAttack, false, this.toJSON())
-      console.error('Could not find target with ID', targetID, 'on board')
-      return
-    } else if (!attacker.canAttack) {
-      notifyClient(EventType.TryAttack, false, this.toJSON())
-      console.error('Minion cannot attack')
-      return
-    } else if (
-      !target.hasKeyword(Keyword.Taunt) &&
-      this.opponentBoard.some((m) => m.hasKeyword(Keyword.Taunt))
+    // IMPLEMENT THIS FOR THE OTHER FUNCTIONS
+    if (
+      handleError({
+        attackerID: attackerID,
+        targetID: targetID,
+        attacker: attacker,
+        target: target,
+        opponentBoard: this.opponentBoard,
+      })
     ) {
-      notifyClient(EventType.TryAttack, false, this.toJSON())
-      console.error('Taunt is in the way')
       return
     }
 
@@ -411,6 +406,8 @@ class GameState {
   }
 
   onEndTurn(): void {
+    // engine.queueEvent([new Event(EventType.EndTurn, {})])
+
     for (const minion of this.playerBoard) {
       minion.canAttack = !minion.canAttack
     }

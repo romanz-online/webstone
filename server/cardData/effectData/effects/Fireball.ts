@@ -6,8 +6,8 @@ import Event from '@event'
 import { EventType } from '@constants'
 
 class Fireball extends Effect {
-  constructor(player: number) {
-    super(EffectID.FIREBALL, player)
+  constructor(uniqueID: number, player: number) {
+    super(EffectID.FIREBALL, uniqueID, player)
   }
 
   apply(source: Minion, target: Minion | null): void {

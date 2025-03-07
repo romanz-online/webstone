@@ -36,7 +36,7 @@ class Character extends Card {
   effects: { [key: string]: any }
 
   constructor(uniqueID: number, player: number, baseData: any) {
-    super()
+    super(uniqueID)
 
     this.uniqueID = uniqueID
     this.playerOwner = player

@@ -22,8 +22,8 @@ class Effect extends Card {
   requiresTarget: boolean
   obtainable: boolean
 
-  constructor(baseID: number, player: number) {
-    super()
+  constructor(baseID: number, uniqueID: number, player: number) {
+    super(uniqueID)
     this._isEffect = true
     const baseData = EffectData[baseID - 2000]
     this.baseID = baseID
