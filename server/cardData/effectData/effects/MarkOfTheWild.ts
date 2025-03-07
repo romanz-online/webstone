@@ -33,6 +33,7 @@ class MarkOfTheWild extends Effect {
       this.requiresTarget ||
       (gameState.opponentBoard.length > 0 && this.canTarget)
     ) {
+      // MOVE THIS IF STATEMENT INTO validateTarget?
       console.error('Target required for targeted damage effect')
     }
   }
