@@ -2,13 +2,14 @@ import { getGameState } from 'wsEvents.ts'
 import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
-import Event from '@event'
+import Event from 'eventData/Event.ts'
 import { EventType, PlayerID } from '@constants'
 import Character from '@character'
+import DamageEvent from '@events/DamageEvent.ts'
 
 class Fireball extends Effect {
-  constructor(uniqueID: number, playerOwner: PlayerID) {
-    super(EffectID.FIREBALL, uniqueID, playerOwner)
+  constructor(id: number, playerOwner: PlayerID) {
+    super(EffectID.FIREBALL, id, playerOwner)
   }
 
   apply(source: Character, target: Character | null): void {
@@ -18,13 +19,7 @@ class Fireball extends Effect {
     }
 
     if (target) {
-      engine.queueEvent([
-        new Event(EventType.Damage, {
-          source: source,
-          target: target,
-          amount: this.getAmount(),
-        }),
-      ])
+      engine.queueEvent(new DamageEvent(source, [target], this.getAmount()))
     } else if (
       this.requiresTarget ||
       (gameState.opponentBoard.length > 0 && this.canTarget)

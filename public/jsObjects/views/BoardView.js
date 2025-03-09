@@ -84,8 +84,8 @@ export class BoardView {
     $('.card--placeholder').remove()
   }
 
-  changeStats(uniqueID, stats) {
-    const index = this.board.findIndex((c) => c.uniqueID == uniqueID)
+  changeStats(id, stats) {
+    const index = this.board.findIndex((c) => c.id == id)
     if (index == -1) {
       return
     }

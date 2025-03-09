@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events'
-import Event from '@event'
+import Event from 'eventData/Event.ts'
 import { EventType } from '@constants'
 
 const DEBUG_ENGINE = false
@@ -35,10 +35,10 @@ class Engine extends EventEmitter {
     this.listenerQueue.push({ elementID, eventType, listener })
   }
 
-  removeGameElementListener(elementID: any, event: Event): void {
+  removeGameElementListener(elementID: any, eventType: EventType): void {
     // MAY NEED TO REMOVE USE OF filter() IF IT MESSES WITH REFERENCES
     this.listenerQueue = this.listenerQueue.filter(
-      (x) => !(x.elementID === elementID && x.eventType === event.type)
+      (x) => !(x.elementID === elementID && x.eventType === eventType)
     )
   }
 
@@ -53,16 +53,14 @@ class Engine extends EventEmitter {
     this.processNextPlayerAction()
   }
 
-  queueEvent(eventList: Event[]): void {
-    eventList.forEach((e) => {
-      const queue = this.processing ? this.priorityQueue : this.eventQueue
-      if (DEBUG_ENGINE) {
-        console.log(
-          `Queuing event ${e} into ${this.processing ? 'priority queue' : 'normal queue'}`
-        )
-      }
-      queue.push(e)
-    })
+  queueEvent(event: Event): void {
+    const queue = this.processing ? this.priorityQueue : this.eventQueue
+    if (DEBUG_ENGINE) {
+      console.log(
+        `Queuing event ${event} into ${this.processing ? 'priority queue' : 'normal queue'}`
+      )
+    }
+    queue.push(event)
 
     this.processEventQueue()
   }
@@ -76,7 +74,7 @@ class Engine extends EventEmitter {
       if (DEBUG_ENGINE) {
         console.log(`Processing next player action ${e}`)
       }
-      this.queueEvent([e])
+      this.queueEvent(e)
     }
   }
 
@@ -112,7 +110,7 @@ class Engine extends EventEmitter {
     for (const { eventType, listener } of this.listenerQueue) {
       if (e.type === eventType) {
         // then wait for listeners to react to it
-        await new Promise<void>((resolve) => listener(e.data, resolve))
+        await new Promise<void>((resolve) => listener(e, resolve))
         // before moving on
       }
     }

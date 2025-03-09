@@ -3,7 +3,7 @@ import Character from '@character'
 import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
-import Event from '@event'
+import Event from 'eventData/Event.ts'
 import { EventType } from '@constants'
 
 class FireElementalBattlecry extends Effect {

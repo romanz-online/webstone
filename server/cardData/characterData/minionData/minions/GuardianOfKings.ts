@@ -2,11 +2,11 @@ import Minion from '@minion'
 import GuardianOfKingsBattlecry from '@effects/GuardianOfKingsBattlecry.ts'
 
 class GuardianOfKings extends Minion {
-  constructor(baseID: number, uniqueID: number, player: number) {
-    super(baseID, uniqueID, player)
+  constructor(baseID: number, id: number, player: number) {
+    super(baseID, id, player)
 
     this.effects = {
-      battlecry: new GuardianOfKingsBattlecry(player, this),
+      battlecry: new GuardianOfKingsBattlecry(player),
     }
   }
 }

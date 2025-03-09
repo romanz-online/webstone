@@ -14,11 +14,10 @@
     "paths": {
       "@engine": ["Engine.ts"],
       "@ws": ["ws.ts"],
-      "@event": ["Event.ts"],
+      "@event": ["eventData/Event.ts"],
       "@eventStack": ["EventStack.ts"],
       "@gameState": ["GameState.ts"],
       "@constants": ["constants.ts"],
-      "@errorHandler": ["ErrorHandler.ts"],
 
       "@minionData": ["cardData/characterData/minionData/MinionData.ts"],
       "@heroData": ["cardData/characterData/heroData/HeroData.ts"],
@@ -37,6 +36,7 @@
       "@heroes/*": ["cardData/characterData/heroData/heroes/*"],
       "@minions/*": ["cardData/characterData/minionData/minions/*"],
       "@effects/*": ["cardData/effectData/effects/*"],
+      "@events/*": ["eventData/events/*"],
 
       "@card": ["cardData/Card.ts"],
       "@effect": ["cardData/effectData/Effect.ts"],

@@ -108,7 +108,7 @@ class GAME {
       socket: ws,
       event: EventType.KillMinion,
       onSuccess: (data) => {
-        console.log(`${data.minion.uniqueID} died`)
+        console.log(`${data.minion.id} died`)
         this.triggerEvent(EventType.Load)
       },
     })
@@ -117,7 +117,7 @@ class GAME {
       socket: ws,
       event: EventType.PlayMinion,
       onSuccess: (data) => {
-        console.log(`${data.minion.uniqueID} played`)
+        console.log(`${data.minion.id} played`)
         // this.playerBoardView.playMinion(data.minion, data.boardIndex)
         // this.playerHandView.removeCard(data.minion)
         this.triggerEvent(EventType.Load)
@@ -129,11 +129,11 @@ class GAME {
       event: EventType.ChangeStats,
       onSuccess: (data) => {
         console.log(
-          `${data.minion.uniqueID} stats changed to ${data.minion.mana}-${data.minion.attack}-${data.minion.health}`
+          `${data.minion.id} stats changed to ${data.minion.mana}-${data.minion.attack}-${data.minion.health}`
         )
         // TODO: find a better way to do this. maybe have some minion pool shared between the two objects?
-        // this.playerBoardView.changeStats(data.uniqueID, data.stats)
-        // this.playerHandView.changeStats(data.uniqueID, data.stats)
+        // this.playerBoardView.changeStats(data.id, data.stats)
+        // this.playerHandView.changeStats(data.id, data.stats)
         this.triggerEvent(EventType.Load)
       },
     })
@@ -142,7 +142,7 @@ class GAME {
       socket: ws,
       event: EventType.Damage,
       onSuccess: (data) => {
-        console.log(`${data.minion.uniqueID} takes ${data.damage} damage`)
+        console.log(`${data.minion.id} takes ${data.damage} damage`)
         this.triggerEvent(EventType.Load)
       },
     })
@@ -151,9 +151,7 @@ class GAME {
       socket: ws,
       event: EventType.Attack,
       onSuccess: (data) => {
-        console.log(
-          `${data.attacker.uniqueID} attacked ${data.target.uniqueID}`
-        )
+        console.log(`${data.attacker.id} attacked ${data.target.id}`)
         this.triggerEvent(EventType.Load)
       },
     })

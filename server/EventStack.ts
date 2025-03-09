@@ -1,8 +1,8 @@
 import { engine } from '@engine'
-import { EventType } from '@constants'
-import Event from '@event'
+import Event from 'eventData/Event.ts'
 import Minion from '@minion'
 import Effect from '@effect'
+import PlayCardEvent from '@events/PlayCardEvent.ts'
 
 class EventStack {
   private stack: Event[] = []
@@ -14,19 +14,19 @@ class EventStack {
   }
 
   push(event: Event): void {
-    if (event.type === EventType.PlayCard) {
-      if (!event.data.card) return
+    if (event instanceof PlayCardEvent) {
+      if (!event.card) return
 
-      if (event.data.card instanceof Minion) {
+      if (event.card instanceof Minion) {
         // CHECK FOR BATTLECRY, CHOOSE ONE, COMBO
-        const minion: Minion = event.data.card
+        const minion: Minion = event.card
         // WON'T WAIT FOR BATTLECRY IF THERE ARE NO ELIGIBLE TARGETS FOR THE BATTLECRY
         // NEED TO IMPLEMENT THAT (TARGET VALIDATOR IN EACH EFFECT); SAME WITH OTHER NON-SPELL EFFECTS
         this.waiting = !!minion.effects.battlecry
         // NEED TO CHECK canTarget, requiresTarget AND TARGET VALIDATOR. IF VALIDATOR IS FALSE, DON'T WAIT
         // AND JUST PLAY MINION/EXECUTE STACK
-      } else if (event.data.card instanceof Effect) {
-        const spell: Effect = event.data.card
+      } else if (event.card instanceof Effect) {
+        const spell: Effect = event.card
         if (spell.canTarget && spell.requiresTarget) {
           this.waiting = true
         }
@@ -42,13 +42,13 @@ class EventStack {
 
   executeStack(): void {
     for (let i = this.stack.length - 1; i >= 0; i--) {
-      engine.queueEvent([this.stack[i]])
+      engine.queueEvent(this.stack[i])
     }
     this.clear()
   }
 
-  getTop(): any {
-    return this.stack[this.stack.length - 1]
+  getBottom(): any {
+    return this.stack[0] || null
   }
 
   length(): number {

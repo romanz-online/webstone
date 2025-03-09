@@ -1,6 +1,6 @@
 import { getGameState } from 'wsEvents.ts'
 import Effect from '@effect'
-import Event from '@event'
+import Event from 'eventData/Event.ts'
 import EffectID from '@effectID' with { type: 'json' }
 import Character from '@character'
 import { engine } from '@engine'
@@ -21,9 +21,9 @@ class GuardianOfKingsBattlecry extends Effect {
       new Event(EventType.RestoreHealth, {
         source: source,
         target:
-          gameState.player1.playerOwner === this.playerOwner
-            ? gameState.player1
-            : gameState.player2,
+          gameState.player1Hero.playerOwner === this.playerOwner
+            ? gameState.player1Hero
+            : gameState.player2Hero,
         amount: this.getAmount(),
       }),
     ])

@@ -5,14 +5,14 @@ import Character from '@character'
 import MinionData from '@minionData'
 
 class Minion extends Character {
-  constructor(baseID: number, uniqueID: number, player: number) {
-    super(uniqueID, player, MinionData[baseID - 1000])
+  constructor(baseID: number, id: number, player: number) {
+    super(id, player, MinionData[baseID - 1000])
 
     engine.addGameElementListener(
-      this.uniqueID,
-      EventType.Kill,
+      this.id,
+      EventType.TriggerDeath,
       (data, done) => {
-        this.onKillMinions()
+        this.onTriggerDeath()
         done()
       }
     )
@@ -22,7 +22,7 @@ class Minion extends Character {
     return this.effects.battlecry
   }
 
-  onKillMinions() {
+  onTriggerDeath() {
     if (!this.inPlay || this.health > 0) {
       return
     }

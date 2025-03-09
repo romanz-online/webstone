@@ -1,8 +1,8 @@
 class Card {
-  uniqueID: number
+  id: number
 
-  constructor(uniqueID: number) {
-    this.uniqueID = uniqueID
+  constructor(id: number) {
+    this.id = id
   }
 }
 

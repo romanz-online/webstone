@@ -10,11 +10,11 @@ import {
 import GameState from '@gameState'
 import Effect from '@effect'
 import Card from '@card'
+import DeathEvent from '@events/DeathEvent.ts'
 
 class Character extends Card {
   gameState: GameState
   fileName: string
-  uniqueID: number
   playerOwner: PlayerID
   inPlay: boolean
   attacksThisTurn: number
@@ -35,10 +35,10 @@ class Character extends Card {
   keywords: Keyword[]
   effects: { [key: string]: any }
 
-  constructor(uniqueID: number, player: number, baseData: any) {
-    super(uniqueID)
+  constructor(id: number, player: number, baseData: any) {
+    super(id)
 
-    this.uniqueID = uniqueID
+    this.id = id
     this.playerOwner = player
 
     this.inPlay = false
@@ -64,22 +64,22 @@ class Character extends Card {
     this.effects = {}
 
     engine.addGameElementListener(
-      this.uniqueID,
-      EventType.Kill,
-      (data, done) => {
-        this.onKillMinions()
+      this.id,
+      EventType.TriggerDeath,
+      (event, done) => {
+        this.onTriggerDeath()
         done()
       }
     )
   }
 
   toString(): string {
-    return `${this.name}${this.uniqueID}`
+    return `${this.name}${this.id}`
   }
 
   toJSON(): any {
     return {
-      uniqueID: this.uniqueID,
+      id: this.id,
       player: this.playerOwner,
       inPlay: this.inPlay,
       attacksThisTurn: this.attacksThisTurn,
@@ -91,11 +91,11 @@ class Character extends Card {
       rarity: this.rarity,
       tribe: this.tribe,
       overload: this.overload,
-      baseMana: this.mana,
-      baseAttack: this.attack,
-      baseHealth: this.health,
-      maxHealth: this.health,
-      mana: this.mana,
+      baseManaCost: this.baseMana,
+      baseAttack: this.baseAttack,
+      baseHealth: this.baseHealth,
+      maxHealth: this.maxHealth,
+      manaCost: this.mana,
       attack: this.attack,
       health: this.health,
     }
@@ -109,17 +109,36 @@ class Character extends Card {
     return this.effects.battlecry
   }
 
-  onKillMinions() {
+  takeDamage(damage: number): number {
+    if (this.hasKeyword(Keyword.DivineShield)) {
+      this.keywords = this.keywords.filter((k) => k !== Keyword.DivineShield)
+      return 0
+    }
+
+    this.health -= damage
+
+    // if (target.health < 1) {
+    //   // STORE A "killedBy" VALUE HERE IF NEEDED
+    // }
+
+    return damage
+  }
+
+  onTriggerDeath(): void {
     if (!this.inPlay || this.health > 0) {
       return
     }
 
-    this.inPlay = false
-
     // notifyClient('minionDied', true, { minion: this })
 
-    // CHECK DEATHRATTLE
+    // MAYBE INSTEAD OF DOING WEIRD STUFF LIKE THIS, JUST KEEP TRACK OF PLAY ORDER IN GameState
+    // AND ADD/REMOVE CHARACTERS AS THEY COME INTO AND GO OUT OF PLAY
+    engine.queueEvent(new DeathEvent(this))
+
+    // CHECK DEATHRATTLE HERE?
   }
+
+  death(): void {}
 }
 
 export default Character

@@ -1,34 +1,36 @@
 import Minion from '@minion'
 import { engine } from '@engine'
-import Event from '@event'
 import { EventType } from '@constants'
+import ChangeStatsEvent from '@events/ChangeStatsEvent.ts'
+import Effect from '@effect'
+import PlayCardEvent from '@events/PlayCardEvent.ts'
 
 class ManaWyrm extends Minion {
-  constructor(ID: number, uniqueID: number, player: number) {
-    super(ID, uniqueID, player)
+  constructor(ID: number, id: number, player: number) {
+    super(ID, id, player)
 
     engine.addGameElementListener(
-      this.uniqueID,
+      this.id,
       EventType.PlayCard,
-      (data: any, done: () => void) => {
-        this.onPlayMinion(data.minion)
+      (event: PlayCardEvent, done: () => void) => {
+        this.onPlaySpell(event)
         done()
       }
     )
   }
 
-  onPlayMinion(minion: Minion) {
-    if (!this.inPlay || this === minion) {
+  onPlaySpell(event: PlayCardEvent) {
+    if (!this.inPlay) {
       return
     }
 
-    engine.queueEvent([
-      new Event(EventType.ChangeStats, {
-        source: this,
-        target: [this],
-        attack: 1,
-      }),
-    ])
+    if (event.card instanceof Effect) {
+      engine.queueEvent(new ChangeStatsEvent(this, [this], 0, 1, 0))
+    }
+  }
+
+  death() {
+    engine.removeGameElementListener(this.id, EventType.PlayCard)
   }
 }
 

@@ -2,7 +2,6 @@ import EffectData from '@effectData'
 import { HeroClass, Rarity, EffectType, PlayerID } from '@constants'
 import Card from '@card'
 import Character from '@character'
-import GameState from '@gameState'
 
 class Effect extends Card {
   baseID: number
@@ -13,7 +12,7 @@ class Effect extends Card {
   name: string
   baseDescription: string
   rarity: Rarity
-  cost: number
+  manaCost: number
   amount: number[]
   affectedBySpellpower: boolean
   overload: number
@@ -21,8 +20,8 @@ class Effect extends Card {
   requiresTarget: boolean
   obtainable: boolean
 
-  constructor(baseID: number, uniqueID: number, player: number) {
-    super(uniqueID)
+  constructor(baseID: number, id: number, player: number) {
+    super(id)
     const baseData = EffectData[baseID - 2000]
     this.baseID = baseID
     this.playerOwner = player
@@ -33,7 +32,7 @@ class Effect extends Card {
     this.name = baseData.name || '???'
     this.baseDescription = baseData.baseDescription || ''
     this.rarity = baseData.rarity || Rarity.Free
-    this.cost = baseData.cost || 0
+    this.manaCost = baseData.cost || 0
     this.amount = baseData.amount || [0]
     this.affectedBySpellpower = baseData.affectedBySpellpower || false
     this.overload = baseData.overload || 0
@@ -52,7 +51,7 @@ class Effect extends Card {
       name: this.name,
       description: this.getDescription(),
       rarity: this.rarity,
-      cost: this.cost,
+      cost: this.manaCost,
       amount: this.getAmount(),
       affectedBySpellpower: this.affectedBySpellpower,
       overload: this.overload,
@@ -79,7 +78,7 @@ class Effect extends Card {
     throw new Error('apply() method must be implemented by subclasses')
   }
 
-  validateTarget(gameState: GameState, target: Character): boolean {
+  validateTarget(target: Character): boolean {
     return true
   }
 }

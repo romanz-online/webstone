@@ -2,14 +2,14 @@ import { getGameState } from 'wsEvents.ts'
 import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
-import Event from '@event'
+import Event from 'eventData/Event.ts'
 import { EventType, PlayerID } from '@constants'
 import Character from '@character'
 import GameState from '@gameState'
 
 class Swipe extends Effect {
-  constructor(uniqueID: number, playerOwner: PlayerID) {
-    super(EffectID.SWIPE, uniqueID, playerOwner)
+  constructor(id: number, playerOwner: PlayerID) {
+    super(EffectID.SWIPE, id, playerOwner)
   }
 
   apply(source: Character, target: Character | null): void {
@@ -26,7 +26,7 @@ class Swipe extends Effect {
       return
     }
 
-    const targetID = target.uniqueID,
+    const targetID = target.id,
       targetOwner = target.playerOwner,
       targetBoard =
         targetOwner === PlayerID.Player1
@@ -35,13 +35,15 @@ class Swipe extends Effect {
 
     let otherTargets: Character[]
     for (let i = 0; i < targetBoard.length; i++) {
-      if (targetBoard[i].uniqueID !== targetID) {
+      if (targetBoard[i].id !== targetID) {
         otherTargets.push(targetBoard[i])
       }
     }
     if (targetID !== PlayerID.Player1 && targetID !== PlayerID.Player2) {
       otherTargets.push(
-        targetOwner === PlayerID.Player1 ? gameState.player2 : gameState.player1
+        targetOwner === PlayerID.Player1
+          ? gameState.player2Hero
+          : gameState.player1Hero
       )
     }
 
@@ -59,7 +61,8 @@ class Swipe extends Effect {
     ])
   }
 
-  validateTarget(gameState: GameState, target: Character): boolean {
+  validateTarget(target: Character): boolean {
+    const gameState: GameState = getGameState()
     if (!gameState) {
       console.error('Missing GameState')
     }

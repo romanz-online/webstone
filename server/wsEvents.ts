@@ -1,6 +1,6 @@
 import { engine } from '@engine'
 import GameState from '@gameState'
-import Event from '@event'
+import Event from 'eventData/Event.ts'
 import { setSocket } from '@ws'
 
 export const gameState = new GameState()

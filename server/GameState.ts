@@ -1,8 +1,8 @@
 import { engine } from '@engine'
 import { notifyClient } from '@ws'
-import Event from '@event'
+import Event from 'eventData/Event.ts'
 import EventStack from '@eventStack'
-import { CardType, EventType, PlayerID } from '@constants'
+import { CardType, EventType, Keyword, PlayerID } from '@constants'
 import Card from '@card'
 import Character from '@character'
 import Hero from '@hero'
@@ -13,7 +13,12 @@ import MinionID from '@minionID' with { type: 'json' }
 import { generateHero } from '@generateHero'
 import { generateMinion } from '@generateMinion'
 import { generateEffect } from '@generateEffect'
-import { handleError } from '@errorHandler'
+import PlayCardEvent from '@events/PlayCardEvent.ts'
+import SummonMinionEvent from '@events/SummonMinionEvent.ts'
+import EffectEvent from '@events/EffectEvent.ts'
+import EndTurnEvent from '@events/EndTurnEvent.ts'
+import TriggerDeathEvent from '@events/TriggerDeathEvent.ts'
+import AttackEvent from '@events/AttackEvent.ts'
 
 const playerDeckStorage: number[] = [
     MinionID.TIRION_FORDRING,
@@ -35,25 +40,22 @@ class GameState {
   opponentBoard: Minion[]
   whoseTurn: PlayerID
   eventStack: EventStack
-  player1: Hero
-  player2: Hero
+  player1Hero: Hero
+  player2Hero: Hero
   player1Fatigue: number
   player2Fatigue: number
+  id: () => number
 
   constructor() {
-    this.uniqueMinionNumber = 0
+    this.id = this.getUniqueID()
 
-    this.player1 = generateHero(
+    this.player1Hero = generateHero(
       HeroID.JAINA_PROUDMOORE,
-      this.getUniqueID(),
+      this.id(),
       PlayerID.Player1
     )
 
-    this.player2 = generateHero(
-      HeroID.HOGGER,
-      this.getUniqueID(),
-      PlayerID.Player2
-    )
+    this.player2Hero = generateHero(HeroID.HOGGER, this.id(), PlayerID.Player2)
 
     this.player1Fatigue = 0
     this.player2Fatigue = 0
@@ -65,27 +67,11 @@ class GameState {
     this.opponentHand = []
     this.playerBoard = []
     this.opponentBoard = [
-      generateMinion(MinionID.CENARIUS, this.getUniqueID(), PlayerID.Player2),
-      generateMinion(
-        MinionID.KORKRON_ELITE,
-        this.getUniqueID(),
-        PlayerID.Player2
-      ),
-      generateMinion(
-        MinionID.SUMMONING_PORTAL,
-        this.getUniqueID(),
-        PlayerID.Player2
-      ),
-      generateMinion(
-        MinionID.MANA_TIDE_TOTEM,
-        this.getUniqueID(),
-        PlayerID.Player2
-      ),
-      generateMinion(
-        MinionID.ARATHI_WEAPONSMITH,
-        this.getUniqueID(),
-        PlayerID.Player2
-      ),
+      generateMinion(MinionID.CENARIUS, this.id(), PlayerID.Player2),
+      generateMinion(MinionID.KORKRON_ELITE, this.id(), PlayerID.Player2),
+      generateMinion(MinionID.SUMMONING_PORTAL, this.id(), PlayerID.Player2),
+      generateMinion(MinionID.MANA_TIDE_TOTEM, this.id(), PlayerID.Player2),
+      generateMinion(MinionID.ARATHI_WEAPONSMITH, this.id(), PlayerID.Player2),
     ]
     this.opponentBoard.forEach((m) => (m.inPlay = true))
 
@@ -158,23 +144,22 @@ class GameState {
       }
     )
 
-    engine.addGameElementListener(
-      'gameState',
-      EventType.TrySpell,
-      (data, done) => {
-        done()
-      }
+    engine.queueEvent(
+      new EndTurnEvent(
+        this.player1Hero,
+        this.player2Hero,
+        this.playerBoard,
+        this.opponentBoard
+      )
     )
-
-    engine.queueEvent([new Event(EventType.EndTurn, {})])
   }
 
   toJSON(): any {
     return {
       playerDeck: this.playerDeck,
       opponentDeck: this.opponentDeck,
-      playerHealth: this.player1.health,
-      opponentHealth: this.player2.health,
+      playerHealth: this.player1Hero.health,
+      opponentHealth: this.player2Hero.health,
       playerHand: this.playerHand,
       opponentHand: this.opponentHand,
       playerBoard: this.playerBoard,
@@ -183,24 +168,27 @@ class GameState {
     }
   }
 
-  getUniqueID(): number {
-    return this.uniqueMinionNumber++
+  getUniqueID() {
+    let counter = 0
+    return function () {
+      return counter++
+    }
   }
 
   startGame(): void {
-    this.playerDeck = playerDeckStorage.map((id) => {
-      if (id >= 2000) {
-        return generateEffect(id, this.getUniqueID(), PlayerID.Player1)
-      } else if (id >= 1000) {
-        return generateMinion(id, this.getUniqueID(), PlayerID.Player1)
+    this.playerDeck = playerDeckStorage.map((baseID) => {
+      if (baseID >= 2000) {
+        return generateEffect(baseID, this.id(), PlayerID.Player1)
+      } else if (baseID >= 1000) {
+        return generateMinion(baseID, this.id(), PlayerID.Player1)
       }
     })
 
-    this.opponentDeck = opponentDeckStorage.map((id) => {
-      if (id >= 2000) {
-        return generateEffect(id, this.getUniqueID(), PlayerID.Player2)
-      } else if (id >= 1000) {
-        return generateMinion(id, this.getUniqueID(), PlayerID.Player2)
+    this.opponentDeck = opponentDeckStorage.map((baseID) => {
+      if (baseID >= 2000) {
+        return generateEffect(baseID, this.id(), PlayerID.Player2)
+      } else if (baseID >= 1000) {
+        return generateMinion(baseID, this.id(), PlayerID.Player2)
       }
     })
 
@@ -247,74 +235,92 @@ class GameState {
   tryPlayCard(type: CardType, data: any): void {
     switch (type) {
       case CardType.Minion:
-        {
-          const player: number = data.player,
-            boardIndex: number = data.boardIndex,
-            uniqueID: number = data.uniqueID
-
-          const minion: Minion | null = this.getHandMinion(uniqueID)
-          if (!minion) {
-            notifyClient(EventType.PlayCard, false, this.toJSON())
-            console.error(`Could not find minion with ID ${uniqueID} in hand`)
-            return
-          }
-
-          // DO MORE ERROR CHECKS
-          // notifyClient('playMinion', false, this.toJSON())
-
-          const hand =
-              player === PlayerID.Player1 ? this.playerHand : this.opponentHand,
-            board =
-              player === PlayerID.Player1
-                ? this.playerBoard
-                : this.opponentBoard
-          this.eventStack.push(
-            new Event(EventType.PlayCard, {
-              hand: hand,
-              board: board,
-              card: minion,
-              boardIndex: boardIndex,
-            })
-          )
-
-          if (this.eventStack.isWaiting()) {
-            notifyClient(EventType.Target, true, {})
-          }
-        }
+        this.tryPlayMinion(data)
         break
       case CardType.Spell:
-        {
-          const player: number = data.player,
-            uniqueID: number = data.uniqueID
-
-          const spell: Effect | null = this.getHandSpell(uniqueID)
-          if (!spell) {
-            notifyClient(EventType.PlayCard, false, this.toJSON())
-            console.error(`Could not find minion with ID ${uniqueID} in hand`)
-            return
-          }
-
-          this.eventStack.push(
-            new Event(EventType.PlayCard, {
-              card: spell,
-            })
-          )
-        }
+        this.tryPlaySpell(data)
         break
       case CardType.Weapon:
-        {
-        }
+        this.tryPlayWeapon(data)
         break
-      default: {
+      default:
         notifyClient(EventType.PlayCard, false, this.toJSON())
         console.error(`Invalid card type ${type}`)
         return
-      }
     }
   }
 
+  tryPlayMinion(data: any): void {
+    const player: PlayerID = data.player,
+      boardIndex: number = data.boardIndex,
+      id: number = data.id,
+      hero: Hero =
+        player === PlayerID.Player1 ? this.player1Hero : this.player2Hero,
+      hand: Card[] =
+        player === PlayerID.Player1 ? this.playerHand : this.opponentHand,
+      board: Minion[] =
+        player === PlayerID.Player1 ? this.playerBoard : this.opponentBoard
+
+    const minion: Minion | null = this.getHandMinion(id)
+    if (!minion) {
+      notifyClient(EventType.PlayCard, false, this.toJSON())
+      console.error(`Could not find minion with ID ${id} in hand`)
+      return
+    } else if (board.length === 7) {
+      notifyClient(EventType.PlayCard, false, this.toJSON())
+      console.error(`Board is full`)
+      return
+    } else if (minion.mana > hero.manaAvailable) {
+      notifyClient(EventType.PlayCard, false, this.toJSON())
+      console.error(`Not enough mana to play ${minion}`)
+      return
+    }
+
+    this.eventStack.push(
+      new PlayCardEvent(player, hand, board, minion, boardIndex)
+    )
+    this.eventStack.push(new SummonMinionEvent(board, minion, boardIndex))
+
+    if (this.eventStack.isWaiting()) {
+      notifyClient(EventType.Target, true, {})
+    } else {
+      this.eventStack.executeStack()
+    }
+  }
+
+  tryPlaySpell(data: any): void {
+    const player: PlayerID = data.player,
+      id: number = data.id,
+      hero: Hero =
+        player === PlayerID.Player1 ? this.player1Hero : this.player2Hero
+
+    const spell: Effect | null = this.getHandSpell(id)
+    if (!spell) {
+      notifyClient(EventType.PlayCard, false, this.toJSON())
+      console.error(`Could not find spell with ID ${id} in hand`)
+      return
+    } else if (spell.manaCost > hero.manaAvailable) {
+      notifyClient(EventType.PlayCard, false, this.toJSON())
+      console.error(`Not enough mana to play ${spell}`)
+      return
+    }
+
+    // USE A METHOD ON THE SPELL TO DETERMINE IF THERE ARE ANY VALID TARGETS AT ALL
+    // availableTargets(): Character[] { }
+
+    this.eventStack.push(new PlayCardEvent(player, null, null, spell, -1))
+
+    if (this.eventStack.isWaiting()) {
+      notifyClient(EventType.Target, true, {})
+    } else {
+      this.eventStack.executeStack()
+    }
+  }
+
+  tryPlayWeapon(data: any): void {}
+
   target(targetID: number): void {
-    const target: Minion | null = this.getBoardCharacter(targetID)
+    const target: Character | null = this.getBoardCharacter(targetID)
 
     if (!target) {
       notifyClient(EventType.Target, false, this.toJSON())
@@ -326,156 +332,156 @@ class GameState {
       return
     }
 
-    const event = this.eventStack.getTop()
+    // MODIFY THIS TO ACCOUNT FOR SPELLS
+    // START HERE AND IN EventStack
+    const event: PlayCardEvent = this.eventStack.getBottom()
     if (!event) {
       notifyClient(EventType.Target, false, this.toJSON())
       console.error('No events are queued in the stack')
       return
     }
-    const minion: Minion | null = event.data.minion
-    if (!minion) {
+    const card: Card | null = event.card
+    if (!card) {
       notifyClient(EventType.Target, false, this.toJSON())
-      console.error('No minion in stacked event')
+      console.error('No card in stacked event')
       return
     }
-    const effect: Effect | null = minion.getBattlecry()
-    if (!effect || !effect.canTarget) {
-      notifyClient(EventType.Target, false, this.toJSON())
-      console.error('No effect is waiting for a target')
-      return
-    }
-    effect.gameState = this
 
-    this.eventStack.push(
-      new Event(EventType.Battlecry, {
-        effect: effect,
-        source: minion,
-        target: target,
-      })
-    )
+    if (card instanceof Minion) {
+      const effect: Effect | null = card.getBattlecry()
+      if (!effect || !effect.canTarget) {
+        notifyClient(EventType.Target, false, this.toJSON())
+        console.error('No effect is waiting for a target')
+        return
+      }
+
+      this.eventStack.push(new EffectEvent(effect, card, target))
+    } else if (card instanceof Effect) {
+      this.eventStack.push(new EffectEvent(card, this.player1Hero, target))
+    } else {
+      notifyClient(EventType.Target, false, this.toJSON())
+      console.error('Unrecognized card type')
+      return
+    }
 
     if (this.eventStack.isWaiting()) {
       notifyClient(EventType.Target, true, {})
+    } else {
+      this.eventStack.executeStack()
     }
   }
 
   tryAttack(attackerID: number, targetID: number): void {
-    const attacker: Minion | null = this.getBoardCharacter(attackerID),
-      target: Minion | null = this.getBoardCharacter(targetID)
+    const attacker: Character | null = this.getBoardCharacter(attackerID),
+      target: Character | null = this.getBoardCharacter(targetID)
 
-    // IMPLEMENT THIS FOR THE OTHER FUNCTIONS
-    if (
-      handleError({
-        attackerID: attackerID,
-        targetID: targetID,
-        attacker: attacker,
-        target: target,
-        opponentBoard: this.opponentBoard,
-      })
+    if (!attacker) {
+      notifyClient(EventType.TryAttack, false, this.toJSON())
+      console.error(`Could not find attacker with ID ${attackerID} on board`)
+      return
+    } else if (!target) {
+      notifyClient(EventType.TryAttack, false, this.toJSON())
+      console.error(`Could not find target with ID ${targetID} on board`)
+      return
+    } else if (!attacker.canAttack) {
+      notifyClient(EventType.TryAttack, false, this.toJSON())
+      console.error(`Minion ${attacker} cannot attack`)
+      return
+    } else if (
+      !target.hasKeyword(Keyword.Taunt) &&
+      this.opponentBoard.some((m) => m.hasKeyword(Keyword.Taunt))
     ) {
+      notifyClient(EventType.TryAttack, false, this.toJSON())
+      console.error('Taunt is in the way')
       return
     }
 
-    engine.queueEvent([
-      new Event(EventType.Attack, {
-        attacker: attacker,
-        target: target,
-      }),
-    ])
+    engine.queueEvent(new AttackEvent(attacker, target))
   }
 
   checkHealth(): void {
-    if (this.player1.health < 1 && this.player2.health > 0) {
+    if (this.player1Hero.health < 1 && this.player2Hero.health > 0) {
       // kill player hero
       return
-    } else if (this.player2.health < 1 && this.player1.health > 0) {
+    } else if (this.player2Hero.health < 1 && this.player1Hero.health > 0) {
       // kill opponent
       return
-    } else if (this.player1.health < 1 && this.player2.health < 1) {
+    } else if (this.player1Hero.health < 1 && this.player2Hero.health < 1) {
       // tie
       return
     }
 
-    let ret = false
-    for (let i = this.playerBoard.length - 1; i >= 0; i--) {
-      if (this.playerBoard[i].health < 1) {
-        this.graveyard.push(this.playerBoard[i])
-        this.playerBoard.splice(i, 1)
-        ret = true
-      }
-    }
-    for (let i = this.opponentBoard.length - 1; i >= 0; i--) {
-      if (this.opponentBoard[i].health < 1) {
-        this.graveyard.push(this.opponentBoard[i])
-        this.opponentBoard.splice(i, 1)
-        ret = true
-      }
-    }
-
-    if (ret) {
-      engine.queueEvent([new Event(EventType.Kill, {})])
-    }
+    engine.queueEvent(
+      new TriggerDeathEvent(
+        this.playerBoard,
+        this.opponentBoard,
+        this.graveyard
+      )
+    )
   }
 
   onEndTurn(): void {
     // engine.queueEvent([new Event(EventType.EndTurn, {})])
 
-    for (const minion of this.playerBoard) {
-      minion.canAttack = !minion.canAttack
-    }
-    for (const minion of this.opponentBoard) {
-      minion.canAttack = !minion.canAttack
-    }
-
     this.whoseTurn =
       this.whoseTurn === PlayerID.Player1 ? PlayerID.Player2 : PlayerID.Player1
 
     if (this.whoseTurn === PlayerID.Player2) {
-      this.simulateOpponentTurn()
+      setTimeout(() => {
+        engine.queueEvent(
+          new EndTurnEvent(
+            this.player1Hero,
+            this.player2Hero,
+            this.playerBoard,
+            this.opponentBoard
+          )
+        )
+      }, 2 * 1000)
     }
   }
 
-  simulateOpponentTurn(): void {
-    setTimeout(() => {
-      engine.queueEvent([new Event(EventType.EndTurn, {})])
-    }, 2 * 1000)
-  }
-
-  // GOING TO NEED TO MODIFY THESE METHODS AT THE BOTTOM TO ALSO ACCOUNT FOR HEROES
-  // SOMETHING LIKE "getBoardCharacter"
-
-  getBoardCharacter(uniqueID: number): Character | null {
-    if (this.player1.uniqueID === uniqueID) return this.player1
-    else if (this.player2.uniqueID === uniqueID) return this.player2
+  getBoardCharacter(id: number): Character | null {
+    if (this.player1Hero.id === id) return this.player1Hero
+    else if (this.player2Hero.id === id) return this.player2Hero
 
     for (const x of this.playerBoard) {
-      if (x.uniqueID === uniqueID) return x
+      if (x.id === id) return x
     }
     for (const x of this.opponentBoard) {
-      if (x.uniqueID === uniqueID) return x
+      if (x.id === id) return x
     }
     return null
   }
 
-  getHandMinion(uniqueID: number): Minion | null {
+  getHandMinion(id: number): Minion | null {
     for (const x of this.playerHand) {
-      if (x.uniqueID === uniqueID && x instanceof Minion) return x
+      if (x.id === id && x instanceof Minion) return x
     }
     for (const x of this.opponentHand) {
-      if (x.uniqueID === uniqueID && x instanceof Minion) return x
+      if (x.id === id && x instanceof Minion) return x
     }
     return null
   }
 
-  getHandSpell(uniqueID: number): Effect | null {
+  getHandSpell(id: number): Effect | null {
     for (const x of this.playerHand) {
-      if (x.uniqueID === uniqueID && x instanceof Effect) return x
+      if (x.id === id && x instanceof Effect) return x
     }
     for (const x of this.opponentHand) {
-      if (x.uniqueID === uniqueID && x instanceof Effect) return x
+      if (x.id === id && x instanceof Effect) return x
     }
     return null
   }
+
+  // getHandWeapon(id: number): Weapon | null {
+  //   for (const x of this.playerHand) {
+  //     if (x.id === id && x instanceof Weapon) return x
+  //   }
+  //   for (const x of this.opponentHand) {
+  //     if (x.id === id && x instanceof Weapon) return x
+  //   }
+  //   return null
+  // }
 }
 
 export default GameState
