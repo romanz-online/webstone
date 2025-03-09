@@ -1,7 +1,7 @@
-import EffectData from '@effectData'
-import { HeroClass, Rarity, EffectType, PlayerID } from '@constants'
 import Card from '@card'
 import Character from '@character'
+import { EffectType, HeroClass, PlayerID, Rarity } from '@constants'
+import EffectData from '@effectData'
 import PlayerData from '@playerData'
 
 class Effect extends Card {
@@ -75,7 +75,12 @@ class Effect extends Card {
     return desc
   }
 
-  apply(source: Character, target: Character | null): void {
+  apply(
+    player1: PlayerData,
+    player2: PlayerData,
+    source: Character,
+    target: Character | null
+  ): void {
     throw new Error('apply() method must be implemented by subclasses')
   }
 

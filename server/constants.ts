@@ -55,16 +55,21 @@ export enum EventType {
   Overdraw,
   Fatigue,
   ChangeStats,
-  EndTurn,
   HeroPower,
   RestoreHealth,
-
+  EndTurn,
+  StartTurn,
   Cancel,
-  Target,
-  TryAttack,
-  TrySpell,
-  TryPlayCard,
   Load,
+  Target,
+
+  TryAttack,
+  TryPlayCard,
+  TryEndTurn,
+  TryHeroPower,
+  TryCancel,
+  TryLoad,
+  TryTarget,
 }
 
 export enum CardType {

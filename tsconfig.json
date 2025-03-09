@@ -15,8 +15,9 @@
       "@engine": ["Engine.ts"],
       "@ws": ["ws.ts"],
       "@event": ["eventData/Event.ts"],
+      "@tryEvent": ["eventData/TryEvent.ts"],
       "@eventStack": ["EventStack.ts"],
-      "@gameState": ["GameState.ts"],
+      "@gameInstance": ["GameInstance.ts"],
       "@constants": ["constants.ts"],
       "@playerData": ["PlayerData.ts"],
 
@@ -38,6 +39,7 @@
       "@minions/*": ["cardData/characterData/minionData/minions/*"],
       "@effects/*": ["cardData/effectData/effects/*"],
       "@events/*": ["eventData/events/*"],
+      "@tryEvents/*": ["eventData/tryEvents/*"],
 
       "@card": ["cardData/Card.ts"],
       "@effect": ["cardData/effectData/Effect.ts"],

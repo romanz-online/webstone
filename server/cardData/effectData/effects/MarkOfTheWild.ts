@@ -1,25 +1,23 @@
-import { getGameState } from 'wsEvents.ts'
-import Minion from '@minion'
+import Character from '@character'
+import { PlayerID } from '@constants'
 import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
-import Event from 'eventData/Event.ts'
-import { EventType, PlayerID } from '@constants'
-import Character from '@character'
-import GameState from '@gameState'
 import ChangeStatsEvent from '@events/ChangeStatsEvent.ts'
+import Minion from '@minion'
+import PlayerData from '@playerData'
 
 class MarkOfTheWild extends Effect {
   constructor(id: number, playerOwner: PlayerID) {
     super(EffectID.MARK_OF_THE_WILD, id, playerOwner)
   }
 
-  apply(source: Character, target: Character | null): void {
-    const gameState = getGameState()
-    if (!gameState || !source) {
-      console.error('Missing values to properly execute effect')
-    }
-
+  apply(
+    player1: PlayerData,
+    player2: PlayerData,
+    source: Character,
+    target: Character | null
+  ): void {
     if (target) {
       engine.queueEvent(
         // ALSO NEED SOME WAY TO GIVE IT TAUNT
@@ -29,11 +27,6 @@ class MarkOfTheWild extends Effect {
   }
 
   validateTarget(target: Character | null): boolean {
-    const gameState: GameState = getGameState()
-    if (!gameState) {
-      console.error('Missing GameState')
-    }
-
     if (!target) {
       if (
         this.requiresTarget ||

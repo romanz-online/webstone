@@ -1,28 +1,23 @@
+import Character from '@character'
+import { PlayerID } from '@constants'
 import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
-import { PlayerID } from '@constants'
-import Character from '@character'
-import GameState from '@gameState'
-import PlayerData from '@playerData'
 import DamageEvent from '@events/DamageEvent.ts'
+import PlayerData from '@playerData'
 
 class Swipe extends Effect {
   constructor(id: number, playerOwner: PlayerID) {
     super(EffectID.SWIPE, id, playerOwner)
   }
 
-  // NEED TO THINK OF A GOOD WAY FOR BASICALLY ANY CARD TO ACCESS PLAYER DATA
-  apply(source: Character, target: Character | null): void {
-    const gameState = getGameState()
-    if (!gameState || !source) {
-      console.error('Missing values to properly execute effect')
-    }
-
-    if (
-      this.requiresTarget ||
-      (gameState.opponentBoard.length > 0 && this.canTarget)
-    ) {
+  apply(
+    player1: PlayerData,
+    player2: PlayerData,
+    source: Character,
+    target: Character | null
+  ): void {
+    if (this.requiresTarget || (player2.board.length > 0 && this.canTarget)) {
       console.error('Target required for targeted damage effect')
       return
     }
@@ -30,9 +25,7 @@ class Swipe extends Effect {
     const targetID = target.id,
       targetOwner = target.playerOwner,
       targetBoard =
-        targetOwner === PlayerID.Player1
-          ? gameState.playerBoard
-          : gameState.opponentBoard
+        targetOwner === PlayerID.Player1 ? player1.board : player2.board
 
     let otherTargets: Character[]
     for (let i = 0; i < targetBoard.length; i++) {
@@ -42,9 +35,7 @@ class Swipe extends Effect {
     }
     if (targetID !== PlayerID.Player1 && targetID !== PlayerID.Player2) {
       otherTargets.push(
-        targetOwner === PlayerID.Player1
-          ? gameState.player2Hero
-          : gameState.player1Hero
+        targetOwner === PlayerID.Player1 ? player1.hero : player2.hero
       )
     }
 
@@ -53,11 +44,6 @@ class Swipe extends Effect {
   }
 
   validateTarget(target: Character): boolean {
-    const gameState: GameState = getGameState()
-    if (!gameState) {
-      console.error('Missing GameState')
-    }
-
     return target.playerOwner !== this.playerOwner
   }
 

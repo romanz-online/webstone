@@ -1,19 +1,17 @@
-import { engine } from '@engine'
+import Card from '@card'
 import {
+  EventType,
   HeroClass,
+  Keyword,
+  PlayerID,
   Rarity,
   Tribe,
-  EventType,
-  PlayerID,
-  Keyword,
 } from '@constants'
-import GameState from '@gameState'
 import Effect from '@effect'
-import Card from '@card'
+import { engine } from '@engine'
 import DeathEvent from '@events/DeathEvent.ts'
 
 class Character extends Card {
-  gameState: GameState
   fileName: string
   playerOwner: PlayerID
   inPlay: boolean
@@ -131,8 +129,6 @@ class Character extends Card {
 
     // notifyClient('minionDied', true, { minion: this })
 
-    // MAYBE INSTEAD OF DOING WEIRD STUFF LIKE THIS, JUST KEEP TRACK OF PLAY ORDER IN GameState
-    // AND ADD/REMOVE CHARACTERS AS THEY COME INTO AND GO OUT OF PLAY
     engine.queueEvent(new DeathEvent(this))
 
     // CHECK DEATHRATTLE HERE?

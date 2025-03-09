@@ -21,7 +21,7 @@ class EventStack {
   }
 
   // this method does NOT do any error handling
-  // that's all handled in GameState
+  // that's all handled in GameInstance
   generateStack(event: Event): void {
     this.waiting = false
 
@@ -35,24 +35,33 @@ class EventStack {
           new SummonMinionEvent(event.playerData, minion, event.boardIndex)
         )
 
-        const battlecry: Effect = minion.getBattlecry() // HANDLE COMBO AND CHOOSE ONE LATER
-        if (battlecry) {
-          if (battlecry.requiresTarget) {
-            this.waiting = true
-            this.stack.push(new EffectEvent(battlecry, minion, null))
-          } else if (
-            battlecry.canTarget &&
-            battlecry.availableTargets(this.player1, this.player2).length > 0
-          ) {
-            this.waiting = true
-            this.stack.push(new EffectEvent(battlecry, minion, null))
-          }
+        // HANDLE COMBO AND CHOOSE ONE LATER
+        const battlecry: Effect = minion.getBattlecry()
+        if (!battlecry) return
+
+        if (
+          battlecry.requiresTarget ||
+          (battlecry.canTarget &&
+            battlecry.availableTargets(this.player1, this.player2).length > 0)
+        ) {
+          this.waiting = true
+          this.stack.push(
+            new EffectEvent(this.player1, this.player2, battlecry, minion, null)
+          )
         }
       } else if (event.card instanceof Effect) {
         const spell: Effect = event.card
         this.stack.push(event)
         this.waiting = spell.canTarget && spell.requiresTarget
-        this.stack.push(new EffectEvent(spell, event.playerData.hero, null))
+        this.stack.push(
+          new EffectEvent(
+            this.player1,
+            this.player2,
+            spell,
+            event.playerData.hero,
+            null
+          )
+        )
       }
     }
   }

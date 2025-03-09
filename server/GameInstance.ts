@@ -13,6 +13,7 @@ import HeroID from '@heroID' with { type: 'json' }
 import Minion from '@minion'
 import MinionID from '@minionID' with { type: 'json' }
 import PlayerData from '@playerData'
+import TryEndTurnEvent from '@tryEvents/TryEndTurnEvent.ts'
 import { notifyClient } from '@ws'
 
 const deck1: number[] = [
@@ -24,10 +25,9 @@ const deck1: number[] = [
   ],
   deck2: number[] = []
 
-class GameState {
+class GameInstance {
   player1: PlayerData
   player2: PlayerData
-  graveyard: Minion[]
   whoseTurn: PlayerID
   eventStack: EventStack
   id: () => number
@@ -48,7 +48,6 @@ class GameState {
       this.id
     )
 
-    this.graveyard = []
     this.whoseTurn = PlayerID.Player2
     this.eventStack = new EventStack(this.player1, this.player2)
 
@@ -64,17 +63,17 @@ class GameState {
     })
 
     engine.addGameElementListener(
-      'gameState',
-      EventType.EndTurn,
+      'gameInstance',
+      EventType.TryEndTurn,
       (data, done) => {
-        this.onEndTurn()
+        this.tryEndTurn()
         done()
       }
     )
 
     engine.addGameElementListener(
-      'gameState',
-      EventType.Cancel,
+      'gameInstance',
+      EventType.TryCancel,
       (data, done) => {
         this.cancel()
         done()
@@ -82,33 +81,46 @@ class GameState {
     )
 
     engine.addGameElementListener(
-      'gameState',
-      EventType.Target,
+      'gameInstance',
+      EventType.TryTarget,
       (data, done) => {
         this.target(data.targetID)
         done()
       }
     )
 
-    engine.addGameElementListener('gameState', EventType.Load, (data, done) => {
-      notifyClient(EventType.Load, true, this.toJSON())
-      done()
-    })
-
     engine.addGameElementListener(
-      'gameState',
-      EventType.TryPlayCard,
+      'gameInstance',
+      EventType.TryLoad,
       (data, done) => {
-        this.tryPlayCard(data.type, data)
+        notifyClient(EventType.Load, true, this.toJSON())
         done()
       }
     )
 
     engine.addGameElementListener(
-      'gameState',
+      'gameInstance',
+      EventType.TryPlayCard,
+      (data, done) => {
+        this.tryPlayCard(data)
+        done()
+      }
+    )
+
+    engine.addGameElementListener(
+      'gameInstance',
       EventType.TryAttack,
       (data, done) => {
         this.tryAttack(data.attackerID, data.targetID)
+        done()
+      }
+    )
+
+    engine.addGameElementListener(
+      'gameInstance',
+      EventType.TryHeroPower,
+      (data, done) => {
+        // NOT IMPLEMENTED YET
         done()
       }
     )
@@ -134,7 +146,8 @@ class GameState {
     notifyClient(EventType.Cancel, true, {})
   }
 
-  tryPlayCard(type: CardType, data: any): void {
+  tryPlayCard(data: any): void {
+    const type: CardType = data.type
     switch (type) {
       case CardType.Minion:
         this.tryPlayMinion(data)
@@ -209,6 +222,7 @@ class GameState {
 
     // MAYBE ALSO SEPARATE SPELLS AND BATTLECRIES AFTER ALL? NOT SURE, HONESTLY...
     // NEED TO RETHINK THIS
+    // ALSO FIND A WAY TO ACCESS player1 AND player2 FROM ANY OF THE OBJECTS CREATED IN A PARTICULAR Game
 
     this.eventStack.generateStack(new PlayCardEvent(playerData, spell, -1))
 
@@ -283,19 +297,19 @@ class GameState {
       return
     }
 
-    engine.queueEvent(
-      new TriggerDeathEvent(this.player1, this.player2, this.graveyard)
-    )
+    engine.queueEvent(new TriggerDeathEvent(this.player1, this.player2))
   }
 
-  onEndTurn(): void {
+  tryEndTurn(): void {
     this.whoseTurn =
       this.whoseTurn === PlayerID.Player1 ? PlayerID.Player2 : PlayerID.Player1
 
+    engine.queueEvent(new EndTurnEvent(this.player1, this.player2))
+
     if (this.whoseTurn === PlayerID.Player2) {
       setTimeout(() => {
-        engine.queueEvent(new EndTurnEvent(this.player1, this.player2))
-      }, 2 * 1000)
+        engine.queuePlayerAction(new TryEndTurnEvent())
+      }, 3 * 1000)
     }
   }
 
@@ -343,4 +357,4 @@ class GameState {
   // }
 }
 
-export default GameState
+export default GameInstance

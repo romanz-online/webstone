@@ -1,17 +1,18 @@
+import Card from '@card'
+import { PlayerID } from '@constants'
+import { generateEffect } from '@generateEffect'
 import { generateHero } from '@generateHero'
 import { generateMinion } from '@generateMinion'
-import { generateEffect } from '@generateEffect'
-import MinionID from '@minionID' with { type: 'json' }
-import Card from '@card'
 import Hero from '@hero'
 import Minion from '@minion'
-import { PlayerID } from '@constants'
+import MinionID from '@minionID' with { type: 'json' }
 
 class PlayerData {
   hero: Hero
   deck: Card[]
   hand: Card[]
   board: Minion[]
+  graveyard: Minion[]
   fatigue: number
   mana: number
   manaCapacity: number
@@ -27,6 +28,7 @@ class PlayerData {
     this.deck = []
     this.hand = []
     this.board = []
+    this.graveyard = []
     this.fatigue = 0
     this.mana = 0
     this.manaCapacity = 0
