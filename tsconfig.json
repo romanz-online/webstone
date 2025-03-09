@@ -18,6 +18,7 @@
       "@eventStack": ["EventStack.ts"],
       "@gameState": ["GameState.ts"],
       "@constants": ["constants.ts"],
+      "@playerData": ["PlayerData.ts"],
 
       "@minionData": ["cardData/characterData/minionData/MinionData.ts"],
       "@heroData": ["cardData/characterData/heroData/HeroData.ts"],

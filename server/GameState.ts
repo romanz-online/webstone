@@ -1,94 +1,63 @@
-import { engine } from '@engine'
-import { notifyClient } from '@ws'
-import Event from 'eventData/Event.ts'
-import EventStack from '@eventStack'
-import { CardType, EventType, Keyword, PlayerID } from '@constants'
-import Card from '@card'
 import Character from '@character'
-import Hero from '@hero'
-import Minion from '@minion'
+import { CardType, EventType, Keyword, PlayerID } from '@constants'
 import Effect from '@effect'
-import HeroID from '@heroID' with { type: 'json' }
-import MinionID from '@minionID' with { type: 'json' }
-import { generateHero } from '@generateHero'
-import { generateMinion } from '@generateMinion'
-import { generateEffect } from '@generateEffect'
-import PlayCardEvent from '@events/PlayCardEvent.ts'
-import SummonMinionEvent from '@events/SummonMinionEvent.ts'
+import { engine } from '@engine'
+import AttackEvent from '@events/AttackEvent.ts'
+import DrawCardEvent from '@events/DrawCardEvent.ts'
 import EffectEvent from '@events/EffectEvent.ts'
 import EndTurnEvent from '@events/EndTurnEvent.ts'
+import PlayCardEvent from '@events/PlayCardEvent.ts'
 import TriggerDeathEvent from '@events/TriggerDeathEvent.ts'
-import AttackEvent from '@events/AttackEvent.ts'
+import EventStack from '@eventStack'
+import HeroID from '@heroID' with { type: 'json' }
+import Minion from '@minion'
+import MinionID from '@minionID' with { type: 'json' }
+import PlayerData from '@playerData'
+import { notifyClient } from '@ws'
 
-const playerDeckStorage: number[] = [
+const deck1: number[] = [
     MinionID.TIRION_FORDRING,
     MinionID.MANA_WYRM,
     MinionID.LIGHTWELL,
     MinionID.GUARDIAN_OF_KINGS,
     MinionID.FIRE_ELEMENTAL,
   ],
-  opponentDeckStorage: number[] = []
+  deck2: number[] = []
 
 class GameState {
-  uniqueMinionNumber: number
+  player1: PlayerData
+  player2: PlayerData
   graveyard: Minion[]
-  playerDeck: Card[]
-  opponentDeck: Card[]
-  playerHand: Card[]
-  opponentHand: Card[]
-  playerBoard: Minion[]
-  opponentBoard: Minion[]
   whoseTurn: PlayerID
   eventStack: EventStack
-  player1Hero: Hero
-  player2Hero: Hero
-  player1Fatigue: number
-  player2Fatigue: number
   id: () => number
 
   constructor() {
     this.id = this.getUniqueID()
 
-    this.player1Hero = generateHero(
+    this.player1 = new PlayerData(
       HeroID.JAINA_PROUDMOORE,
-      this.id(),
-      PlayerID.Player1
+      deck1,
+      PlayerID.Player1,
+      this.id
+    )
+    this.player2 = new PlayerData(
+      HeroID.HOGGER,
+      deck2,
+      PlayerID.Player2,
+      this.id
     )
 
-    this.player2Hero = generateHero(HeroID.HOGGER, this.id(), PlayerID.Player2)
-
-    this.player1Fatigue = 0
-    this.player2Fatigue = 0
-
     this.graveyard = []
-    this.playerDeck = []
-    this.opponentDeck = []
-    this.playerHand = []
-    this.opponentHand = []
-    this.playerBoard = []
-    this.opponentBoard = [
-      generateMinion(MinionID.CENARIUS, this.id(), PlayerID.Player2),
-      generateMinion(MinionID.KORKRON_ELITE, this.id(), PlayerID.Player2),
-      generateMinion(MinionID.SUMMONING_PORTAL, this.id(), PlayerID.Player2),
-      generateMinion(MinionID.MANA_TIDE_TOTEM, this.id(), PlayerID.Player2),
-      generateMinion(MinionID.ARATHI_WEAPONSMITH, this.id(), PlayerID.Player2),
-    ]
-    this.opponentBoard.forEach((m) => (m.inPlay = true))
-
     this.whoseTurn = PlayerID.Player2
-    this.eventStack = new EventStack()
+    this.eventStack = new EventStack(this.player1, this.player2)
 
-    this.startGame()
-
-    this.drawCard(PlayerID.Player1)
-    this.drawCard(PlayerID.Player1)
-    this.drawCard(PlayerID.Player1)
-    this.drawCard(PlayerID.Player1)
-    this.drawCard(PlayerID.Player1)
+    for (let i = 0; i < 5; i++) {
+      engine.queueEvent(new DrawCardEvent(this.player1))
+    }
 
     engine.on('done', () => {
       this.checkHealth()
-
       if (!this.eventStack.isWaiting() && this.eventStack.length() > 0) {
         this.eventStack.executeStack()
       }
@@ -144,26 +113,11 @@ class GameState {
       }
     )
 
-    engine.queueEvent(
-      new EndTurnEvent(
-        this.player1Hero,
-        this.player2Hero,
-        this.playerBoard,
-        this.opponentBoard
-      )
-    )
+    engine.queueEvent(new EndTurnEvent(this.player1, this.player2))
   }
 
   toJSON(): any {
     return {
-      playerDeck: this.playerDeck,
-      opponentDeck: this.opponentDeck,
-      playerHealth: this.player1Hero.health,
-      opponentHealth: this.player2Hero.health,
-      playerHand: this.playerHand,
-      opponentHand: this.opponentHand,
-      playerBoard: this.playerBoard,
-      opponentBoard: this.opponentBoard,
       whoseTurn: this.whoseTurn,
     }
   }
@@ -172,58 +126,6 @@ class GameState {
     let counter = 0
     return function () {
       return counter++
-    }
-  }
-
-  startGame(): void {
-    this.playerDeck = playerDeckStorage.map((baseID) => {
-      if (baseID >= 2000) {
-        return generateEffect(baseID, this.id(), PlayerID.Player1)
-      } else if (baseID >= 1000) {
-        return generateMinion(baseID, this.id(), PlayerID.Player1)
-      }
-    })
-
-    this.opponentDeck = opponentDeckStorage.map((baseID) => {
-      if (baseID >= 2000) {
-        return generateEffect(baseID, this.id(), PlayerID.Player2)
-      } else if (baseID >= 1000) {
-        return generateMinion(baseID, this.id(), PlayerID.Player2)
-      }
-    })
-
-    const shuffleDeck = (deck: any) => {
-      for (let i = deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[deck[i], deck[j]] = [deck[j], deck[i]]
-      }
-    }
-
-    shuffleDeck(this.playerDeck)
-    shuffleDeck(this.opponentDeck)
-  }
-
-  drawCard(player: PlayerID): void {
-    if (player === PlayerID.Player1) {
-      const card = this.playerDeck.pop()
-      if (card) {
-        console.log('player draws a card')
-        this.playerHand.push(card)
-        notifyClient(EventType.DrawCard, true, this.toJSON())
-      } else {
-        console.log('player overdraws')
-      }
-    } else if (player === PlayerID.Player2) {
-      const card = this.opponentDeck.pop()
-      if (card) {
-        console.log('opponent draws a card')
-        this.opponentHand.push(card)
-        notifyClient(EventType.DrawCard, true, this.toJSON())
-      } else {
-        console.log('opponent overdraws')
-      }
-    } else {
-      console.error('unknown player ID')
     }
   }
 
@@ -251,36 +153,29 @@ class GameState {
   }
 
   tryPlayMinion(data: any): void {
-    const player: PlayerID = data.player,
-      boardIndex: number = data.boardIndex,
+    const boardIndex: number = data.boardIndex,
       id: number = data.id,
-      hero: Hero =
-        player === PlayerID.Player1 ? this.player1Hero : this.player2Hero,
-      hand: Card[] =
-        player === PlayerID.Player1 ? this.playerHand : this.opponentHand,
-      board: Minion[] =
-        player === PlayerID.Player1 ? this.playerBoard : this.opponentBoard
+      playerData: PlayerData =
+        data.player === PlayerID.Player1 ? this.player1 : this.player2
 
     const minion: Minion | null = this.getHandMinion(id)
     if (!minion) {
       notifyClient(EventType.PlayCard, false, this.toJSON())
       console.error(`Could not find minion with ID ${id} in hand`)
       return
-    } else if (board.length === 7) {
+    } else if (playerData.board.length === 7) {
       notifyClient(EventType.PlayCard, false, this.toJSON())
       console.error(`Board is full`)
       return
-    } else if (minion.mana > hero.manaAvailable) {
+    } else if (minion.mana > playerData.getAvailableMana()) {
       notifyClient(EventType.PlayCard, false, this.toJSON())
       console.error(`Not enough mana to play ${minion}`)
       return
     }
 
-    this.eventStack.push(
-      new PlayCardEvent(player, hand, board, minion, boardIndex)
+    this.eventStack.generateStack(
+      new PlayCardEvent(playerData, minion, boardIndex)
     )
-    this.eventStack.push(new SummonMinionEvent(board, minion, boardIndex))
-
     if (this.eventStack.isWaiting()) {
       notifyClient(EventType.Target, true, {})
     } else {
@@ -289,26 +184,33 @@ class GameState {
   }
 
   tryPlaySpell(data: any): void {
-    const player: PlayerID = data.player,
-      id: number = data.id,
-      hero: Hero =
-        player === PlayerID.Player1 ? this.player1Hero : this.player2Hero
+    const id: number = data.id,
+      playerData: PlayerData =
+        data.player === PlayerID.Player1 ? this.player1 : this.player2
 
     const spell: Effect | null = this.getHandSpell(id)
     if (!spell) {
       notifyClient(EventType.PlayCard, false, this.toJSON())
       console.error(`Could not find spell with ID ${id} in hand`)
       return
-    } else if (spell.manaCost > hero.manaAvailable) {
+    } else if (spell.manaCost > playerData.getAvailableMana()) {
       notifyClient(EventType.PlayCard, false, this.toJSON())
       console.error(`Not enough mana to play ${spell}`)
       return
+    } else if (
+      spell.canTarget &&
+      spell.requiresTarget &&
+      spell.availableTargets(this.player1, this.player2).length === 0
+    ) {
+      notifyClient(EventType.PlayCard, false, this.toJSON())
+      console.error(`No available targets for ${spell}`)
+      return
     }
 
-    // USE A METHOD ON THE SPELL TO DETERMINE IF THERE ARE ANY VALID TARGETS AT ALL
-    // availableTargets(): Character[] { }
+    // MAYBE ALSO SEPARATE SPELLS AND BATTLECRIES AFTER ALL? NOT SURE, HONESTLY...
+    // NEED TO RETHINK THIS
 
-    this.eventStack.push(new PlayCardEvent(player, null, null, spell, -1))
+    this.eventStack.generateStack(new PlayCardEvent(playerData, spell, -1))
 
     if (this.eventStack.isWaiting()) {
       notifyClient(EventType.Target, true, {})
@@ -320,11 +222,16 @@ class GameState {
   tryPlayWeapon(data: any): void {}
 
   target(targetID: number): void {
-    const target: Character | null = this.getBoardCharacter(targetID)
+    const target: Character | null = this.getBoardCharacter(targetID),
+      event: EffectEvent = this.eventStack.getStackedEffect()
 
     if (!target) {
       notifyClient(EventType.Target, false, this.toJSON())
       console.error('Could not find target with ID', targetID, 'on board')
+      return
+    } else if (!event) {
+      notifyClient(EventType.Target, false, this.toJSON())
+      console.error('No events queued in stack')
       return
     } else if (!this.eventStack.isWaiting()) {
       notifyClient(EventType.Target, false, this.toJSON())
@@ -332,43 +239,8 @@ class GameState {
       return
     }
 
-    // MODIFY THIS TO ACCOUNT FOR SPELLS
-    // START HERE AND IN EventStack
-    const event: PlayCardEvent = this.eventStack.getBottom()
-    if (!event) {
-      notifyClient(EventType.Target, false, this.toJSON())
-      console.error('No events are queued in the stack')
-      return
-    }
-    const card: Card | null = event.card
-    if (!card) {
-      notifyClient(EventType.Target, false, this.toJSON())
-      console.error('No card in stacked event')
-      return
-    }
-
-    if (card instanceof Minion) {
-      const effect: Effect | null = card.getBattlecry()
-      if (!effect || !effect.canTarget) {
-        notifyClient(EventType.Target, false, this.toJSON())
-        console.error('No effect is waiting for a target')
-        return
-      }
-
-      this.eventStack.push(new EffectEvent(effect, card, target))
-    } else if (card instanceof Effect) {
-      this.eventStack.push(new EffectEvent(card, this.player1Hero, target))
-    } else {
-      notifyClient(EventType.Target, false, this.toJSON())
-      console.error('Unrecognized card type')
-      return
-    }
-
-    if (this.eventStack.isWaiting()) {
-      notifyClient(EventType.Target, true, {})
-    } else {
-      this.eventStack.executeStack()
-    }
+    event.target = target
+    this.eventStack.executeStack()
   }
 
   tryAttack(attackerID: number, targetID: number): void {
@@ -389,7 +261,7 @@ class GameState {
       return
     } else if (
       !target.hasKeyword(Keyword.Taunt) &&
-      this.opponentBoard.some((m) => m.hasKeyword(Keyword.Taunt))
+      this.player2.board.some((m) => m.hasKeyword(Keyword.Taunt))
     ) {
       notifyClient(EventType.TryAttack, false, this.toJSON())
       console.error('Taunt is in the way')
@@ -400,74 +272,61 @@ class GameState {
   }
 
   checkHealth(): void {
-    if (this.player1Hero.health < 1 && this.player2Hero.health > 0) {
+    if (this.player1.hero.health < 1 && this.player2.hero.health > 0) {
       // kill player hero
       return
-    } else if (this.player2Hero.health < 1 && this.player1Hero.health > 0) {
+    } else if (this.player2.hero.health < 1 && this.player1.hero.health > 0) {
       // kill opponent
       return
-    } else if (this.player1Hero.health < 1 && this.player2Hero.health < 1) {
+    } else if (this.player1.hero.health < 1 && this.player2.hero.health < 1) {
       // tie
       return
     }
 
     engine.queueEvent(
-      new TriggerDeathEvent(
-        this.playerBoard,
-        this.opponentBoard,
-        this.graveyard
-      )
+      new TriggerDeathEvent(this.player1, this.player2, this.graveyard)
     )
   }
 
   onEndTurn(): void {
-    // engine.queueEvent([new Event(EventType.EndTurn, {})])
-
     this.whoseTurn =
       this.whoseTurn === PlayerID.Player1 ? PlayerID.Player2 : PlayerID.Player1
 
     if (this.whoseTurn === PlayerID.Player2) {
       setTimeout(() => {
-        engine.queueEvent(
-          new EndTurnEvent(
-            this.player1Hero,
-            this.player2Hero,
-            this.playerBoard,
-            this.opponentBoard
-          )
-        )
+        engine.queueEvent(new EndTurnEvent(this.player1, this.player2))
       }, 2 * 1000)
     }
   }
 
   getBoardCharacter(id: number): Character | null {
-    if (this.player1Hero.id === id) return this.player1Hero
-    else if (this.player2Hero.id === id) return this.player2Hero
+    if (this.player1.hero.id === id) return this.player1.hero
+    else if (this.player2.hero.id === id) return this.player2.hero
 
-    for (const x of this.playerBoard) {
+    for (const x of this.player1.board) {
       if (x.id === id) return x
     }
-    for (const x of this.opponentBoard) {
+    for (const x of this.player2.board) {
       if (x.id === id) return x
     }
     return null
   }
 
   getHandMinion(id: number): Minion | null {
-    for (const x of this.playerHand) {
+    for (const x of this.player1.hand) {
       if (x.id === id && x instanceof Minion) return x
     }
-    for (const x of this.opponentHand) {
+    for (const x of this.player2.hand) {
       if (x.id === id && x instanceof Minion) return x
     }
     return null
   }
 
   getHandSpell(id: number): Effect | null {
-    for (const x of this.playerHand) {
+    for (const x of this.player1.hand) {
       if (x.id === id && x instanceof Effect) return x
     }
-    for (const x of this.opponentHand) {
+    for (const x of this.player2.hand) {
       if (x.id === id && x instanceof Effect) return x
     }
     return null

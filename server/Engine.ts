@@ -42,13 +42,11 @@ class Engine extends EventEmitter {
     )
   }
 
-  queuePlayerAction(eventList: Event[]): void {
-    eventList.forEach((e) => {
-      if (DEBUG_ENGINE) {
-        console.log(`Queuing player action ${e}`)
-      }
-      this.playerActionQueue.push(e)
-    })
+  queuePlayerAction(event: Event): void {
+    if (DEBUG_ENGINE) {
+      console.log(`Queuing player action ${event}`)
+    }
+    this.playerActionQueue.push(event)
 
     this.processNextPlayerAction()
   }

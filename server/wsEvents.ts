@@ -7,9 +7,9 @@ export const gameState = new GameState()
 
 export const processEvent = async (ws: WebSocket, json: any): Promise<void> => {
   setSocket(ws)
-  engine.queuePlayerAction([new Event(json.event, json.data)])
+  engine.queuePlayerAction(generateEvent(json))
 }
 
-export const getGameState = (): GameState => {
-  return gameState
+const generateEvent = (json) => {
+  return new Event(json.event, json.data)
 }

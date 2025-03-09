@@ -1,17 +1,18 @@
-import { getGameState } from 'wsEvents.ts'
 import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
-import Event from 'eventData/Event.ts'
-import { EventType, PlayerID } from '@constants'
+import { PlayerID } from '@constants'
 import Character from '@character'
 import GameState from '@gameState'
+import PlayerData from '@playerData'
+import DamageEvent from '@events/DamageEvent.ts'
 
 class Swipe extends Effect {
   constructor(id: number, playerOwner: PlayerID) {
     super(EffectID.SWIPE, id, playerOwner)
   }
 
+  // NEED TO THINK OF A GOOD WAY FOR BASICALLY ANY CARD TO ACCESS PLAYER DATA
   apply(source: Character, target: Character | null): void {
     const gameState = getGameState()
     if (!gameState || !source) {
@@ -47,18 +48,8 @@ class Swipe extends Effect {
       )
     }
 
-    engine.queueEvent([
-      new Event(EventType.Damage, {
-        source: source,
-        target: target,
-        amount: this.amount[0],
-      }),
-      new Event(EventType.Damage, {
-        source: source,
-        target: otherTargets, // IMPLEMENT TARGETTING MULTIPLE TARGETS AT ONCE
-        amount: this.amount[1],
-      }),
-    ])
+    engine.queueEvent(new DamageEvent(source, [target], this.amount[0]))
+    engine.queueEvent(new DamageEvent(source, otherTargets, this.amount[1]))
   }
 
   validateTarget(target: Character): boolean {
@@ -68,6 +59,14 @@ class Swipe extends Effect {
     }
 
     return target.playerOwner !== this.playerOwner
+  }
+
+  availableTargets(perspective: PlayerData, opponent: PlayerData): Character[] {
+    let targets = [opponent.hero]
+    for (let i = 0; i < opponent.board.length; i++) {
+      targets.push(opponent.board[i])
+    }
+    return targets
   }
 }
 

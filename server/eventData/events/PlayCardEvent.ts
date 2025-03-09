@@ -3,30 +3,19 @@ import Event from '@event'
 import Minion from '@minion'
 import { notifyClient } from '@ws'
 import SummonMinionEvent from './SummonMinionEvent.ts'
-import { EventType, PlayerID } from '@constants'
+import { EventType } from '@constants'
 import Card from '@card'
 import Effect from '@effect'
-import EffectEvent from './EffectEvent.ts'
+import PlayerData from '@playerData'
 
 class PlayCardEvent extends Event {
-  player: PlayerID
-  hand: any
-  board: any
+  playerData: PlayerData
   card: Card
   boardIndex: number
 
-  constructor(
-    player: PlayerID,
-    hand: any,
-    board: any,
-    card: Card,
-    boardIndex: number
-  ) {
+  constructor(playerData: PlayerData, card: Card, boardIndex: number) {
     super(EventType.PlayCard)
-    // GET RID OF PlayerID USAGE IN MOST PLACES. JUST PASS AROUND Hero REFERENCES
-    this.player = player
-    this.hand = hand
-    this.board = board
+    this.playerData = playerData
     this.card = card
     this.boardIndex = boardIndex
   }
@@ -36,11 +25,11 @@ class PlayCardEvent extends Event {
 
     notifyClient(EventType.PlayCard, true, {})
 
-    this.hand.splice(this.hand.indexOf(this.card), 1)[0]
+    this.playerData.hand.splice(this.playerData.hand.indexOf(this.card), 1)[0]
 
     if (this.card instanceof Minion) {
       engine.queueEvent(
-        new SummonMinionEvent(this.board, this.card, this.boardIndex)
+        new SummonMinionEvent(this.playerData.board, this.card, this.boardIndex)
       )
     } else if (this.card instanceof Effect) {
       // ??????

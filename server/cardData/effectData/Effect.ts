@@ -2,6 +2,7 @@ import EffectData from '@effectData'
 import { HeroClass, Rarity, EffectType, PlayerID } from '@constants'
 import Card from '@card'
 import Character from '@character'
+import PlayerData from '@playerData'
 
 class Effect extends Card {
   baseID: number
@@ -80,6 +81,10 @@ class Effect extends Card {
 
   validateTarget(target: Character): boolean {
     return true
+  }
+
+  availableTargets(perspective: PlayerData, opponent: PlayerData): Character[] {
+    return []
   }
 }
 

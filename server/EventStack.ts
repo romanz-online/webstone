@@ -1,43 +1,60 @@
-import { engine } from '@engine'
-import Event from 'eventData/Event.ts'
-import Minion from '@minion'
 import Effect from '@effect'
+import { engine } from '@engine'
+import EffectEvent from '@events/EffectEvent.ts'
 import PlayCardEvent from '@events/PlayCardEvent.ts'
+import SummonMinionEvent from '@events/SummonMinionEvent.ts'
+import Minion from '@minion'
+import PlayerData from '@playerData'
+import Event from 'eventData/Event.ts'
 
 class EventStack {
   private stack: Event[] = []
   private waiting: boolean
+  player1: PlayerData
+  player2: PlayerData
 
-  constructor() {
+  constructor(player1: PlayerData, player2: PlayerData) {
     this.stack = []
     this.waiting = false
+    this.player1 = player1
+    this.player2 = player2
   }
 
-  push(event: Event): void {
-    if (event instanceof PlayCardEvent) {
-      if (!event.card) return
+  // this method does NOT do any error handling
+  // that's all handled in GameState
+  generateStack(event: Event): void {
+    this.waiting = false
 
+    if (this.stack.length > 0) return
+
+    if (event instanceof PlayCardEvent) {
       if (event.card instanceof Minion) {
-        // CHECK FOR BATTLECRY, CHOOSE ONE, COMBO
         const minion: Minion = event.card
-        // WON'T WAIT FOR BATTLECRY IF THERE ARE NO ELIGIBLE TARGETS FOR THE BATTLECRY
-        // NEED TO IMPLEMENT THAT (TARGET VALIDATOR IN EACH EFFECT); SAME WITH OTHER NON-SPELL EFFECTS
-        this.waiting = !!minion.effects.battlecry
-        // NEED TO CHECK canTarget, requiresTarget AND TARGET VALIDATOR. IF VALIDATOR IS FALSE, DON'T WAIT
-        // AND JUST PLAY MINION/EXECUTE STACK
+        this.stack.push(event)
+        this.stack.push(
+          new SummonMinionEvent(event.playerData, minion, event.boardIndex)
+        )
+
+        const battlecry: Effect = minion.getBattlecry() // HANDLE COMBO AND CHOOSE ONE LATER
+        if (battlecry) {
+          if (battlecry.requiresTarget) {
+            this.waiting = true
+            this.stack.push(new EffectEvent(battlecry, minion, null))
+          } else if (
+            battlecry.canTarget &&
+            battlecry.availableTargets(this.player1, this.player2).length > 0
+          ) {
+            this.waiting = true
+            this.stack.push(new EffectEvent(battlecry, minion, null))
+          }
+        }
       } else if (event.card instanceof Effect) {
         const spell: Effect = event.card
-        if (spell.canTarget && spell.requiresTarget) {
-          this.waiting = true
-        }
+        this.stack.push(event)
+        this.waiting = spell.canTarget && spell.requiresTarget
+        this.stack.push(new EffectEvent(spell, event.playerData.hero, null))
       }
-    } else {
-      // ??? IDK
-      // THIS HAPPENS ON Target EVENTS, ONLY WORKS FOR SINGLE-TARGET EFFECTS
-      this.waiting = false
     }
-
-    this.stack.push(event)
   }
 
   executeStack(): void {
@@ -47,8 +64,8 @@ class EventStack {
     this.clear()
   }
 
-  getBottom(): any {
-    return this.stack[0] || null
+  getStackedEffect(): any {
+    return this.stack[this.stack.length - 1] || null
   }
 
   length(): number {

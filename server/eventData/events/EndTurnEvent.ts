@@ -1,38 +1,28 @@
 import Event from '@event'
 import { notifyClient } from '@ws'
 import { EventType } from '@constants'
-import Minion from '@minion'
-import Hero from '@hero'
+import PlayerData from '@playerData'
 
 class EndTurnEvent extends Event {
-  player1Hero: Hero
-  player2Hero: Hero
-  player1Board: Minion[]
-  player2Board: Minion[]
+  player1: PlayerData
+  player2: PlayerData
 
-  constructor(
-    player1Hero: Hero,
-    player2Hero: Hero,
-    player1Board: Minion[],
-    player2Board: Minion[]
-  ) {
+  constructor(player1: PlayerData, player2: PlayerData) {
     super(EventType.EndTurn)
-    this.player1Hero = player1Hero
-    this.player2Hero = player2Hero
-    this.player1Board = player1Board
-    this.player2Board = player2Board
+    this.player1 = player1
+    this.player2 = player2
   }
 
   execute(): boolean {
     // console.log(`Executing ${this}`)
 
-    this.player1Hero.canAttack = !this.player1Hero.canAttack
-    for (const minion of this.player1Board) {
+    this.player1.hero.canAttack = !this.player1.hero.canAttack
+    for (const minion of this.player1.board) {
       minion.canAttack = !minion.canAttack
     }
 
-    this.player2Hero.canAttack = !this.player2Hero.canAttack
-    for (const minion of this.player2Board) {
+    this.player2.hero.canAttack = !this.player2.hero.canAttack
+    for (const minion of this.player2.board) {
       minion.canAttack = !minion.canAttack
     }
 
