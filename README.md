@@ -6,13 +6,15 @@ To-do List:
 
 - Get all card images and sound effects. Most are now in the files but some are sporadically missing.
 
-- Tidy up HTML and CSS. Start using something like storybook for the html/css elements, so they can be developed without having to play the entire game. https://storybook.js.org/docs/get-started
+- Tidy up HTML and CSS. Start using something like storybook(?) for the html/css elements, so they can be developed without having to play the entire game. https://storybook.js.org/docs/get-started
 
 - Implement several screens (menu, game, card collection, etc.).
 
-- Organize the content of javascript scripts into objects or separate single-use scripts as much as possible.
+- Organize the content of public javascript into objects or separate single-use scripts as much as possible.
 
 - Make individual events update the client's game state instead of sending the entire game state each time and having the client reload everything.
+
+- Figure out how to implement Choose One :(
 
 - Do animations...
 
@@ -24,3 +26,13 @@ To-do List:
   - Minion dies https://animista.net/play/attention/shake
 
 - For visuals: three.js? https://youtu.be/e2ntx-fyXaE
+
+- Various visuals:
+  - https://codepen.io/delvignefred/pen/abMmXwg
+  - https://codepen.io/jackrugile/pen/zqJdXM
+  - https://codepen.io/jackrugile/pen/WZGeGM
+  - https://codepen.io/wheatup/pen/rXJrYm
+  - https://codepen.io/kellymoraes/pen/dXqMpJ
+  - https://codepen.io/macio2/pen/YWqogM
+  - https://codepen.io/tazcarper/pen/ybxvNw
+  - https://codepen.io/apsampaio/pen/WNvmoEr
