@@ -1,36 +1,31 @@
 import { EventType } from '@constants'
 import { engine } from '@engine'
 import Event from '@event'
-import PlayerData from '@playerData'
+import GameInstance from '@gameInstance'
 import { notifyClient } from '@ws'
 import StartTurnEvent from './StartTurnEvent.ts'
 
 class EndTurnEvent extends Event {
-  player1: PlayerData
-  player2: PlayerData
-
-  constructor(player1: PlayerData, player2: PlayerData) {
+  constructor() {
     super(EventType.EndTurn)
-    this.player1 = player1
-    this.player2 = player2
   }
 
   execute(): boolean {
     // console.log(`Executing ${this}`)
 
-    this.player1.hero.canAttack = false
-    for (const minion of this.player1.board) {
+    const gameInstance = GameInstance.getCurrent()
+    if (!gameInstance) return false
+
+    const playerData = gameInstance.getPlayerData(gameInstance.whoseTurn)
+
+    playerData.hero.canAttack = false
+    for (const minion of playerData.board) {
       minion.canAttack = false
     }
 
-    this.player2.hero.canAttack = false
-    for (const minion of this.player2.board) {
-      minion.canAttack = false
-    }
+    gameInstance.flipWhoseTurn()
 
-    // SWITCH whoseTurn
-
-    engine.queueEvent(new StartTurnEvent(this.player1, this.player2))
+    engine.queueEvent(new StartTurnEvent())
 
     notifyClient(EventType.EndTurn, true, {})
     return true

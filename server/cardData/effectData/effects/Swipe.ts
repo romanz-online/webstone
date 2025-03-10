@@ -4,6 +4,7 @@ import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
 import DamageEvent from '@events/DamageEvent.ts'
+import { GameInstance } from '@gameInstance'
 import PlayerData from '@playerData'
 
 class Swipe extends Effect {
@@ -11,32 +12,31 @@ class Swipe extends Effect {
     super(EffectID.SWIPE, id, playerOwner)
   }
 
-  apply(
-    player1: PlayerData,
-    player2: PlayerData,
-    source: Character,
-    target: Character | null
-  ): void {
-    if (this.requiresTarget || (player2.board.length > 0 && this.canTarget)) {
+  apply(source: Character, target: Character | null): void {
+    const gameInstance = GameInstance.getCurrent()
+    if (!gameInstance) return
+
+    if (
+      this.requiresTarget ||
+      (gameInstance.getPlayerData(PlayerID.Player2).board.length > 0 &&
+        this.canTarget)
+    ) {
       console.error('Target required for targeted damage effect')
       return
     }
 
     const targetID = target.id,
       targetOwner = target.playerOwner,
-      targetBoard =
-        targetOwner === PlayerID.Player1 ? player1.board : player2.board
+      player = gameInstance.getPlayerData(targetOwner)
 
     let otherTargets: Character[]
-    for (let i = 0; i < targetBoard.length; i++) {
-      if (targetBoard[i].id !== targetID) {
-        otherTargets.push(targetBoard[i])
+    for (let i = 0; i < player.board.length; i++) {
+      if (player.board[i].id !== targetID) {
+        otherTargets.push(player.board[i])
       }
     }
     if (targetID !== PlayerID.Player1 && targetID !== PlayerID.Player2) {
-      otherTargets.push(
-        targetOwner === PlayerID.Player1 ? player1.hero : player2.hero
-      )
+      otherTargets.push(player.hero)
     }
 
     engine.queueEvent(new DamageEvent(source, [target], this.amount[0]))

@@ -62,6 +62,10 @@ class Effect extends Card {
     }
   }
 
+  toString() {
+    return `${this.name}-${this.id}`
+  }
+
   getAmount(): number {
     return this.amount[0]
   }
@@ -75,12 +79,7 @@ class Effect extends Card {
     return desc
   }
 
-  apply(
-    player1: PlayerData,
-    player2: PlayerData,
-    source: Character,
-    target: Character | null
-  ): void {
+  apply(source: Character, target: Character | null): void {
     throw new Error('apply() method must be implemented by subclasses')
   }
 

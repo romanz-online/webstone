@@ -4,27 +4,21 @@ import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
 import RestoreHealthEvent from '@events/RestoreHealthEvent.ts'
-import PlayerData from '@playerData'
+import GameInstance from '@gameInstance'
 
 class GuardianOfKingsBattlecry extends Effect {
   constructor(playerOwner: PlayerID) {
     super(EffectID.GUARDIAN_OF_KINGS_BATTLECRY, -1, playerOwner)
   }
 
-  apply(
-    player1: PlayerData,
-    player2: PlayerData,
-    source: Character,
-    target: Character | null
-  ): void {
+  apply(source: Character, target: Character | null): void {
+    const gameInstance = GameInstance.getCurrent()
+    if (!gameInstance) return
+
     engine.queueEvent(
       new RestoreHealthEvent(
         source,
-        [
-          player1.hero.playerOwner === this.playerOwner
-            ? player1.hero
-            : player2.hero,
-        ],
+        [gameInstance.getPlayerData(this.playerOwner).hero],
         this.getAmount()
       )
     )

@@ -15,6 +15,9 @@ import MinionID from '@minionID' with { type: 'json' }
 import PlayerData from '@playerData'
 import TryEndTurnEvent from '@tryEvents/TryEndTurnEvent.ts'
 import { notifyClient } from '@ws'
+import { AsyncLocalStorage } from 'async_hooks'
+
+const gameContext = new AsyncLocalStorage<GameInstance>()
 
 const deck1: number[] = [
     MinionID.TIRION_FORDRING,
@@ -25,7 +28,7 @@ const deck1: number[] = [
   ],
   deck2: number[] = []
 
-class GameInstance {
+export class GameInstance {
   player1: PlayerData
   player2: PlayerData
   whoseTurn: PlayerID
@@ -49,10 +52,10 @@ class GameInstance {
     )
 
     this.whoseTurn = PlayerID.Player2
-    this.eventStack = new EventStack(this.player1, this.player2)
+    this.eventStack = new EventStack()
 
     for (let i = 0; i < 5; i++) {
-      engine.queueEvent(new DrawCardEvent(this.player1))
+      engine.queueEvent(new DrawCardEvent(PlayerID.Player1))
     }
 
     engine.on('done', () => {
@@ -125,7 +128,15 @@ class GameInstance {
       }
     )
 
-    engine.queueEvent(new EndTurnEvent(this.player1, this.player2))
+    engine.queueEvent(new EndTurnEvent())
+  }
+
+  static getCurrent(): GameInstance | undefined {
+    return gameContext.getStore()
+  }
+
+  static runWithContext<T>(gameInstance: GameInstance, fn: () => T): T {
+    return gameContext.run(gameInstance, fn)
   }
 
   toJSON(): any {
@@ -139,6 +150,18 @@ class GameInstance {
     return function () {
       return counter++
     }
+  }
+
+  getPlayerData(id: PlayerID) {
+    if (id === PlayerID.Player1) {
+      return this.player1
+    }
+    return this.player2
+  }
+
+  flipWhoseTurn() {
+    this.whoseTurn =
+      this.whoseTurn === PlayerID.Player1 ? PlayerID.Player2 : PlayerID.Player1
   }
 
   cancel(): void {
@@ -167,14 +190,13 @@ class GameInstance {
 
   tryPlayMinion(data: any): void {
     const boardIndex: number = data.boardIndex,
-      id: number = data.id,
-      playerData: PlayerData =
-        data.player === PlayerID.Player1 ? this.player1 : this.player2
+      cardID: number = data.id,
+      playerData: PlayerData = this.getPlayerData(data.player)
 
-    const minion: Minion | null = this.getHandMinion(id)
+    const minion: Minion | null = this.getHandMinion(cardID)
     if (!minion) {
       notifyClient(EventType.PlayCard, false, this.toJSON())
-      console.error(`Could not find minion with ID ${id} in hand`)
+      console.error(`Could not find minion with ID ${cardID} in hand`)
       return
     } else if (playerData.board.length === 7) {
       notifyClient(EventType.PlayCard, false, this.toJSON())
@@ -187,7 +209,7 @@ class GameInstance {
     }
 
     this.eventStack.generateStack(
-      new PlayCardEvent(playerData, minion, boardIndex)
+      new PlayCardEvent(playerData.playerID, minion, boardIndex)
     )
     if (this.eventStack.isWaiting()) {
       notifyClient(EventType.Target, true, {})
@@ -197,14 +219,13 @@ class GameInstance {
   }
 
   tryPlaySpell(data: any): void {
-    const id: number = data.id,
-      playerData: PlayerData =
-        data.player === PlayerID.Player1 ? this.player1 : this.player2
+    const cardID: number = data.id,
+      playerData: PlayerData = this.getPlayerData(data.player)
 
-    const spell: Effect | null = this.getHandSpell(id)
+    const spell: Effect | null = this.getHandSpell(cardID)
     if (!spell) {
       notifyClient(EventType.PlayCard, false, this.toJSON())
-      console.error(`Could not find spell with ID ${id} in hand`)
+      console.error(`Could not find spell with ID ${cardID} in hand`)
       return
     } else if (spell.manaCost > playerData.getAvailableMana()) {
       notifyClient(EventType.PlayCard, false, this.toJSON())
@@ -220,11 +241,9 @@ class GameInstance {
       return
     }
 
-    // MAYBE ALSO SEPARATE SPELLS AND BATTLECRIES AFTER ALL? NOT SURE, HONESTLY...
-    // NEED TO RETHINK THIS
-    // ALSO FIND A WAY TO ACCESS player1 AND player2 FROM ANY OF THE OBJECTS CREATED IN A PARTICULAR Game
-
-    this.eventStack.generateStack(new PlayCardEvent(playerData, spell, -1))
+    this.eventStack.generateStack(
+      new PlayCardEvent(playerData.playerID, spell, -1)
+    )
 
     if (this.eventStack.isWaiting()) {
       notifyClient(EventType.Target, true, {})
@@ -297,14 +316,14 @@ class GameInstance {
       return
     }
 
-    engine.queueEvent(new TriggerDeathEvent(this.player1, this.player2))
+    engine.queueEvent(new TriggerDeathEvent())
   }
 
   tryEndTurn(): void {
     this.whoseTurn =
       this.whoseTurn === PlayerID.Player1 ? PlayerID.Player2 : PlayerID.Player1
 
-    engine.queueEvent(new EndTurnEvent(this.player1, this.player2))
+    engine.queueEvent(new EndTurnEvent())
 
     if (this.whoseTurn === PlayerID.Player2) {
       setTimeout(() => {

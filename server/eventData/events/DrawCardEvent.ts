@@ -1,32 +1,37 @@
 import Card from '@card'
-import { EventType } from '@constants'
+import { EventType, PlayerID } from '@constants'
 import { engine } from '@engine'
 import Event from '@event'
-import PlayerData from '@playerData'
+import GameInstance from '@gameInstance'
 import FatigueEvent from './FatigueEvent.ts'
 
 class DrawCardEvent extends Event {
-  player: PlayerData
+  playerID: PlayerID
 
-  constructor(player: PlayerData) {
+  constructor(playerID: PlayerID) {
     super(EventType.DrawCard)
-    this.player = player
+    this.playerID = playerID
   }
 
   execute(): boolean {
     // console.log(`Executing ${this}`)
 
-    const card: Card = this.player.deck.pop()
+    const gameInstance = GameInstance.getCurrent()
+    if (!gameInstance) return false
+
+    const playerData = gameInstance.getPlayerData(this.playerID)
+
+    const card: Card = playerData.deck.pop()
     if (card) {
       console.log('player draws a card')
-      if (this.player.hand.length === 10) {
+      if (playerData.hand.length === 10) {
         // overdraw
       } else {
-        this.player.hand.push(card)
+        playerData.hand.push(card)
       }
       // notifyClient(EventType.DrawCard, true, {})
     } else {
-      engine.queueEvent(new FatigueEvent(this.player))
+      engine.queueEvent(new FatigueEvent(this.playerID))
     }
 
     return true

@@ -1,21 +1,17 @@
-import { engine } from '@engine'
-import Event from '@event'
-import Minion from '@minion'
-import { notifyClient } from '@ws'
-import SummonMinionEvent from './SummonMinionEvent.ts'
-import { EventType } from '@constants'
 import Card from '@card'
-import Effect from '@effect'
-import PlayerData from '@playerData'
+import { EventType, PlayerID } from '@constants'
+import Event from '@event'
+import GameInstance from '@gameInstance'
+import { notifyClient } from '@ws'
 
 class PlayCardEvent extends Event {
-  playerData: PlayerData
+  playerID: PlayerID
   card: Card
   boardIndex: number
 
-  constructor(playerData: PlayerData, card: Card, boardIndex: number) {
+  constructor(playerID: PlayerID, card: Card, boardIndex: number) {
     super(EventType.PlayCard)
-    this.playerData = playerData
+    this.playerID = playerID
     this.card = card
     this.boardIndex = boardIndex
   }
@@ -23,20 +19,30 @@ class PlayCardEvent extends Event {
   execute(): boolean {
     // console.log(`Executing ${this}`)
 
+    const gameInstance = GameInstance.getCurrent()
+    if (!gameInstance) return false
+
+    const playerData = gameInstance.getPlayerData(this.playerID)
+
+    playerData.hand.splice(playerData.hand.indexOf(this.card), 1)[0]
+
+    // summoning and effects are handled in their respective events, which are queued in EventStack
+
+    // OR MAYBE JUST MAKE A SummonMinionEvent HERE AND DIRECTLY EXECUTE IT?
+    // const ret: boolean = new SummonMinionEvent(
+    //   this.playerID,
+    //   this.card as Minion,
+    //   this.boardIndex
+    // ).execute()
+    // if (ret) {
+    //   notifyClient(EventType.PlayCard, true, {})
+    // } else {
+    //   // burn the card if it couldn't be summoned for some reason?
+    //   notifyClient(EventType.PlayCard, false, {})
+    // }
+    // NOT SURE IF THIS IS NECESSARY OR EVEN CORRECT
+
     notifyClient(EventType.PlayCard, true, {})
-
-    this.playerData.hand.splice(this.playerData.hand.indexOf(this.card), 1)[0]
-
-    if (this.card instanceof Minion) {
-      engine.queueEvent(
-        new SummonMinionEvent(this.playerData.board, this.card, this.boardIndex)
-      )
-    } else if (this.card instanceof Effect) {
-      // ??????
-      // engine.queueEvent([
-      //   new EffectEvent(this.card, this.player, this.boardIndex),
-      // ])
-    }
 
     return true
   }

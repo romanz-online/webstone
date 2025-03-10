@@ -8,6 +8,7 @@ import Minion from '@minion'
 import MinionID from '@minionID' with { type: 'json' }
 
 class PlayerData {
+  playerID: PlayerID
   hero: Hero
   deck: Card[]
   hand: Card[]
@@ -24,6 +25,7 @@ class PlayerData {
     playerID: PlayerID,
     id: () => number
   ) {
+    this.playerID = playerID
     this.hero = generateHero(heroID, id(), playerID)
     this.deck = []
     this.hand = []

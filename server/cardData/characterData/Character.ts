@@ -72,7 +72,7 @@ class Character extends Card {
   }
 
   toString(): string {
-    return `${this.name}${this.id}`
+    return `${this.name}-${this.id}`
   }
 
   toJSON(): any {
@@ -105,6 +105,22 @@ class Character extends Card {
 
   getBattlecry(): Effect | null {
     return this.effects.battlecry
+  }
+
+  getCombo(): Effect | null {
+    return this.effects.combo
+  }
+
+  getChooseOne(): Effect | null {
+    return this.effects.chooseOne
+  }
+
+  getDeathrattle(): Effect | null {
+    return this.effects.deathrattle
+  }
+
+  getAura(): Effect | null {
+    return this.effects.aura
   }
 
   takeDamage(damage: number): number {

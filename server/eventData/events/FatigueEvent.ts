@@ -1,25 +1,30 @@
-import { EventType } from '@constants'
+import { EventType, PlayerID } from '@constants'
 import { engine } from '@engine'
 import Event from '@event'
 import DamageEvent from '@events/DamageEvent.ts'
+import GameInstance from '@gameInstance'
 import PlayerData from '@playerData'
 import { notifyClient } from '@ws'
 
 class FatigueEvent extends Event {
-  player: PlayerData
+  playerID: PlayerID
 
-  constructor(player: PlayerData) {
+  constructor(playerID: PlayerID) {
     super(EventType.Fatigue)
-    this.player = player
+    this.playerID = playerID
   }
 
   execute(): boolean {
     // console.log(`Executing ${this}`)
 
-    this.player.fatigue++
+    const gameInstance = GameInstance.getCurrent()
+    if (!gameInstance) return false
+
+    const player: PlayerData = gameInstance.getPlayerData(this.playerID)
+    player.fatigue++
 
     engine.queueEvent(
-      new DamageEvent(this.player.hero, [this.player.hero], this.player.fatigue)
+      new DamageEvent(player.hero, [player.hero], player.fatigue)
     )
 
     notifyClient(EventType.Fatigue, true, {})

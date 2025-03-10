@@ -4,20 +4,18 @@ import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
 import ChangeStatsEvent from '@events/ChangeStatsEvent.ts'
+import GameInstance from '@gameInstance'
 import Minion from '@minion'
-import PlayerData from '@playerData'
 
 class MarkOfTheWild extends Effect {
   constructor(id: number, playerOwner: PlayerID) {
     super(EffectID.MARK_OF_THE_WILD, id, playerOwner)
   }
 
-  apply(
-    player1: PlayerData,
-    player2: PlayerData,
-    source: Character,
-    target: Character | null
-  ): void {
+  apply(source: Character, target: Character | null): void {
+    const gameInstance = GameInstance.getCurrent()
+    if (!gameInstance) return
+
     if (target) {
       engine.queueEvent(
         // ALSO NEED SOME WAY TO GIVE IT TAUNT
@@ -27,16 +25,6 @@ class MarkOfTheWild extends Effect {
   }
 
   validateTarget(target: Character | null): boolean {
-    if (!target) {
-      if (
-        this.requiresTarget ||
-        (gameState.opponentBoard.length > 0 && this.canTarget)
-      ) {
-        console.error('Target required for targeted damage effect')
-        return false
-      }
-    }
-
     return target instanceof Minion
   }
 }
