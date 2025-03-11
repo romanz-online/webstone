@@ -6,8 +6,6 @@ To-do List:
 
 - Get all card images and sound effects. Most are now in the files but some are sporadically missing.
 
-- Tidy up HTML and CSS. Start using something like storybook(?) for the html/css elements, so they can be developed without having to play the entire game. https://storybook.js.org/docs/get-started
-
 - Implement several screens (menu, game, card collection, etc.).
 
 - Organize the content of public javascript into objects or separate single-use scripts as much as possible.
@@ -28,6 +26,7 @@ To-do List:
 - For visuals: three.js? https://youtu.be/e2ntx-fyXaE
 
 - Various visuals:
+
   - https://codepen.io/delvignefred/pen/abMmXwg
   - https://codepen.io/jackrugile/pen/zqJdXM
   - https://codepen.io/jackrugile/pen/WZGeGM
@@ -36,3 +35,6 @@ To-do List:
   - https://codepen.io/macio2/pen/YWqogM
   - https://codepen.io/tazcarper/pen/ybxvNw
   - https://codepen.io/apsampaio/pen/WNvmoEr
+
+- Something to draw from, maybe:
+  - https://github.com/JavontaeH/WebStone?tab=readme-ov-file

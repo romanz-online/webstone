@@ -1,0 +1,322 @@
+<style>
+  @font-face {
+    font-family: 'Belwe';
+    src: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/2509128/Belwe_en.ttf');
+  }
+  * {
+    box-sizing: inherit;
+    font-family: inherit;
+  }
+  html {
+    box-sizing: border-box;
+    font-size: 1vmin;
+    font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+  }
+  .card {
+    will-change: width, height;
+    position: relative;
+    width: 75vmin;
+    height: 100vmin;
+    padding-left: 4vmin;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transform: scale(0.75);
+    flex: 0 0 auto;
+    perspective: 400px;
+    transform-style: preserve-3d;
+    will-change: transform;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+  }
+  .card::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/2509128/card.png);
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .card > * {
+    position: absolute;
+    display: block;
+  }
+  .card .image {
+    z-index: -1;
+    width: 70%;
+    transform: translate(0rem, -20vmin);
+  }
+  .card .desc {
+    width: 46vmin;
+    font-size: 4rem;
+    text-align: center;
+    color: #222;
+    transform: translate(-1vmin, 25vmin);
+  }
+  .card .mana,
+  .card .attack,
+  .card .health,
+  .card .name,
+  .card .title {
+    font-size: 16rem;
+    font-family: 'Belwe', Verdana, Roboto, sans-serif;
+    color: #fff;
+    -webkit-text-stroke-color: #333;
+  }
+  .card .name {
+    height: 12vmin;
+    width: 100%;
+    transform: translate(-1vmin, 4vmin);
+    letter-spacing: 0.04rem;
+  }
+  .card .mana {
+    transform: translate(-26.5vmin, -41vmin);
+    -webkit-text-stroke-width: 0.5vmin;
+    font-size: 17rem;
+  }
+  .card .attack {
+    transform: translate(-26.5vmin, 38vmin);
+    -webkit-text-stroke-width: 0.5vmin;
+  }
+  .card .health {
+    transform: translate(26.5vmin, 38vmin);
+    -webkit-text-stroke-width: 0.5vmin;
+  }
+  .card .title {
+    transform: translate(0, 40vmin);
+    font-size: 4rem;
+    -webkit-text-stroke-width: 0.3vmin;
+  }
+  .card .actions {
+    display: none;
+  }
+</style>
+
+<script>
+  var card,
+    image,
+    cardw,
+    cardh,
+    cardx,
+    cardy,
+    ocardx,
+    ocardy,
+    pinx,
+    piny,
+    pinxperc,
+    pinyperc,
+    targetx,
+    targety,
+    rx,
+    ry,
+    targetrx,
+    targetry,
+    scale,
+    targetscale,
+    ww = window.innerWidth,
+    wh = window.innerHeight,
+    md,
+    mx,
+    my,
+    whoosh,
+    whooshvol,
+    whooshvoltarget,
+    majesty,
+    majestyvol,
+    majestyvoltarget,
+    audioloaded,
+    lastTime,
+    tickRate
+
+  function audioload() {
+    audioloaded++
+    if (audioloaded == 2) {
+      // document.body.classList.add('loaded')
+      // majesty.play()
+      // whoosh.play()
+      bindevents()
+      loop()
+    }
+  }
+
+  function init() {
+    onresize()
+    card = document.querySelector('.card')
+    cardw = card.getBoundingClientRect().width
+    cardh = card.getBoundingClientRect().height
+    cardx = ww / 2 - cardw / 2
+    cardy = wh / 2 - cardh / 2
+    ocardx = cardx
+    ocardy = cardy
+    pinx = 0
+    piny = 0
+    pinxperc = 0
+    pinyperc = 0
+    targetx = cardx
+    targety = cardy
+    rx = 0
+    ry = 0
+    targetrx = 0
+    targetry = 0
+    scale = 0.5
+    targetscale = scale
+    md = false
+    mx = cardx
+    my = cardy
+    audioloaded = 0
+    lastTime = 0
+    tickRate = 15
+
+    whooshvol = 0
+    whooshvoltarget = 0
+    whoosh = new Audio()
+    whoosh.addEventListener('canplaythrough', audioload)
+    whoosh.src =
+      'https://s3-us-west-2.amazonaws.com/s.cdpn.io/836/hs-whoosh.ogg'
+    whoosh.volume = 0
+    whoosh.loop = true
+
+    majestyvol = 0
+    majestyvoltarget = 0
+    majesty = new Audio()
+    majesty.addEventListener('canplaythrough', audioload)
+    majesty.src =
+      'https://s3-us-west-2.amazonaws.com/s.cdpn.io/836/hs-majesty.ogg'
+    majesty.volume = 0
+    majesty.loop = true
+  }
+
+  function bindevents() {
+    card.addEventListener('mousedown', onmousedown)
+    window.addEventListener('mouseup', onmouseup)
+    window.addEventListener('mousemove', onmousemove)
+    window.addEventListener('resize', onresize)
+  }
+
+  function onmousedown(e) {
+    md = true
+    mx = e.pageX
+    my = e.pageY
+    pinx = cardw / 2 // pin to center
+    piny = cardh / 2 // pin to center
+    // pinx = mx - cardx // pin to click point
+    // piny = my - cardy // pin to click point
+    pinxperc = 100 - (pinx / cardw) * 100 // transform based on the pin position
+    pinyperc = 100 - (piny / cardh) * 100 // transform based on the pin position
+  }
+
+  function onmouseup() {
+    md = false
+  }
+
+  function onmousemove(e) {
+    if (md) {
+      mx = e.pageX
+      my = e.pageY
+    }
+  }
+
+  function onresize() {
+    ww = window.innerWidth
+    wh = window.innerHeight
+  }
+
+  function loop() {
+    requestAnimationFrame(loop)
+
+    if (performance.now() - lastTime >= tickRate) {
+      lastTime = performance.now()
+      // set new target position
+      targetx = mx - cardx - pinx
+      targety = my - cardy - piny
+
+      // leap to new position
+      cardx += targetx * 0.25
+      cardy += targety * 0.25
+
+      // contain card to window bounds
+      if (cardx < -cardw / 2) {
+        cardx = -cardw / 2
+      }
+      if (cardx > ww - cardw / 2) {
+        cardx = ww - cardw / 2
+      }
+      if (cardy < -cardh / 2) {
+        cardy = -cardh / 2
+      }
+      if (cardy > wh - cardh / 2) {
+        cardy = wh - cardh / 2
+      }
+
+      // get rotation based on how much card moved
+      // lock rotation so things don't get too crazy
+      targetrx = Math.max(Math.min((ocardy - cardy - rx) * 3, 30), -30)
+      targetry = Math.max(Math.min((cardx - ocardx - ry) * 3, 30), -30)
+
+      // lerp to new rotation
+      rx += targetrx * 0.1
+      ry += targetry * 0.1
+
+      // scale up when the mouse is pressed
+      targetscale = md ? 0.5 - scale : 0.5 - scale
+      scale += targetscale * 0.2
+
+      // apply the transform
+      card.style['transform-origin'] = `${pinxperc}% ${pinyperc}%`
+      card.style['transform'] =
+        `translate3d(${cardx}px, ${cardy}px, 0) scale(${scale}) rotateY(${ry}deg) rotateX(${rx}deg)`
+
+      majestyvoltarget = md ? 0.2 : 0
+      majestyvol += (majestyvoltarget - majestyvol) * 0.1
+      majesty.volume = majestyvol
+
+      whooshvoltarget =
+        (Math.abs(ocardy - cardy) + Math.abs(ocardx - cardx)) * 0.003
+      whooshvol += (whooshvoltarget - whooshvol) * 0.1
+      whoosh.volume = Number.isFinite(whooshvol) ? Math.min(whooshvol, 1) : 1
+
+      // store the old card position
+      ocardx = cardx
+      ocardy = cardy
+    }
+  }
+
+  // pull up a chair by the hearth!
+  window.onload = init
+</script>
+
+<div class="card">
+  <svg class="name" viewbox="0 0 100 20">
+    <path
+      id="curve"
+      fill="transparent"
+      d="M0,18 C0,18 0,20 25,15 C25,15 50,10 50,10 C50,10 50,10 75,8 C75,8 100,10 100,12"
+    ></path>
+    <text
+      x="52"
+      font-size="8.5"
+      font="Belwe"
+      fill="#fff"
+      stroke="#333"
+      stroke-width="1.8"
+      text-anchor="middle"
+      paint-order="stroke fill"
+    >
+      <textpath xlink:href="#curve">Ancient Mage</textpath>
+    </text>
+  </svg>
+  <div class="mana">4</div>
+  <div class="attack">2</div>
+  <div class="health">5</div>
+  <div class="title"></div>
+  <div class="desc">+1 Spellpower</div>
+  <img src="https://i.imgur.com/6nf4CDM.jpeg" class="image" draggable="false" />
+</div>

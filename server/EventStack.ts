@@ -45,7 +45,7 @@ class EventStack {
 
         if (
           battlecry.requiresTarget ||
-          (battlecry.canTarget && battlecry.availableTargets().length > 0)
+          battlecry.canTarget /*&& battlecry.availableTargets().length > 0*/
         ) {
           this.waiting = true
           this.stack.push(new EffectEvent(battlecry, minion, null))

@@ -127,11 +127,7 @@ head {
 .card--placeholder {
   visibility: hidden;
 }
-/* .card, .cardtutorialhint {
-  display: none;
-}
-*/
-.card:hover .cardtutorialhint {
+.card:hover {
   display: block;
   color: white;
   font-size: 14px;
