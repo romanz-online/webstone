@@ -1,0 +1,11 @@
+body {
+  cursor:
+    url(/media/images/cursor/cursor.png) 10 2,
+    auto;
+}
+
+body:active {
+  cursor:
+    url(../media/images/cursor/click.png) 10 2,
+    auto;
+}

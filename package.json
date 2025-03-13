@@ -5,7 +5,9 @@
   "description": "Web-based vanilla Hearthstone currently in development.",
   "main": "server.ts",
   "scripts": {
-    "start": "npx tsx server.ts",
+    "start": "concurrently \"npx tsx server/server.ts\" \"vite\"",
+    "build": "vite build --root frontend",
+    "dev": "vite --root frontend",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write ."
   },
@@ -13,11 +15,14 @@
   "license": "ISC",
   "dependencies": {
     "mime-types": "^2.1.35",
+    "pixi.js": "^8.8.1",
     "prettier": "^3.5.2",
     "tsx": "^4.19.3",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.43.0"
   },
   "devDependencies": {
-    "@types/node": "^22.13.9"
+    "@types/node": "^22.13.9",
+    "concurrently": "^9.1.2",
+    "vite": "^6.2.1"
   }
 }

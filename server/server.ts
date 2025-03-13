@@ -1,17 +1,16 @@
 import uWS from 'uWebSockets.js'
 // import { v4 as uuidv4 } from 'uuid';
-import mime from 'mime-types'
 import fs from 'fs'
+import mime from 'mime-types'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import HeroData from './cardData/characterData/heroData/HeroData.ts'
+import MinionData from './cardData/characterData/minionData/MinionData.ts'
+import EffectData from './cardData/effectData/EffectData.ts'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const staticDir = path.join(__dirname, '/public')
-import { processEvent } from './server/wsEvents.ts'
-import HeroData from './server/cardData/characterData/heroData/HeroData.ts'
-import MinionData from './server/cardData/characterData/minionData/MinionData.ts'
-import EffectData from './server/cardData/effectData/EffectData.ts'
 
 // const clients = new Map();
 
@@ -20,7 +19,7 @@ for (let i = 0; i < MinionData.length; i++) {
   minionIDArray[MinionData[i].fileName.toUpperCase()] = 1000 + i
 }
 fs.writeFileSync(
-  './server/characterData/minionData/MinionID.json',
+  './server/cardData/characterData/minionData/MinionID.json',
   JSON.stringify(minionIDArray, null, 2),
   'utf8'
 )
@@ -31,7 +30,7 @@ for (let i = 0; i < EffectData.length; i++) {
   effectIDArray[EffectData[i].fileName.toUpperCase()] = 2000 + i
 }
 fs.writeFileSync(
-  './server/effectData/EffectID.json',
+  './server/cardData/effectData/EffectID.json',
   JSON.stringify(effectIDArray, null, 2),
   'utf8'
 )
@@ -42,11 +41,13 @@ for (let i = 0; i < HeroData.length; i++) {
   heroIDArray[HeroData[i].fileName.toUpperCase()] = 3000 + i
 }
 fs.writeFileSync(
-  './server/characterData/heroData/HeroID.json',
+  './server/cardData/characterData/heroData/HeroID.json',
   JSON.stringify(heroIDArray, null, 2),
   'utf8'
 )
 console.log('Generated hero IDs')
+
+import { processEvent } from './wsEvents.ts'
 
 try {
   const tsContent = fs.readFileSync('./server/constants.ts', 'utf8'),
