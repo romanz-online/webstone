@@ -19,14 +19,15 @@ export class HandCard extends PIXI.Container {
   private nameTextStyle: PIXI.TextStyle
 
   private ticker: PIXI.Ticker
-  private mx: number = this.x
-  private my: number = this.y
+  private mx: number
+  private my: number
   private pinx: number = 0
   private piny: number = 0
   private ocardx: number
   private ocardy: number
   private rx: number = 0
   private ry: number = 0
+  private ready: boolean = false
 
   constructor() {
     super()
@@ -60,7 +61,7 @@ export class HandCard extends PIXI.Container {
     this.statTextStyle = new PIXI.TextStyle({
       fontFamily: 'Belwe',
       stroke: 'black',
-      strokeThickness: 4,
+      strokeThickness: 7,
       fontSize: 80,
       fill: 'white',
       fontWeight: 'bold',
@@ -70,8 +71,8 @@ export class HandCard extends PIXI.Container {
     this.nameTextStyle = new PIXI.TextStyle({
       fontFamily: 'Belwe',
       stroke: 'black',
-      strokeThickness: 4,
-      fontSize: 26,
+      // strokeThickness: 4,
+      fontSize: 20,
       fill: 'white',
       fontWeight: 'bold',
       align: 'center',
@@ -93,12 +94,15 @@ export class HandCard extends PIXI.Container {
     this.ocardy = this.y
     this.eventMode = 'static'
     this.on('pointerdown', (event) => {
+      this.ready = true
       this.offsetX = this.x - event.global.x
       this.offsetY = this.y - event.global.y
       DragState.setDraggedObj(this)
 
       this.mx = event.global.x
       this.my = event.global.y
+      this.ocardx = this.x
+      this.ocardy = this.y
       this.pinx = this.width / 2
       this.piny = this.height / 2
     })
@@ -112,6 +116,8 @@ export class HandCard extends PIXI.Container {
   }
 
   private physicsLoop(delta: any): void {
+    if (!this.ready) return // prevents glitchy behavior on the first loop
+
     this.rx +=
       Math.max(Math.min((this.ocardy - this.y - this.rx) * 3, 15), -15) * 0.01
     this.ry +=

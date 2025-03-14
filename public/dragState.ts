@@ -1,4 +1,4 @@
-import { HandCard } from './Card.ts'
+import { HandCard } from './HandCard.ts'
 
 let draggedObj: HandCard | null = null
 

@@ -1,6 +1,8 @@
+import gsap from 'gsap'
 import * as PIXI from 'pixi.js'
-import { HandCard } from './Card.ts'
+import { BoardMinion } from './BoardMinion.ts'
 import * as DragState from './dragState.ts'
+import { HandCard } from './HandCard.ts'
 import { HeroPortrait } from './HeroPortrait.ts'
 
 export const app = new PIXI.Application()
@@ -25,6 +27,7 @@ export const app = new PIXI.Application()
     './media/images/cardimages/cairne_bloodhoof.jpg',
     './media/images/Card_Inhand_Minion_Priest.png',
     './media/images/card_inhand_minion_priest_frame.png',
+    './media/images/empty_board_frame.png',
   ])
 
   const background = PIXI.Sprite.from(
@@ -60,9 +63,24 @@ export const app = new PIXI.Application()
   jaina1.y = app.screen.height / 2 - app.screen.height / 3
   app.stage.addChild(jaina1)
 
-  const card = new HandCard()
-  card.scale.set(0.5)
-  card.x = app.screen.width / 2
-  card.y = app.screen.height / 2
-  app.stage.addChild(card)
+  const minion = new BoardMinion()
+  minion.scale.set(1)
+  minion.x = app.screen.width / 2
+  minion.y = app.screen.height / 2
+  app.stage.addChild(minion)
+
+  for (let i = 0; i < 5; i++) {
+    const card = new HandCard()
+    card.scale.set(0.5)
+    card.x = app.screen.width / 3 + (i + 1) * (card.width / 2)
+    card.y = app.screen.height - 24
+
+    card.on('mouseover', (event) => {
+      gsap.to(card.scale, { x: 0.6, y: 0.6, duration: 0.2, ease: 'power1.out' })
+    })
+    card.on('mouseout', (event) => {
+      gsap.to(card.scale, { x: 0.5, y: 0.5, duration: 0.2, ease: 'power1.out' })
+    })
+    app.stage.addChild(card)
+  }
 })()
