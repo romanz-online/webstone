@@ -7,7 +7,4 @@ Run `npm install` and then `npm start` to run. Currently starts a server and vit
 
 - Figure out how to implement Choose One :(
 
-- For visuals: three.js? https://youtu.be/e2ntx-fyXaE
-
-- Something to draw from, maybe:
-  - https://github.com/JavontaeH/WebStone?tab=readme-ov-file
+- For some 3D-esque visuals: three.js? https://youtu.be/e2ntx-fyXaE
