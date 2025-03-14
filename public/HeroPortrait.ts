@@ -44,6 +44,6 @@ export class HeroPortrait extends PIXI.Container {
   }
 
   updateHealth(newHealth: number) {
-    this.healthText.text = newHealth
+    this.healthText.bannerText = newHealth
   }
 }

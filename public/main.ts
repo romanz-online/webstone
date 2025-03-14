@@ -1,9 +1,10 @@
 import * as PIXI from 'pixi.js'
 import { HandCard } from './Card.ts'
-import { HeroPortrait } from './HeroPortrait.ts'
 import * as DragState from './dragState.ts'
+import { HeroPortrait } from './HeroPortrait.ts'
+
+export const app = new PIXI.Application()
 ;(async () => {
-  const app = new PIXI.Application()
   await app.init({
     resizeTo: window,
   })
@@ -20,13 +21,14 @@ import * as DragState from './dragState.ts'
     './media/images/mana.png',
     './media/images/attack.png',
     './media/images/health.png',
+    './media/images/name-banner-minion.png',
     './media/images/cardimages/cairne_bloodhoof.jpg',
     './media/images/Card_Inhand_Minion_Priest.png',
     './media/images/card_inhand_minion_priest_frame.png',
   ])
 
   const background = PIXI.Sprite.from(
-    await PIXI.Assets.load('media/images/background.png')
+    await PIXI.Assets.load('media/images/combat_board_tmp.png')
   )
   background.anchor.set(0.5, 0.5)
   background.x = app.screen.width / 2
@@ -37,12 +39,6 @@ import * as DragState from './dragState.ts'
   )
   background.scale.set(scale)
   app.stage.addChildAt(background, 0)
-
-  // const cardData = {
-  //   image: 'card-image.png',
-  //   title: 'Fireball',
-  //   description: 'Deal 6 damage.',
-  // }
 
   app.stage.eventMode = 'static'
   app.stage.on('pointermove', (event) => {
@@ -65,7 +61,7 @@ import * as DragState from './dragState.ts'
   app.stage.addChild(jaina1)
 
   const card = new HandCard()
-  // card.scale.set(0.6)
+  card.scale.set(0.5)
   card.x = app.screen.width / 2
   card.y = app.screen.height / 2
   app.stage.addChild(card)

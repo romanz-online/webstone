@@ -13,7 +13,10 @@ export class HandCard extends PIXI.Container {
   private attackText: PIXI.Text
   private healthIcon: PIXI.Sprite
   private healthText: PIXI.Text
+  private nameBannerImage: PIXI.Sprite
+  private nameBannerText: PIXI.Text
   private statTextStyle: PIXI.TextStyle
+  private nameTextStyle: PIXI.TextStyle
 
   private ticker: PIXI.Ticker
   private mx: number = this.x
@@ -58,7 +61,17 @@ export class HandCard extends PIXI.Container {
       fontFamily: 'Belwe',
       stroke: 'black',
       strokeThickness: 4,
-      fontSize: 56,
+      fontSize: 80,
+      fill: 'white',
+      fontWeight: 'bold',
+      align: 'center',
+    })
+
+    this.nameTextStyle = new PIXI.TextStyle({
+      fontFamily: 'Belwe',
+      stroke: 'black',
+      strokeThickness: 4,
+      fontSize: 26,
       fill: 'white',
       fontWeight: 'bold',
       align: 'center',
@@ -67,6 +80,11 @@ export class HandCard extends PIXI.Container {
     this.setupMana()
     this.setupAttack()
     this.setupHealth()
+    this.setupNameBanner()
+
+    this.updateMana(6)
+    this.updateAttack(4)
+    this.updateHealth(5)
 
     this.ticker = new PIXI.Ticker()
     this.ticker.add(this.physicsLoop.bind(this))
@@ -84,6 +102,13 @@ export class HandCard extends PIXI.Container {
       this.pinx = this.width / 2
       this.piny = this.height / 2
     })
+    this.on('pointermove', (event) => {
+      if (DragState.getDraggedObj() === this) {
+        this.mx = event.global.x
+        this.my = event.global.y
+        console.log(this.mx, this.my, this.x, this.y)
+      }
+    })
   }
 
   private physicsLoop(delta: any): void {
@@ -94,7 +119,8 @@ export class HandCard extends PIXI.Container {
 
     this.rotation = ((this.rx + this.ry) * Math.PI) / 180
 
-    this.skew.y = this.rotation * 0.9
+    this.skew.x = (this.ocardx - this.x) * 0.0006
+    this.skew.y = (this.ocardy - this.y) * 0.0006
 
     this.ocardx = this.x
     this.ocardy = this.y
@@ -129,12 +155,10 @@ export class HandCard extends PIXI.Container {
     this.manaText.anchor.set(0.5, 0.5)
     this.manaText.position.set(
       -this.frame.width / 2 + 28,
-      -this.frame.height / 2 + 52
+      -this.frame.height / 2 + 48
     )
     this.addChild(this.manaIcon)
     this.addChild(this.manaText)
-
-    this.updateMana(6)
   }
 
   private setupAttack(): void {
@@ -153,13 +177,11 @@ export class HandCard extends PIXI.Container {
     })
     this.attackText.anchor.set(0.5, 0.5)
     this.attackText.position.set(
-      -this.frame.width / 2 + 32,
-      this.frame.height / 2 - 38
+      -this.frame.width / 2 + 35,
+      this.frame.height / 2 - 42
     )
     this.addChild(this.attackIcon)
     this.addChild(this.attackText)
-
-    this.updateAttack(4)
   }
 
   private setupHealth(): void {
@@ -179,11 +201,26 @@ export class HandCard extends PIXI.Container {
     this.healthText.anchor.set(0.5, 0.5)
     this.healthText.position.set(
       this.frame.width / 2 - 24,
-      this.frame.height / 2 - 36
+      this.frame.height / 2 - 40
     )
     this.addChild(this.healthIcon)
     this.addChild(this.healthText)
+  }
 
-    this.updateHealth(5)
+  private setupNameBanner(): void {
+    this.nameBannerImage = new PIXI.Sprite(
+      PIXI.Texture.from('./media/images/name-banner-minion.png')
+    )
+    this.nameBannerImage.anchor.set(0.5, 0.5)
+    this.nameBannerImage.scale.set(0.5)
+    this.nameBannerImage.position.set(0, 26)
+    this.nameBannerText = new PIXI.Text({
+      text: 'Cairne Bloodhoof',
+      style: this.nameTextStyle,
+    })
+    this.nameBannerText.anchor.set(0.5, 0.5)
+    this.nameBannerText.position.set(0, 26)
+    this.addChild(this.nameBannerImage)
+    this.addChild(this.nameBannerText)
   }
 }
