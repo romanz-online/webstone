@@ -49,40 +49,9 @@ console.log('Generated hero IDs')
 
 import { processEvent } from './wsEvents.ts'
 
-try {
-  const tsContent = fs.readFileSync('./server/constants.ts', 'utf8'),
-    enumRegex = /export\s+enum\s+(\w+)\s*{([^}]*)}/g
-
-  let jsContent = '',
-    match
-
-  while ((match = enumRegex.exec(tsContent))) {
-    const enumName = match[1],
-      members = match[2]
-        .trim()
-        .split(',')
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0)
-
-    jsContent += `export const ${enumName} = {\n`
-
-    members.forEach((member, index) => {
-      const [memberName, explicitValue] = member
-        .split('=')
-        .map((part) => part.trim())
-
-      const value = explicitValue !== undefined ? explicitValue : index
-      jsContent += `${memberName}:${value},\n`
-    })
-
-    jsContent += `}\nObject.freeze(${enumName})\n\n`
-  }
-
-  fs.writeFileSync('./public/jsObjects/constants.js', jsContent)
-  console.log('Converted constant enums')
-} catch (error) {
-  console.error('Error converting constant enums:', error.message)
-}
+fs.copyFile('./server/constants.ts', './public/constants.ts', (err) => {
+  console.error('Error copying file:', err)
+})
 
 const port = Number(process.env.PORT) || 5500
 uWS
