@@ -1,7 +1,8 @@
-import Event from '@event'
-import { notifyClient } from '@ws'
 import Character from '@character'
-import { EventType } from '@constants'
+import { EventType, Location } from '@constants'
+import Event from '@event'
+import Minion from '@minion'
+import { notifyClient } from '@ws'
 
 class DeathEvent extends Event {
   target: Character
@@ -14,7 +15,9 @@ class DeathEvent extends Event {
   execute(): boolean {
     // console.log(`Executing ${this}`)
 
-    this.target.inPlay = false
+    if (this.target instanceof Minion) {
+      this.target.location = Location.Graveyard
+    }
 
     this.target.death()
 

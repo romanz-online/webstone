@@ -1,3 +1,11 @@
+export const Location = {
+Deck:0,
+Hand:1,
+Board:2,
+Graveyard:3,
+}
+Object.freeze(Location)
+
 export const HeroClass = {
 Druid:0,
 Hunter:1,

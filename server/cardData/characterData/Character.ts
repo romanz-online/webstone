@@ -14,7 +14,6 @@ import DeathEvent from '@events/DeathEvent.ts'
 class Character extends Card {
   fileName: string
   playerOwner: PlayerID
-  inPlay: boolean
   attacksThisTurn: number
   canAttack: boolean
   name: string
@@ -39,7 +38,6 @@ class Character extends Card {
     this.id = id
     this.playerOwner = player
 
-    this.inPlay = false
     this.attacksThisTurn = 0
     this.canAttack = true
 
@@ -79,7 +77,6 @@ class Character extends Card {
     return {
       id: this.id,
       player: this.playerOwner,
-      inPlay: this.inPlay,
       attacksThisTurn: this.attacksThisTurn,
       canAttack: this.canAttack,
       fileName: this.fileName,
@@ -139,7 +136,7 @@ class Character extends Card {
   }
 
   onTriggerDeath(): void {
-    if (!this.inPlay || this.health > 0) {
+    if (this.health > 0) {
       return
     }
 

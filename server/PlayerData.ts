@@ -1,5 +1,5 @@
 import Card from '@card'
-import { PlayerID } from '@constants'
+import { Location, PlayerID } from '@constants'
 import { generateEffect } from '@generateEffect'
 import { generateHero } from '@generateHero'
 import { generateMinion } from '@generateMinion'
@@ -59,7 +59,7 @@ class PlayerData {
         generateMinion(MinionID.MANA_TIDE_TOTEM, id(), playerID),
         generateMinion(MinionID.ARATHI_WEAPONSMITH, id(), playerID),
       ]
-      this.board.forEach((m) => (m.inPlay = true))
+      this.board.forEach((m) => (m.location = Location.Board))
     }
   }
 

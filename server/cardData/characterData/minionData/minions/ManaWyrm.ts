@@ -1,9 +1,9 @@
-import Minion from '@minion'
-import { engine } from '@engine'
-import { EventType } from '@constants'
-import ChangeStatsEvent from '@events/ChangeStatsEvent.ts'
+import { EventType, Location } from '@constants'
 import Effect from '@effect'
+import { engine } from '@engine'
+import ChangeStatsEvent from '@events/ChangeStatsEvent.ts'
 import PlayCardEvent from '@events/PlayCardEvent.ts'
+import Minion from '@minion'
 
 class ManaWyrm extends Minion {
   constructor(ID: number, id: number, player: number) {
@@ -20,7 +20,7 @@ class ManaWyrm extends Minion {
   }
 
   onPlaySpell(event: PlayCardEvent) {
-    if (!this.inPlay) {
+    if (this.location !== Location.Board) {
       return
     }
 

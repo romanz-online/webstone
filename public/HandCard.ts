@@ -211,7 +211,6 @@ export class HandCard extends PIXI.Container {
       if (DragState.getDraggedObj() === this) {
         this.mx = event.global.x
         this.my = event.global.y
-        console.log(this.mx, this.my, this.x, this.y)
       }
     })
   }

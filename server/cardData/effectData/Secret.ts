@@ -1,14 +1,14 @@
 import Character from '@character'
-import { PlayerID } from '@constants'
+import { Location, PlayerID } from '@constants'
 import Effect from '@effect'
 
 class Secret extends Effect {
-  inPlay: boolean
+  location: Location
 
   constructor(baseID: number, id: number, playerOwner: PlayerID) {
     super(baseID, id, playerOwner)
 
-    this.inPlay = false
+    this.location = Location.Deck
 
     // SECRETS WILL NEED TO LISTEN TO THE ENGINE'S EVENTS
   }

@@ -1,3 +1,10 @@
+export enum Location {
+  Deck,
+  Hand,
+  Board,
+  Graveyard,
+}
+
 export enum HeroClass {
   Druid,
   Hunter,
