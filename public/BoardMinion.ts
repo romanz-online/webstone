@@ -38,8 +38,7 @@ export class BoardMinion extends PIXI.Container {
 
     this.statTextStyle = new PIXI.TextStyle({
       fontFamily: 'Belwe',
-      stroke: 'black',
-      strokeThickness: 7,
+      stroke: { color: 'black', width: 7 },
       fontSize: 60,
       fill: 'white',
       fontWeight: 'bold',

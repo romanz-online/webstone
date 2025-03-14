@@ -14,6 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "fontfaceobserver": "^2.3.0",
     "gsap": "^3.12.7",
     "mime-types": "^2.1.35",
     "pixi.js": "^8.8.1",

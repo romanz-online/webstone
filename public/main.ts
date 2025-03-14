@@ -1,3 +1,4 @@
+import FontFaceObserver from 'fontfaceobserver'
 import gsap from 'gsap'
 import * as PIXI from 'pixi.js'
 import { BoardMinion } from './BoardMinion.ts'
@@ -10,6 +11,8 @@ export const app = new PIXI.Application()
   await app.init({
     resizeTo: window,
   })
+  await new FontFaceObserver('Belwe').load()
+
   app.canvas.style.position = 'absolute'
   app.canvas.style.display = 'block'
   app.canvas.style.width = '100vw'

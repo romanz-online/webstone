@@ -1,0 +1,16 @@
+@font-face {
+  font-family: 'Belwe';
+  src: url('./fonts/Belwe_en.ttf');
+}
+
+body {
+  cursor:
+    url(/media/images/cursor/cursor.png) 10 2,
+    auto;
+}
+
+body:active {
+  cursor:
+    url(../media/images/cursor/click.png) 10 2,
+    auto;
+}

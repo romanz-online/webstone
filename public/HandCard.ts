@@ -1,6 +1,9 @@
 import * as PIXI from 'pixi.js'
 import * as DragState from './dragState.ts'
 
+// COMBINE THIS AND BoardMinion INTO A SINGLE MINION OBJECT
+// AND JUST SWITCH WHAT MODE IT'S IN
+
 export class HandCard extends PIXI.Container {
   public offsetX: number = 0
   public offsetY: number = 0
@@ -21,13 +24,11 @@ export class HandCard extends PIXI.Container {
   private ticker: PIXI.Ticker
   private mx: number
   private my: number
-  private pinx: number = 0
-  private piny: number = 0
   private ocardx: number
   private ocardy: number
   private rx: number = 0
   private ry: number = 0
-  private ready: boolean = false
+  private physicsReady: boolean = false
 
   constructor() {
     super()
@@ -60,8 +61,7 @@ export class HandCard extends PIXI.Container {
 
     this.statTextStyle = new PIXI.TextStyle({
       fontFamily: 'Belwe',
-      stroke: 'black',
-      strokeThickness: 7,
+      stroke: { color: 'black', width: 7 },
       fontSize: 80,
       fill: 'white',
       fontWeight: 'bold',
@@ -70,8 +70,7 @@ export class HandCard extends PIXI.Container {
 
     this.nameTextStyle = new PIXI.TextStyle({
       fontFamily: 'Belwe',
-      stroke: 'black',
-      // strokeThickness: 4,
+      stroke: { color: 'black', width: 3 },
       fontSize: 20,
       fill: 'white',
       fontWeight: 'bold',
@@ -87,49 +86,7 @@ export class HandCard extends PIXI.Container {
     this.updateAttack(4)
     this.updateHealth(5)
 
-    this.ticker = new PIXI.Ticker()
-    this.ticker.add(this.physicsLoop.bind(this))
-    this.ticker.start()
-    this.ocardx = this.x
-    this.ocardy = this.y
-    this.eventMode = 'static'
-    this.on('pointerdown', (event) => {
-      this.ready = true
-      this.offsetX = this.x - event.global.x
-      this.offsetY = this.y - event.global.y
-      DragState.setDraggedObj(this)
-
-      this.mx = event.global.x
-      this.my = event.global.y
-      this.ocardx = this.x
-      this.ocardy = this.y
-      this.pinx = this.width / 2
-      this.piny = this.height / 2
-    })
-    this.on('pointermove', (event) => {
-      if (DragState.getDraggedObj() === this) {
-        this.mx = event.global.x
-        this.my = event.global.y
-        console.log(this.mx, this.my, this.x, this.y)
-      }
-    })
-  }
-
-  private physicsLoop(delta: any): void {
-    if (!this.ready) return // prevents glitchy behavior on the first loop
-
-    this.rx +=
-      Math.max(Math.min((this.ocardy - this.y - this.rx) * 3, 15), -15) * 0.01
-    this.ry +=
-      Math.max(Math.min((this.x - this.ocardx - this.ry) * 3, 15), -15) * 0.01
-
-    this.rotation = ((this.rx + this.ry) * Math.PI) / 180
-
-    this.skew.x = (this.ocardx - this.x) * 0.0006
-    this.skew.y = (this.ocardy - this.y) * 0.0006
-
-    this.ocardx = this.x
-    this.ocardy = this.y
+    this.setupCardPhysics()
   }
 
   updateMana(newMana: number): void {
@@ -228,5 +185,51 @@ export class HandCard extends PIXI.Container {
     this.nameBannerText.position.set(0, 26)
     this.addChild(this.nameBannerImage)
     this.addChild(this.nameBannerText)
+  }
+
+  private setupCardPhysics(): void {
+    this.eventMode = 'static'
+    this.ticker = new PIXI.Ticker()
+    this.ticker.add(this.physicsLoop.bind(this))
+    this.ticker.start()
+    this.ocardx = this.x
+    this.ocardy = this.y
+    this.mx = this.x
+    this.my = this.y
+    this.on('pointerdown', (event) => {
+      this.physicsReady = true
+      this.offsetX = this.x - event.global.x
+      this.offsetY = this.y - event.global.y
+      DragState.setDraggedObj(this)
+
+      this.mx = event.global.x
+      this.my = event.global.y
+      this.ocardx = this.x
+      this.ocardy = this.y
+    })
+    this.on('pointermove', (event) => {
+      if (DragState.getDraggedObj() === this) {
+        this.mx = event.global.x
+        this.my = event.global.y
+        console.log(this.mx, this.my, this.x, this.y)
+      }
+    })
+  }
+
+  private physicsLoop(delta: any): void {
+    if (!this.physicsReady) return // prevents glitchy behavior on the first loop
+
+    this.rx +=
+      Math.max(Math.min((this.ocardy - this.y - this.rx) * 3, 15), -15) * 0.01
+    this.ry +=
+      Math.max(Math.min((this.x - this.ocardx - this.ry) * 3, 15), -15) * 0.01
+
+    this.rotation = ((this.rx + this.ry) * Math.PI) / 180
+
+    this.skew.x = (this.ocardx - this.x) * 0.0006
+    this.skew.y = (this.ocardy - this.y) * 0.0006
+
+    this.ocardx = this.x
+    this.ocardy = this.y
   }
 }
