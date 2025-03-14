@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js'
 import { HandCard } from './Card.ts'
 import { HeroPortrait } from './HeroPortrait.ts'
+import * as DragState from './dragState.ts'
 ;(async () => {
   const app = new PIXI.Application()
   await app.init({
@@ -10,13 +11,15 @@ import { HeroPortrait } from './HeroPortrait.ts'
   app.canvas.style.display = 'block'
   app.canvas.style.width = '100vw'
   app.canvas.style.height = '100vh'
+  app.canvas.addEventListener('contextmenu', (event) => event.preventDefault())
   document.getElementById('pixi-container')!.appendChild(app.canvas)
 
   await PIXI.Assets.load([
     './media/images/jaina.png',
     './media/images/jaina_portrait.png',
-    './media/images/health.png',
+    './media/images/mana.png',
     './media/images/attack.png',
+    './media/images/health.png',
     './media/images/cardimages/cairne_bloodhoof.jpg',
     './media/images/Card_Inhand_Minion_Priest.png',
     './media/images/card_inhand_minion_priest_frame.png',
@@ -40,6 +43,16 @@ import { HeroPortrait } from './HeroPortrait.ts'
   //   title: 'Fireball',
   //   description: 'Deal 6 damage.',
   // }
+
+  app.stage.eventMode = 'static'
+  app.stage.on('pointermove', (event) => {
+    DragState.getDraggedObj()?.position.set(
+      event.global.x + DragState.getDraggedObj().offsetX,
+      event.global.y + DragState.getDraggedObj().offsetY
+    )
+  })
+  app.stage.on('pointerup', DragState.clearDraggedObj)
+  app.stage.on('pointerupoutside', DragState.clearDraggedObj)
 
   const jaina = new HeroPortrait()
   jaina.x = app.screen.width / 2

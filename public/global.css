@@ -1,3 +1,8 @@
+@font-face {
+  font-family: 'Belwe';
+  src: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/2509128/Belwe_en.ttf');
+}
+
 body {
   cursor:
     url(/media/images/cursor/cursor.png) 10 2,

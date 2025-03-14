@@ -172,8 +172,6 @@
     mx = cardx
     my = cardy
     audioloaded = 0
-    lastTime = 0
-    tickRate = 15
 
     whooshvol = 0
     whooshvoltarget = 0
@@ -232,61 +230,58 @@
   function loop() {
     requestAnimationFrame(loop)
 
-    if (performance.now() - lastTime >= tickRate) {
-      lastTime = performance.now()
-      // set new target position
-      targetx = mx - cardx - pinx
-      targety = my - cardy - piny
+    // set new target position
+    targetx = mx - cardx - pinx
+    targety = my - cardy - piny
 
-      // leap to new position
-      cardx += targetx * 0.25
-      cardy += targety * 0.25
+    // leap to new position
+    cardx += targetx * 0.25
+    cardy += targety * 0.25
 
-      // contain card to window bounds
-      if (cardx < -cardw / 2) {
-        cardx = -cardw / 2
-      }
-      if (cardx > ww - cardw / 2) {
-        cardx = ww - cardw / 2
-      }
-      if (cardy < -cardh / 2) {
-        cardy = -cardh / 2
-      }
-      if (cardy > wh - cardh / 2) {
-        cardy = wh - cardh / 2
-      }
-
-      // get rotation based on how much card moved
-      // lock rotation so things don't get too crazy
-      targetrx = Math.max(Math.min((ocardy - cardy - rx) * 3, 30), -30)
-      targetry = Math.max(Math.min((cardx - ocardx - ry) * 3, 30), -30)
-
-      // lerp to new rotation
-      rx += targetrx * 0.1
-      ry += targetry * 0.1
-
-      // scale up when the mouse is pressed
-      targetscale = md ? 0.5 - scale : 0.5 - scale
-      scale += targetscale * 0.2
-
-      // apply the transform
-      card.style['transform-origin'] = `${pinxperc}% ${pinyperc}%`
-      card.style['transform'] =
-        `translate3d(${cardx}px, ${cardy}px, 0) scale(${scale}) rotateY(${ry}deg) rotateX(${rx}deg)`
-
-      majestyvoltarget = md ? 0.2 : 0
-      majestyvol += (majestyvoltarget - majestyvol) * 0.1
-      majesty.volume = majestyvol
-
-      whooshvoltarget =
-        (Math.abs(ocardy - cardy) + Math.abs(ocardx - cardx)) * 0.003
-      whooshvol += (whooshvoltarget - whooshvol) * 0.1
-      whoosh.volume = Number.isFinite(whooshvol) ? Math.min(whooshvol, 1) : 1
-
-      // store the old card position
-      ocardx = cardx
-      ocardy = cardy
+    // contain card to window bounds
+    if (cardx < -cardw / 2) {
+      cardx = -cardw / 2
     }
+    if (cardx > ww - cardw / 2) {
+      cardx = ww - cardw / 2
+    }
+    if (cardy < -cardh / 2) {
+      cardy = -cardh / 2
+    }
+    if (cardy > wh - cardh / 2) {
+      cardy = wh - cardh / 2
+    }
+
+    // get rotation based on how much card moved
+    // lock rotation so things don't get too crazy
+    targetrx = Math.max(Math.min((ocardy - cardy - rx) * 3, 30), -30)
+    targetry = Math.max(Math.min((cardx - ocardx - ry) * 3, 30), -30)
+
+    // lerp to new rotation
+    rx += targetrx * 0.1
+    ry += targetry * 0.1
+
+    // scale up when the mouse is pressed
+    targetscale = md ? 0.5 - scale : 0.5 - scale
+    scale += targetscale * 0.2
+
+    // apply the transform
+    card.style['transform-origin'] = `${pinxperc}% ${pinyperc}%`
+    card.style['transform'] =
+      `translate3d(${cardx}px, ${cardy}px, 0) scale(${scale}) rotateY(${ry}deg) rotateX(${rx}deg)`
+
+    // majestyvoltarget = md ? 0.2 : 0
+    // majestyvol += (majestyvoltarget - majestyvol) * 0.1
+    // majesty.volume = majestyvol
+
+    // whooshvoltarget =
+    //   (Math.abs(ocardy - cardy) + Math.abs(ocardx - cardx)) * 0.003
+    // whooshvol += (whooshvoltarget - whooshvol) * 0.1
+    // whoosh.volume = Number.isFinite(whooshvol) ? Math.min(whooshvol, 1) : 1
+
+    // store the old card position
+    ocardx = cardx
+    ocardy = cardy
   }
 
   // pull up a chair by the hearth!
