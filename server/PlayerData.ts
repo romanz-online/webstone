@@ -1,5 +1,5 @@
 import Card from '@card'
-import { Location, PlayerID } from '@constants'
+import { CardLocation, PlayerID } from '@constants'
 import { generateEffect } from '@generateEffect'
 import { generateHero } from '@generateHero'
 import { generateMinion } from '@generateMinion'
@@ -59,8 +59,27 @@ class PlayerData {
         generateMinion(MinionID.MANA_TIDE_TOTEM, id(), playerID),
         generateMinion(MinionID.ARATHI_WEAPONSMITH, id(), playerID),
       ]
-      this.board.forEach((m) => (m.location = Location.Board))
+      this.board.forEach((m) => (m.location = CardLocation.Board))
     }
+  }
+
+  toJSON(): any {
+    return {
+      hero: this.hero.toJSON(),
+      board: this.boardToJSON(),
+      hand: this.handToJSON(),
+      mana: this.mana,
+      manaCapacity: this.manaCapacity,
+      overload: this.overload,
+    }
+  }
+
+  boardToJSON(): any {
+    return this.board.map((m) => m.toJSON())
+  }
+
+  handToJSON(): any {
+    return this.hand.map((m) => m.toJSON())
   }
 
   getAvailableMana(): number {

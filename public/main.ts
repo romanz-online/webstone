@@ -1,10 +1,8 @@
 import FontFaceObserver from 'fontfaceobserver'
-import gsap from 'gsap'
 import * as PIXI from 'pixi.js'
-import { BoardMinion } from './BoardMinion.ts'
 import * as DragState from './dragState.ts'
-import { HandCard } from './HandCard.ts'
-import { HeroPortrait } from './HeroPortrait.ts'
+import { Hand } from './Hand.ts'
+import { Hero } from './Hero.ts'
 
 export const app = new PIXI.Application()
 ;(async () => {
@@ -56,34 +54,26 @@ export const app = new PIXI.Application()
   app.stage.on('pointerup', DragState.clearDraggedObj)
   app.stage.on('pointerupoutside', DragState.clearDraggedObj)
 
-  const jaina = new HeroPortrait()
-  jaina.x = app.screen.width / 2
-  jaina.y = app.screen.height / 2 + app.screen.height / 4
+  const jaina = new Hero()
+  jaina.position.set(
+    app.screen.width / 2 - jaina.width / 2,
+    app.screen.height / 2 + app.screen.height / 4 - jaina.height / 2
+  )
   app.stage.addChild(jaina)
 
-  const jaina1 = new HeroPortrait()
-  jaina1.x = app.screen.width / 2
-  jaina1.y = app.screen.height / 2 - app.screen.height / 3
+  const jaina1 = new Hero()
+  jaina1.position.set(
+    app.screen.width / 2 - jaina1.width / 2,
+    app.screen.height / 2 - app.screen.height / 3 - jaina1.height / 2
+  )
   app.stage.addChild(jaina1)
 
-  const minion = new BoardMinion()
-  minion.scale.set(1)
-  minion.x = app.screen.width / 2
-  minion.y = app.screen.height / 2
-  app.stage.addChild(minion)
+  // const minion = new BoardMinion()
+  // minion.scale.set(1)
+  // minion.position.set(app.screen.width / 2, app.screen.height / 2)
+  // app.stage.addChild(minion)
 
-  for (let i = 0; i < 5; i++) {
-    const card = new HandCard()
-    card.scale.set(0.5)
-    card.x = app.screen.width / 3 + (i + 1) * (card.width / 2)
-    card.y = app.screen.height - 24
-
-    card.on('mouseover', (event) => {
-      gsap.to(card.scale, { x: 0.6, y: 0.6, duration: 0.2, ease: 'power1.out' })
-    })
-    card.on('mouseout', (event) => {
-      gsap.to(card.scale, { x: 0.5, y: 0.5, duration: 0.2, ease: 'power1.out' })
-    })
-    app.stage.addChild(card)
-  }
+  const hand = new Hand()
+  hand.position.set(app.screen.width / 2, app.screen.height)
+  app.stage.addChild(hand)
 })()

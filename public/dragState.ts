@@ -1,12 +1,12 @@
-import { HandCard } from './HandCard.ts'
+import { Minion } from './Minion.ts'
 
-let draggedObj: HandCard | null = null
+let draggedObj: Minion | null = null
 
-export function getDraggedObj(): HandCard | null {
+export function getDraggedObj(): Minion | null {
   return draggedObj
 }
 
-export function setDraggedObj(obj: HandCard | null): void {
+export function setDraggedObj(obj: Minion | null): void {
   draggedObj = obj
 }
 

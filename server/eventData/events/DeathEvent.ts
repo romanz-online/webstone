@@ -1,5 +1,5 @@
 import Character from '@character'
-import { EventType, Location } from '@constants'
+import { CardLocation, EventType } from '@constants'
 import Event from '@event'
 import Minion from '@minion'
 import { notifyClient } from '@ws'
@@ -16,7 +16,7 @@ class DeathEvent extends Event {
     // console.log(`Executing ${this}`)
 
     if (this.target instanceof Minion) {
-      this.target.location = Location.Graveyard
+      this.target.location = CardLocation.Graveyard
     }
 
     this.target.death()

@@ -142,6 +142,8 @@ export class GameInstance {
   toJSON(): any {
     return {
       whoseTurn: this.whoseTurn,
+      player1: this.player1.toJSON(),
+      player2: this.player2.toJSON(),
     }
   }
 

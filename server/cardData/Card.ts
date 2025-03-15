@@ -5,7 +5,11 @@ class Card {
     this.id = id
   }
 
-  toString() {
+  toJSON(): any {
+    return {}
+  }
+
+  toString(): string {
     return `${this.id}`
   }
 }

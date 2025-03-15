@@ -1,4 +1,4 @@
-export enum Location {
+export enum CardLocation {
   Deck,
   Hand,
   Board,

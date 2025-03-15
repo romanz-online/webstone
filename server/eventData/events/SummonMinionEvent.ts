@@ -1,4 +1,4 @@
-import { EventType, Location, PlayerID } from '@constants'
+import { CardLocation, EventType, PlayerID } from '@constants'
 import Event from '@event'
 import GameInstance from '@gameInstance'
 import Minion from '@minion'
@@ -26,7 +26,7 @@ class SummonMinionEvent extends Event {
       .getPlayerData(this.playerID)
       .board.splice(this.boardIndex, 0, this.minion)
 
-    this.minion.location = Location.Board
+    this.minion.location = CardLocation.Board
 
     notifyClient(EventType.SummonMinion, true, {})
 

@@ -1,4 +1,4 @@
-import { EventType, Location } from '@constants'
+import { CardLocation, EventType } from '@constants'
 import Effect from '@effect'
 import { engine } from '@engine'
 import ChangeStatsEvent from '@events/ChangeStatsEvent.ts'
@@ -20,7 +20,7 @@ class ManaWyrm extends Minion {
   }
 
   onPlaySpell(event: PlayCardEvent) {
-    if (this.location !== Location.Board) {
+    if (this.location !== CardLocation.Board) {
       return
     }
 
