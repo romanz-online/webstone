@@ -6,6 +6,11 @@ import MinionModel from './MinionModel.ts'
 class MinionCardView extends PIXI.Container {
   public minion: MinionModel
 
+  public revertZ: number
+  public revertX: number = 0
+  public revertY: number = 0
+  public reverting: boolean = false
+
   public offsetX: number = 0
   public offsetY: number = 0
 
@@ -25,10 +30,10 @@ class MinionCardView extends PIXI.Container {
   private ticker: PIXI.Ticker
   private ocardx: number
   private ocardy: number
-  private ocardz: number
   private rx: number = 0
   private ry: number = 0
   private physicsReady: boolean = false
+  private enlarged: boolean = false
 
   constructor(minion: MinionModel) {
     super()
@@ -40,7 +45,7 @@ class MinionCardView extends PIXI.Container {
     this.portrait = PIXI.Sprite.from(
       './media/images/cardimages/cairne_bloodhoof.jpg'
     )
-    this.portrait.anchor.set(0.5, 0.5)
+    this.portrait.anchor.set(0.5)
     this.portrait.scale.set(0.1)
     this.portrait.position.set(-50, -90)
     this.addChild(this.portrait)
@@ -59,7 +64,7 @@ class MinionCardView extends PIXI.Container {
     this.handFrame = PIXI.Sprite.from(
       './media/images/card_inhand_minion_priest_frame.png'
     )
-    this.handFrame.anchor.set(0.5, 0.5)
+    this.handFrame.anchor.set(0.5)
     this.handFrame.scale.set(0.5)
     this.addChild(this.handFrame)
 
@@ -75,7 +80,7 @@ class MinionCardView extends PIXI.Container {
     this.handFrame = PIXI.Sprite.from(
       './media/images/card_inhand_minion_priest_frame.png'
     )
-    this.handFrame.anchor.set(0.5, 0.5)
+    this.handFrame.anchor.set(0.5)
     this.handFrame.scale.set(0.5)
     this.addChild(this.handFrame)
 
@@ -102,10 +107,6 @@ class MinionCardView extends PIXI.Container {
     this.setupHealth()
     this.setupNameBanner()
 
-    this.updateMana(6)
-    this.updateAttack(4)
-    this.updateHealth(5)
-
     this.setupCardPhysics()
   }
 
@@ -119,6 +120,27 @@ class MinionCardView extends PIXI.Container {
 
   updateHealth(newHealth: number): void {
     this.healthText.text = newHealth
+  }
+
+  revert(): void {
+    this.reverting = true
+    this.zIndex = this.revertZ
+    gsap.to(this.position, {
+      x: this.revertX,
+      y: this.revertY,
+      duration: 0.4,
+      ease: 'power4.out',
+    })
+    gsap.to(this.scale, {
+      x: 0.4,
+      y: 0.4,
+      duration: 0.4,
+      ease: 'power4.out',
+      onComplete: () => {
+        this.reverting = false
+        this.enlarged = false
+      },
+    })
   }
 
   private setupMana(): void {
@@ -142,6 +164,8 @@ class MinionCardView extends PIXI.Container {
     )
     this.addChild(this.manaIcon)
     this.addChild(this.manaText)
+
+    this.updateMana(this.minion.mana)
   }
 
   private setupAttack(): void {
@@ -165,6 +189,8 @@ class MinionCardView extends PIXI.Container {
     )
     this.addChild(this.attackIcon)
     this.addChild(this.attackText)
+
+    this.updateAttack(this.minion.attack)
   }
 
   private setupHealth(): void {
@@ -188,6 +214,8 @@ class MinionCardView extends PIXI.Container {
     )
     this.addChild(this.healthIcon)
     this.addChild(this.healthText)
+
+    this.updateHealth(this.minion.health)
   }
 
   private setupNameBanner(): void {
@@ -198,7 +226,7 @@ class MinionCardView extends PIXI.Container {
     this.nameBannerImage.scale.set(0.5)
     this.nameBannerImage.position.set(0, 26)
     this.nameBannerText = new PIXI.Text({
-      text: 'Cairne Bloodhoof',
+      text: this.minion.name,
       style: this.nameTextStyle,
     })
     this.nameBannerText.anchor.set(0.5, 0.5)
@@ -215,6 +243,8 @@ class MinionCardView extends PIXI.Container {
     this.ocardx = this.x
     this.ocardy = this.y
     this.on('pointerdown', (event) => {
+      if (this.reverting) return
+
       this.physicsReady = true
       this.offsetX = this.x - event.global.x
       this.offsetY = this.y - event.global.y
@@ -223,40 +253,32 @@ class MinionCardView extends PIXI.Container {
       this.ocardx = this.x
       this.ocardy = this.y
     })
-    this.on('pointermove', (event) => {})
-    this.on('mouseover', (event) => {
+    this.on('mouseenter', (event) => {
+      if (this.enlarged) return
+      if (this.reverting) return
       if (CardDragState.getDraggedCard() === this) return
 
-      this.ocardz = this.zIndex
+      this.enlarged = true
       this.zIndex = 999
       this.ocardy = this.y
-      gsap.to(this, {
+      gsap.to(this.position, {
+        x: this.x,
         y: this.y - 100,
-        duration: 0.2,
+        duration: 0.4,
         ease: 'power4.out',
       })
       gsap.to(this.scale, {
         x: 0.5,
         y: 0.5,
-        duration: 0.2,
+        duration: 0.4,
         ease: 'power4.out',
       })
     })
-    this.on('mouseout', (event) => {
+    this.on('mouseleave', (event) => {
+      if (this.reverting) return
       if (CardDragState.getDraggedCard() === this) return
 
-      this.zIndex = this.ocardz
-      gsap.to(this, {
-        y: this.ocardy,
-        duration: 0.2,
-        ease: 'power4.out',
-      })
-      gsap.to(this.scale, {
-        x: 0.4,
-        y: 0.4,
-        duration: 0.2,
-        ease: 'power4.out',
-      })
+      this.revert()
     })
   }
 

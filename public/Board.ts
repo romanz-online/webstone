@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js'
 import CardDragState from './CardDragState.ts'
 import MinionCardView from './MinionCardView.ts'
 
-export class Board extends PIXI.Container {
+class Board extends PIXI.Container {
   minionArray: MinionCardView[] = []
   bounds: PIXI.Graphics
 
@@ -34,3 +34,5 @@ export class Board extends PIXI.Container {
     })
   }
 }
+
+export default Board

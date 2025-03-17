@@ -8,7 +8,7 @@ interface CardPosition {
   rotation: number
 }
 
-export class Hand extends PIXI.Container {
+class Hand extends PIXI.Container {
   cardViewArray: MinionCardView[] = []
   bounds: PIXI.Graphics
 
@@ -56,23 +56,42 @@ export class Hand extends PIXI.Container {
     this.adjustCardPositions()
   }
 
-  addCard(card: MinionCardView): void {
-    card.position.set(this.width, 0)
-    this.cardViewArray.push(card)
-    this.addChild(card)
+  setHandData(cards: MinionCardView[]): void {
+    this.cardViewArray.forEach((card) => {
+      if (card instanceof MinionCardView) {
+        this.removeChild(card)
+      }
+    })
+
+    this.cardViewArray = cards
+    this.cardViewArray.forEach((card) => {
+      this.addChild(card)
+    })
     this.adjustCardPositions()
   }
 
   adjustCardPositions(): void {
     for (let i = 0; i < this.cardViewArray.length; i++) {
+      const newX = (i + 1) * this.cardViewArray[i].width * 0.5,
+        newY = this.height / 2 - 20
+
       this.cardViewArray[i].zIndex = i
-      gsap.to(this.cardViewArray[i], {
+      this.cardViewArray[i].revertZ = i
+      this.cardViewArray[i].revertX = newX
+      this.cardViewArray[i].revertY = newY
+
+      gsap.to(this.cardViewArray[i].position, {
         // x: this.width / 2 + this.cardPositions[this.cardArray.length][i].x - 20,
         // y:
         //   this.height / 2 + this.cardPositions[this.cardArray.length][i].y - 20,
         // rotation: this.cardPositions[this.cardArray.length][i].rotation,
-        x: this.x + (i + 1) * this.cardViewArray[i].width * 0.7,
-        y: this.height / 2 - 20,
+        x: newX,
+        y: newY,
+        duration: 1,
+        ease: 'power4.out',
+        delay: i * 0.05,
+      })
+      gsap.to(this.cardViewArray[i], {
         rotation: 0,
         duration: 1,
         ease: 'power4.out',
@@ -81,3 +100,5 @@ export class Hand extends PIXI.Container {
     }
   }
 }
+
+export default Hand

@@ -1,4 +1,4 @@
-import GAME from '../../game.js'
+// import GAME from '../../game.js'
 import { EventType } from '../constants.js'
 
 // maybe convert this into TargetController or something which handles all targeting (attacks, spells, hero powers, etc.)

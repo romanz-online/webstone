@@ -1,5 +1,4 @@
-import GAME from '../../../game.js'
-import { MinionHandView } from './MinionHandView.js'
+// import GAME from '../../../game.js'
 
 export class HandPlayerView {
   constructor() {

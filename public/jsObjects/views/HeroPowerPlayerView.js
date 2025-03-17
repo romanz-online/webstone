@@ -1,4 +1,4 @@
-import GAME from '../../../game.js'
+// import GAME from '../../../game.js'
 
 export class HeroPowerPlayerView {
   constructor(heroPower) {

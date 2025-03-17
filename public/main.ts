@@ -1,39 +1,14 @@
 import FontFaceObserver from 'fontfaceobserver'
 import * as PIXI from 'pixi.js'
-import { Board } from './Board.ts'
+import Board from './Board.ts'
 import CardDragState from './CardDragState.ts'
 import { EventType } from './constants.ts'
-import { Hand } from './Hand.ts'
-import { Hero } from './Hero.ts'
-import { wsEventHandler } from './wsEventHandler.ts'
-
-const setupWS = (): void => {
-  console.log('Connecting WebSocket...')
-  ws = new WebSocket('ws://localhost:5500')
-  ws.onopen = () => {
-    console.log('Connected to WebSocket server')
-
-    console.log('Setting up WebSocket listeners...')
-    wsEventHandler({
-      socket: ws,
-      event: EventType.Load,
-      onSuccess: (data: any) => {
-        console.log(data)
-      },
-      onFailure: (data: any) => {
-        setTimeout(() => {
-          triggerWsEvent(EventType.TryLoad) // retry
-        }, 5 * 1000)
-      },
-    })
-
-    console.log('Trying to load game state...')
-    triggerWsEvent(EventType.TryLoad)
-  }
-  ws.onclose = () => {
-    console.log('Disconnected from WebSocket server')
-  }
-}
+import Hand from './Hand.ts'
+import Hero from './Hero.ts'
+import MinionBoardView from './MinionBoardView.ts'
+import MinionCardView from './MinionCardView.ts'
+import MinionModel from './MinionModel.ts'
+import wsEventHandler from './wsEventHandler.ts'
 
 const triggerWsEvent = (event: EventType, data: any = {}): void => {
   if (ws) {
@@ -44,6 +19,9 @@ const triggerWsEvent = (event: EventType, data: any = {}): void => {
 }
 
 let ws: WebSocket
+const minionModels: MinionModel[] = []
+const minionCardViews: MinionCardView[] = []
+const minionBoardViews: MinionBoardView[] = []
 
 export const app = new PIXI.Application()
 ;(async () => {
@@ -116,10 +94,10 @@ export const app = new PIXI.Application()
   // board1.position.set(app.screen.width / 4, app.screen.height / 4)
   // app.stage.addChild(board1)
 
-  const hand = new Hand(app.screen.width / 3, app.screen.width / 12)
+  const hand = new Hand(app.screen.width / 4, app.screen.height / 6)
   hand.position.set(
     app.screen.width / 2 - hand.width / 2,
-    app.screen.height - hand.height / 2
+    app.screen.height - hand.height
   )
   app.stage.addChild(hand)
 
@@ -127,12 +105,12 @@ export const app = new PIXI.Application()
   // hand1.position.set(app.screen.width / 2 - hand1.width / 2, -hand1.height / 2)
   // app.stage.addChild(hand1)
 
-  app.stage.on('pointerup', CardDragState.clearDraggedCard)
-
   app.stage.on('pointerup', (event) => {
     if (!CardDragState.getDraggedCard()) return
 
-    const cardBounds = CardDragState.getDraggedCard().getBounds(),
+    const card: MinionCardView = CardDragState.getDraggedCard()
+
+    const cardBounds = card.getBounds(),
       dropBounds = board.getBounds()
 
     if (
@@ -144,6 +122,7 @@ export const app = new PIXI.Application()
       console.log('Dropped on board')
     } else {
       console.log('Dropped outside')
+      card.revert()
     }
 
     CardDragState.clearDraggedCard()
@@ -151,5 +130,36 @@ export const app = new PIXI.Application()
 
   app.stage.on('pointerupoutside', CardDragState.clearDraggedCard)
 
-  setupWS()
+  console.log('Connecting WebSocket...')
+  ws = new WebSocket('ws://localhost:5500')
+  ws.onopen = () => {
+    console.log('Connected to WebSocket server')
+
+    console.log('Setting up WebSocket listeners...')
+    wsEventHandler({
+      socket: ws,
+      event: EventType.Load,
+      onSuccess: (data: any) => {
+        data.player1.hand.forEach((card) => {
+          const model = new MinionModel(card),
+            cardView = new MinionCardView(model)
+          minionModels.push(model)
+          minionCardViews.push(cardView)
+          // minionBoardViews.push(new MinionBoardView(model))
+        })
+        hand.setHandData(minionCardViews)
+      },
+      onFailure: (data: any) => {
+        setTimeout(() => {
+          triggerWsEvent(EventType.TryLoad) // retry
+        }, 5 * 1000)
+      },
+    })
+
+    console.log('Loading game state...')
+    triggerWsEvent(EventType.TryLoad)
+  }
+  ws.onclose = () => {
+    console.log('Disconnected from WebSocket server')
+  }
 })()

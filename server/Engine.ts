@@ -2,7 +2,7 @@ import { EventType } from '@constants'
 import Event from 'eventData/Event.ts'
 import { EventEmitter } from 'events'
 
-const DEBUG_ENGINE = true
+const DEBUG_ENGINE = false
 
 type EventListener = (data: any, done: () => void) => void
 

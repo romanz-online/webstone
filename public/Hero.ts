@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 
-export class Hero extends PIXI.Container {
+class Hero extends PIXI.Container {
   portrait: PIXI.Sprite
   healthIcon: PIXI.Sprite
   healthText: PIXI.Text
@@ -47,3 +47,5 @@ export class Hero extends PIXI.Container {
     this.healthText.text = newHealth
   }
 }
+
+export default Hero

@@ -1,5 +1,3 @@
-import GAME from '../../../game.js'
-
 export class ManaPlayerView {
   constructor(mana) {
     this.mana = mana

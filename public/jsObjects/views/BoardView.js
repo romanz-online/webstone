@@ -1,6 +1,6 @@
-import GAME from '../../../game.js'
-import { MinionBoardView } from './MinionBoardView.js'
+// import GAME from '../../../game.js'
 import { PlayerID } from '../constants.js'
+import { MinionBoardView } from './MinionBoardView.js'
 
 export class BoardView {
   constructor(playerID) {

@@ -16,6 +16,7 @@
   "dependencies": {
     "fontfaceobserver": "^2.3.0",
     "gsap": "^3.12.7",
+    "madge": "^8.0.0",
     "mime-types": "^2.1.35",
     "pixi.js": "^8.8.1",
     "prettier": "^3.5.2",

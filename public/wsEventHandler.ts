@@ -2,7 +2,7 @@ import { EventType } from './constants.ts'
 
 const eventHandlers: any = {}
 
-export const wsEventHandler = ({
+const wsEventHandler = ({
   socket,
   event,
   onSuccess,
@@ -39,3 +39,5 @@ export const wsEventHandler = ({
     })
   })
 }
+
+export default wsEventHandler
