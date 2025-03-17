@@ -3,7 +3,7 @@ import { engine } from '@engine'
 import EffectEvent from '@events/EffectEvent.ts'
 import PlayCardEvent from '@events/PlayCardEvent.ts'
 import SummonMinionEvent from '@events/SummonMinionEvent.ts'
-import GameInstance from '@gameInstance'
+import Game from '@gameInstance'
 import Minion from '@minion'
 import Event from 'eventData/Event.ts'
 
@@ -19,9 +19,6 @@ class EventStack {
   // this method does NOT do any error handling
   // that's all handled in GameInstance
   generateStack(event: Event): void {
-    const gameInstance = GameInstance.getCurrent()
-    if (!gameInstance) return
-
     this.waiting = false
 
     if (this.stack.length > 0) return
@@ -55,11 +52,7 @@ class EventStack {
         this.stack.push(event)
         this.waiting = spell.canTarget && spell.requiresTarget
         this.stack.push(
-          new EffectEvent(
-            spell,
-            gameInstance.getPlayerData(event.playerID).hero,
-            null
-          )
+          new EffectEvent(spell, Game.getPlayerData(event.playerID).hero, null)
         )
       }
     }

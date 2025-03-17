@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 
-export class BoardMinion extends PIXI.Container {
+class MinionBoardView extends PIXI.Container {
   private portrait: PIXI.Sprite
   private frame: PIXI.Sprite
   private attackIcon: PIXI.Sprite
@@ -108,3 +108,5 @@ export class BoardMinion extends PIXI.Container {
     this.addChild(this.healthText)
   }
 }
+
+export default MinionBoardView

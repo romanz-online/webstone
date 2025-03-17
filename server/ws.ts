@@ -11,6 +11,7 @@ export const notifyClient = (
   success: boolean,
   data: any
 ): void => {
+  console.log('Sending event to client:', event)
   socket?.send(
     JSON.stringify({
       signature: event,

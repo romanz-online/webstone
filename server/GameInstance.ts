@@ -1,5 +1,11 @@
 import Character from '@character'
-import { CardType, EventType, Keyword, PlayerID } from '@constants'
+import {
+  CardLocation,
+  CardType,
+  EventType,
+  Keyword,
+  PlayerID,
+} from '@constants'
 import Effect from '@effect'
 import { engine } from '@engine'
 import AttackEvent from '@events/AttackEvent.ts'
@@ -9,15 +15,13 @@ import EndTurnEvent from '@events/EndTurnEvent.ts'
 import PlayCardEvent from '@events/PlayCardEvent.ts'
 import TriggerDeathEvent from '@events/TriggerDeathEvent.ts'
 import EventStack from '@eventStack'
+import { generateMinion } from '@generateMinion'
 import HeroID from '@heroID' with { type: 'json' }
 import Minion from '@minion'
 import MinionID from '@minionID' with { type: 'json' }
 import PlayerData from '@playerData'
 import TryEndTurnEvent from '@tryEvents/TryEndTurnEvent.ts'
 import { notifyClient } from '@ws'
-import { AsyncLocalStorage } from 'async_hooks'
-
-const gameContext = new AsyncLocalStorage<GameInstance>()
 
 const deck1: number[] = [
     MinionID.TIRION_FORDRING,
@@ -54,12 +58,9 @@ export class GameInstance {
     this.whoseTurn = PlayerID.Player2
     this.eventStack = new EventStack()
 
-    for (let i = 0; i < 5; i++) {
-      engine.queueEvent(new DrawCardEvent(PlayerID.Player1))
-    }
-
     engine.on('done', () => {
-      this.checkHealth()
+      // NEED TO FIX THIS ASAP
+      // this.checkHealth()
       if (!this.eventStack.isWaiting() && this.eventStack.length() > 0) {
         this.eventStack.executeStack()
       }
@@ -127,16 +128,21 @@ export class GameInstance {
         done()
       }
     )
+  }
 
+  init(): any {
+    for (let i = 0; i < 5; i++) {
+      engine.queueEvent(new DrawCardEvent(PlayerID.Player1))
+    }
+    this.player2.board = [
+      generateMinion(MinionID.CENARIUS, this.id(), PlayerID.Player2),
+      generateMinion(MinionID.KORKRON_ELITE, this.id(), PlayerID.Player2),
+      generateMinion(MinionID.SUMMONING_PORTAL, this.id(), PlayerID.Player2),
+      generateMinion(MinionID.MANA_TIDE_TOTEM, this.id(), PlayerID.Player2),
+      generateMinion(MinionID.ARATHI_WEAPONSMITH, this.id(), PlayerID.Player2),
+    ]
+    this.player2.board.forEach((m) => (m.location = CardLocation.Board))
     engine.queueEvent(new EndTurnEvent())
-  }
-
-  static getCurrent(): GameInstance | undefined {
-    return gameContext.getStore()
-  }
-
-  static runWithContext<T>(gameInstance: GameInstance, fn: () => T): T {
-    return gameContext.run(gameInstance, fn)
   }
 
   toJSON(): any {
@@ -378,4 +384,5 @@ export class GameInstance {
   // }
 }
 
-export default GameInstance
+const Game = new GameInstance()
+export default Game

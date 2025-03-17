@@ -1,11 +1,10 @@
 import Card from '@card'
-import { CardLocation, PlayerID } from '@constants'
+import { PlayerID } from '@constants'
 import { generateEffect } from '@generateEffect'
 import { generateHero } from '@generateHero'
 import { generateMinion } from '@generateMinion'
 import Hero from '@hero'
 import Minion from '@minion'
-import MinionID from '@minionID' with { type: 'json' }
 
 class PlayerData {
   playerID: PlayerID
@@ -47,19 +46,6 @@ class PlayerData {
     for (let i = this.deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
       ;[this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]]
-    }
-
-    // DEBUG
-
-    if (playerID === PlayerID.Player2) {
-      this.board = [
-        generateMinion(MinionID.CENARIUS, id(), playerID),
-        generateMinion(MinionID.KORKRON_ELITE, id(), playerID),
-        generateMinion(MinionID.SUMMONING_PORTAL, id(), playerID),
-        generateMinion(MinionID.MANA_TIDE_TOTEM, id(), playerID),
-        generateMinion(MinionID.ARATHI_WEAPONSMITH, id(), playerID),
-      ]
-      this.board.forEach((m) => (m.location = CardLocation.Board))
     }
   }
 

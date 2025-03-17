@@ -5,7 +5,7 @@
   "description": "Web-based vanilla Hearthstone currently in development.",
   "main": "server.ts",
   "scripts": {
-    "start": "concurrently \"npx tsx server/server.ts\" \"vite\"",
+    "start": "concurrently \"npx tsx server/server.ts\" \"npx vite --host\"",
     "build": "vite build --root frontend",
     "dev": "vite --root frontend",
     "test": "echo \"Error: no test specified\" && exit 1",

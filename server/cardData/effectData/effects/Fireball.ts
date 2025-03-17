@@ -4,7 +4,6 @@ import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
 import DamageEvent from '@events/DamageEvent.ts'
-import GameInstance from '@gameInstance'
 
 class Fireball extends Effect {
   constructor(id: number, playerOwner: PlayerID) {
@@ -12,9 +11,6 @@ class Fireball extends Effect {
   }
 
   apply(source: Character, target: Character | null): void {
-    const gameInstance = GameInstance.getCurrent()
-    if (!gameInstance) return
-
     if (target) {
       engine.queueEvent(new DamageEvent(source, [target], this.getAmount()))
     } else if (this.requiresTarget) {

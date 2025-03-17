@@ -2,7 +2,7 @@ import Card from '@card'
 import { EventType, PlayerID } from '@constants'
 import { engine } from '@engine'
 import Event from '@event'
-import GameInstance from '@gameInstance'
+import Game from '@gameInstance'
 import FatigueEvent from './FatigueEvent.ts'
 
 class DrawCardEvent extends Event {
@@ -14,12 +14,9 @@ class DrawCardEvent extends Event {
   }
 
   execute(): boolean {
-    // console.log(`Executing ${this}`)
+    console.log(`Executing ${this}`)
 
-    const gameInstance = GameInstance.getCurrent()
-    if (!gameInstance) return false
-
-    const playerData = gameInstance.getPlayerData(this.playerID)
+    const playerData = Game.getPlayerData(this.playerID)
 
     const card: Card = playerData.deck.pop()
     if (card) {

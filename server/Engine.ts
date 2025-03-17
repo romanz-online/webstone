@@ -1,8 +1,8 @@
-import { EventEmitter } from 'events'
-import Event from 'eventData/Event.ts'
 import { EventType } from '@constants'
+import Event from 'eventData/Event.ts'
+import { EventEmitter } from 'events'
 
-const DEBUG_ENGINE = false
+const DEBUG_ENGINE = true
 
 type EventListener = (data: any, done: () => void) => void
 

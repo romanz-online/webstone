@@ -1,6 +1,6 @@
 import { CardLocation, EventType, PlayerID } from '@constants'
 import Event from '@event'
-import GameInstance from '@gameInstance'
+import Game from '@gameInstance'
 import Minion from '@minion'
 import { notifyClient } from '@ws'
 
@@ -19,12 +19,11 @@ class SummonMinionEvent extends Event {
   execute(): boolean {
     // console.log(`Executing ${this}`)
 
-    const gameInstance = GameInstance.getCurrent()
-    if (!gameInstance) return false
-
-    gameInstance
-      .getPlayerData(this.playerID)
-      .board.splice(this.boardIndex, 0, this.minion)
+    Game.getPlayerData(this.playerID).board.splice(
+      this.boardIndex,
+      0,
+      this.minion
+    )
 
     this.minion.location = CardLocation.Board
 

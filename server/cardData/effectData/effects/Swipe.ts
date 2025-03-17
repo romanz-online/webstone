@@ -4,7 +4,7 @@ import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
 import DamageEvent from '@events/DamageEvent.ts'
-import { GameInstance } from '@gameInstance'
+import Game from '@gameInstance'
 import PlayerData from '@playerData'
 
 class Swipe extends Effect {
@@ -13,13 +13,9 @@ class Swipe extends Effect {
   }
 
   apply(source: Character, target: Character | null): void {
-    const gameInstance = GameInstance.getCurrent()
-    if (!gameInstance) return
-
     if (
       this.requiresTarget ||
-      (gameInstance.getPlayerData(PlayerID.Player2).board.length > 0 &&
-        this.canTarget)
+      (Game.getPlayerData(PlayerID.Player2).board.length > 0 && this.canTarget)
     ) {
       console.error('Target required for targeted damage effect')
       return
@@ -27,7 +23,7 @@ class Swipe extends Effect {
 
     const targetID = target.id,
       targetOwner = target.playerOwner,
-      player = gameInstance.getPlayerData(targetOwner)
+      player = Game.getPlayerData(targetOwner)
 
     let otherTargets: Character[]
     for (let i = 0; i < player.board.length; i++) {

@@ -4,7 +4,7 @@ import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
 import DamageEvent from '@events/DamageEvent.ts'
-import GameInstance from '@gameInstance'
+import Game from '@gameInstance'
 
 class FireElementalBattlecry extends Effect {
   constructor(playerOwner: number) {
@@ -12,15 +12,11 @@ class FireElementalBattlecry extends Effect {
   }
 
   apply(source: Character, target: Character | null): void {
-    const gameInstance = GameInstance.getCurrent()
-    if (!gameInstance) return
-
     if (target) {
       engine.queueEvent(new DamageEvent(source, [target], this.getAmount()))
     } else if (
       this.requiresTarget ||
-      (gameInstance.getPlayerData(PlayerID.Player2).board.length > 0 &&
-        this.canTarget) // INSTEAD OF THIS, CHECK THE LENGTH OF availableTargets
+      (Game.getPlayerData(PlayerID.Player2).board.length > 0 && this.canTarget) // INSTEAD OF THIS, CHECK THE LENGTH OF availableTargets
     ) {
       console.error('Target required for targeted damage effect')
     }

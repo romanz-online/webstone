@@ -1,6 +1,6 @@
 import { EventType, PlayerID } from '@constants'
 import Event from '@event'
-import GameInstance from '@gameInstance'
+import Game from '@gameInstance'
 import { notifyClient } from '@ws'
 
 class TriggerDeathEvent extends Event {
@@ -11,11 +11,8 @@ class TriggerDeathEvent extends Event {
   execute(): boolean {
     // console.log(`Executing ${this}`)
 
-    const gameInstance = GameInstance.getCurrent()
-    if (!gameInstance) return false
-
-    const player1 = gameInstance.getPlayerData(PlayerID.Player1),
-      player2 = gameInstance.getPlayerData(PlayerID.Player2)
+    const player1 = Game.getPlayerData(PlayerID.Player1),
+      player2 = Game.getPlayerData(PlayerID.Player2)
 
     for (let i = player1.board.length - 1; i >= 0; i--) {
       if (player1.board[i].health < 1) {

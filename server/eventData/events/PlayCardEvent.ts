@@ -1,7 +1,7 @@
 import Card from '@card'
 import { EventType, PlayerID } from '@constants'
 import Event from '@event'
-import GameInstance from '@gameInstance'
+import Game from '@gameInstance'
 import { notifyClient } from '@ws'
 
 class PlayCardEvent extends Event {
@@ -19,10 +19,7 @@ class PlayCardEvent extends Event {
   execute(): boolean {
     // console.log(`Executing ${this}`)
 
-    const gameInstance = GameInstance.getCurrent()
-    if (!gameInstance) return false
-
-    const playerData = gameInstance.getPlayerData(this.playerID)
+    const playerData = Game.getPlayerData(this.playerID)
 
     playerData.hand.splice(playerData.hand.indexOf(this.card), 1)[0]
 

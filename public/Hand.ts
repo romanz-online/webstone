@@ -1,40 +1,79 @@
 import gsap from 'gsap'
 import * as PIXI from 'pixi.js'
-import { Minion } from './Minion.ts'
+import MinionCardView from './MinionCardView.ts'
+
+interface CardPosition {
+  x: number
+  y: number
+  rotation: number
+}
 
 export class Hand extends PIXI.Container {
-  cardArray: Minion[] = []
+  cardViewArray: MinionCardView[] = []
+  bounds: PIXI.Graphics
 
-  constructor() {
+  // private cardPositions: CardPosition[][] = [
+  //   [],
+  //   [{ x: 0, y: 0, rotation: 0 }],
+  //   [
+  //     { x: -90, y: 0, rotation: 0 },
+  //     { x: 90, y: 0, rotation: 0 },
+  //   ],
+  //   [
+  //     { x: -165, y: 0, rotation: 0 },
+  //     { x: 0, y: 0, rotation: 0 },
+  //     { x: 165, y: 0, rotation: 0 },
+  //   ],
+  //   [
+  //     { x: -200, y: 45, rotation: -0.5 },
+  //     { x: -60, y: 0, rotation: -0.2 },
+  //     { x: 60, y: 0, rotation: 0.2 },
+  //     { x: 200, y: 45, rotation: 0.5 },
+  //   ],
+  //   [
+  //     { x: -200, y: 10, rotation: -0.5 },
+  //     { x: -100, y: 0, rotation: -0.1 },
+  //     { x: 0, y: 0, rotation: 0 },
+  //     { x: 100, y: 20, rotation: 0.2 },
+  //     { x: 200, y: 55, rotation: 0.4 },
+  //   ],
+  // ]
+
+  // https://www.youtube.com/watch?v=hUi0eFuTi-g
+
+  constructor(width: number, height: number) {
     super()
 
-    for (let i = 0; i < 6; i++) {
-      const card = new Minion()
-      card.position.set(this.x, this.y)
-      card.scale.set(0.5)
-      card.pivot.set(card.width / 2, card.height / 2)
-      this.cardArray.push(card)
-      this.addChild(card)
-    }
+    this.width = width
+    this.height = height
+
+    this.bounds = new PIXI.Graphics()
+      .rect(0, 0, width, height)
+      .fill({ color: 0x000000, alpha: 0 })
+      .stroke({ width: 2, color: 0xff0000 })
+    this.addChild(this.bounds)
 
     this.adjustCardPositions()
   }
 
-  private getCardY(x: number): number {
-    return 2 * x * x + 20 * x + this.y
+  addCard(card: MinionCardView): void {
+    card.position.set(this.width, 0)
+    this.cardViewArray.push(card)
+    this.addChild(card)
+    this.adjustCardPositions()
   }
 
   adjustCardPositions(): void {
-    const isEven = this.cardArray.length % 2 === 0,
-      midway = Math.floor(this.cardArray.length / 2)
-
-    for (let i = 0; i < this.cardArray.length; i++) {
-      const offsetIndex = i - midway + (isEven ? 0.75 : 0)
-
-      gsap.to(this.cardArray[i], {
-        x: this.x + 44 + (offsetIndex * this.cardArray[i].width) / 2,
-        y: this.getCardY(offsetIndex * (i < midway ? -1 : 1)),
-        rotation: (Math.PI / 4) * (offsetIndex / this.cardArray.length),
+    for (let i = 0; i < this.cardViewArray.length; i++) {
+      this.cardViewArray[i].zIndex = i
+      gsap.to(this.cardViewArray[i], {
+        // x: this.width / 2 + this.cardPositions[this.cardArray.length][i].x - 20,
+        // y:
+        //   this.height / 2 + this.cardPositions[this.cardArray.length][i].y - 20,
+        // rotation: this.cardPositions[this.cardArray.length][i].rotation,
+        x: this.x + (i + 1) * this.cardViewArray[i].width * 0.7,
+        y: this.height / 2 - 20,
+        rotation: 0,
         duration: 1,
         ease: 'power4.out',
         delay: i * 0.05,

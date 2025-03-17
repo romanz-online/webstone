@@ -4,6 +4,7 @@ import fs from 'fs'
 import mime from 'mime-types'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { processEvent } from 'wsEvents.ts'
 import HeroData from './cardData/characterData/heroData/HeroData.ts'
 import MinionData from './cardData/characterData/minionData/MinionData.ts'
 import EffectData from './cardData/effectData/EffectData.ts'
@@ -47,19 +48,17 @@ fs.writeFileSync(
 )
 console.log('Generated hero IDs')
 
-import { processEvent } from './wsEvents.ts'
-
 fs.copyFile('./server/constants.ts', './public/constants.ts', (err) => {
-  console.error('Error copying file:', err)
+  if (err) {
+    console.error('Error copying file:', err)
+  } else {
+    console.log('Copied constants to public files')
+  }
 })
 
 const port = Number(process.env.PORT) || 5500
 uWS
-  .App({
-    key_file_name: 'misc/key.pem',
-    cert_file_name: 'misc/cert.pem',
-    passphrase: '1234',
-  })
+  .App()
   .any('/*', async (res, req) => {
     // serving static files via HTTP
     res.onAborted(() => {
@@ -82,6 +81,7 @@ uWS
           typeof lookupResult === 'string' ? lookupResult : 'text/plain'
         res
           .writeStatus(err ? '404 Not Found' : '200 OK')
+          .writeHeader('Access-Control-Allow-Origin', '*')
           .writeHeader('Content-Type', mimeType)
           .end(err ? 'File Not Found' : data)
       })
@@ -103,9 +103,9 @@ uWS
 
     message: async (ws, message, isBinary) => {
       const msg = Buffer.from(message).toString()
-      // console.log('Received message:', msg)
+      console.log('Received message:', msg)
 
-      let parsedMessage
+      let parsedMessage: any
       try {
         parsedMessage = JSON.parse(msg)
       } catch (error) {
@@ -116,8 +116,10 @@ uWS
       processEvent(ws as any, parsedMessage)
     },
   })
-  .listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`)
+  .listen(port, (token) => {
+    if (token) {
+      console.log(`Server is running at http://localhost:${port}`)
+    }
   })
 
 // CHANNEL CODE

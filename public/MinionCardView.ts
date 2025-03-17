@@ -1,47 +1,16 @@
 import gsap from 'gsap'
 import * as PIXI from 'pixi.js'
-import {
-  CardLocation,
-  HeroClass,
-  Keyword,
-  PlayerID,
-  Rarity,
-  Tribe,
-} from './constants.ts'
-import * as DragState from './dragState.ts'
+import CardDragState from './CardDragState.ts'
+import MinionModel from './MinionModel.ts'
 
-// COMBINE THIS AND BoardMinion INTO A SINGLE MINION OBJECT
-// AND JUST SWITCH WHAT MODE IT'S IN
+class MinionCardView extends PIXI.Container {
+  public minion: MinionModel
 
-interface MinionServerData {
-  id: number
-  fileName: string
-  playerOwner: PlayerID
-  attacksThisTurn: number
-  canAttack: boolean
-  name: string
-  description: string
-  class: HeroClass
-  rarity: Rarity
-  tribe: Tribe
-  overload: number
-  baseMana: number
-  baseAttack: number
-  baseHealth: number
-  maxHealth: number
-  mana: number
-  attack: number
-  health: number
-  keywords: Keyword[]
-  location: CardLocation
-}
-
-export class Minion extends PIXI.Container {
   public offsetX: number = 0
   public offsetY: number = 0
 
   private portrait: PIXI.Sprite
-  private frame: PIXI.Sprite
+  private handFrame: PIXI.Sprite
   private manaIcon: PIXI.Sprite
   private manaText: PIXI.Text
   private attackIcon: PIXI.Sprite
@@ -54,41 +23,19 @@ export class Minion extends PIXI.Container {
   private nameTextStyle: PIXI.TextStyle
 
   private ticker: PIXI.Ticker
-  private mx: number
-  private my: number
   private ocardx: number
   private ocardy: number
+  private ocardz: number
   private rx: number = 0
   private ry: number = 0
   private physicsReady: boolean = false
 
-  public serverData: MinionServerData = {
-    id: 0,
-    fileName: '',
-    playerOwner: PlayerID.Player1,
-    attacksThisTurn: 0,
-    canAttack: false,
-    name: '',
-    description: '',
-    class: HeroClass.Neutral,
-    rarity: Rarity.Free,
-    tribe: Tribe.None,
-    overload: 0,
-    baseMana: 0,
-    baseAttack: 0,
-    baseHealth: 0,
-    maxHealth: 0,
-    mana: 0,
-    attack: 0,
-    health: 0,
-    keywords: [],
-    location: CardLocation.Hand,
-  }
-
-  constructor() {
+  constructor(minion: MinionModel) {
     super()
 
-    this.serverData.location = CardLocation.Hand
+    this.minion = minion
+
+    this.scale.set(0.4)
 
     this.portrait = PIXI.Sprite.from(
       './media/images/cardimages/cairne_bloodhoof.jpg'
@@ -109,12 +56,28 @@ export class Minion extends PIXI.Container {
     this.portrait.mask = mask
     this.portrait.addChild(mask)
 
-    this.frame = PIXI.Sprite.from(
+    this.handFrame = PIXI.Sprite.from(
       './media/images/card_inhand_minion_priest_frame.png'
     )
-    this.frame.anchor.set(0.5, 0.5)
-    this.frame.scale.set(0.5)
-    this.addChild(this.frame)
+    this.handFrame.anchor.set(0.5, 0.5)
+    this.handFrame.scale.set(0.5)
+    this.addChild(this.handFrame)
+
+    this.statTextStyle = new PIXI.TextStyle({
+      fontFamily: 'Belwe',
+      stroke: { color: 'black', width: 7 },
+      fontSize: 80,
+      fill: 'white',
+      fontWeight: 'bold',
+      align: 'center',
+    })
+
+    this.handFrame = PIXI.Sprite.from(
+      './media/images/card_inhand_minion_priest_frame.png'
+    )
+    this.handFrame.anchor.set(0.5, 0.5)
+    this.handFrame.scale.set(0.5)
+    this.addChild(this.handFrame)
 
     this.statTextStyle = new PIXI.TextStyle({
       fontFamily: 'Belwe',
@@ -165,8 +128,8 @@ export class Minion extends PIXI.Container {
     this.manaIcon.anchor.set(0.5, 0.5)
     this.manaIcon.scale.set(0.55)
     this.manaIcon.position.set(
-      -this.frame.width / 2 + 28,
-      -this.frame.height / 2 + 56
+      -this.handFrame.width / 2 + 28,
+      -this.handFrame.height / 2 + 56
     )
     this.manaText = new PIXI.Text({
       text: '',
@@ -174,8 +137,8 @@ export class Minion extends PIXI.Container {
     })
     this.manaText.anchor.set(0.5, 0.5)
     this.manaText.position.set(
-      -this.frame.width / 2 + 28,
-      -this.frame.height / 2 + 48
+      -this.handFrame.width / 2 + 28,
+      -this.handFrame.height / 2 + 48
     )
     this.addChild(this.manaIcon)
     this.addChild(this.manaText)
@@ -188,8 +151,8 @@ export class Minion extends PIXI.Container {
     this.attackIcon.anchor.set(0.5, 0.5)
     this.attackIcon.scale.set(0.45)
     this.attackIcon.position.set(
-      -this.frame.width / 2 + 32,
-      this.frame.height / 2 - 38
+      -this.handFrame.width / 2 + 32,
+      this.handFrame.height / 2 - 38
     )
     this.attackText = new PIXI.Text({
       text: '',
@@ -197,8 +160,8 @@ export class Minion extends PIXI.Container {
     })
     this.attackText.anchor.set(0.5, 0.5)
     this.attackText.position.set(
-      -this.frame.width / 2 + 35,
-      this.frame.height / 2 - 42
+      -this.handFrame.width / 2 + 35,
+      this.handFrame.height / 2 - 42
     )
     this.addChild(this.attackIcon)
     this.addChild(this.attackText)
@@ -211,8 +174,8 @@ export class Minion extends PIXI.Container {
     this.healthIcon.anchor.set(0.5, 0.5)
     this.healthIcon.scale.set(0.4)
     this.healthIcon.position.set(
-      this.frame.width / 2 - 24,
-      this.frame.height / 2 - 32
+      this.handFrame.width / 2 - 24,
+      this.handFrame.height / 2 - 32
     )
     this.healthText = new PIXI.Text({
       text: '',
@@ -220,8 +183,8 @@ export class Minion extends PIXI.Container {
     })
     this.healthText.anchor.set(0.5, 0.5)
     this.healthText.position.set(
-      this.frame.width / 2 - 24,
-      this.frame.height / 2 - 40
+      this.handFrame.width / 2 - 24,
+      this.handFrame.height / 2 - 40
     )
     this.addChild(this.healthIcon)
     this.addChild(this.healthText)
@@ -251,56 +214,53 @@ export class Minion extends PIXI.Container {
     this.ticker.start()
     this.ocardx = this.x
     this.ocardy = this.y
-    this.mx = this.x
-    this.my = this.y
     this.on('pointerdown', (event) => {
-      if (this.serverData.location === CardLocation.Hand) {
-        this.physicsReady = true
-        this.offsetX = this.x - event.global.x
-        this.offsetY = this.y - event.global.y
-        DragState.setDraggedObj(this)
+      this.physicsReady = true
+      this.offsetX = this.x - event.global.x
+      this.offsetY = this.y - event.global.y
+      CardDragState.setDraggedCard(this)
 
-        this.mx = event.global.x
-        this.my = event.global.y
-        this.ocardx = this.x
-        this.ocardy = this.y
-      }
+      this.ocardx = this.x
+      this.ocardy = this.y
     })
-    this.on('pointermove', (event) => {
-      if (this.serverData.location === CardLocation.Hand) {
-        if (DragState.getDraggedObj() === this) {
-          this.mx = event.global.x
-          this.my = event.global.y
-        } else {
-          this.mx = this.x
-          this.my = this.y
-        }
-      }
-    })
+    this.on('pointermove', (event) => {})
     this.on('mouseover', (event) => {
-      if (this.serverData.location === CardLocation.Hand) {
-        gsap.to(this.scale, {
-          x: 0.6,
-          y: 0.6,
-          duration: 0.2,
-          ease: 'power1.out',
-        })
-      }
+      if (CardDragState.getDraggedCard() === this) return
+
+      this.ocardz = this.zIndex
+      this.zIndex = 999
+      this.ocardy = this.y
+      gsap.to(this, {
+        y: this.y - 100,
+        duration: 0.2,
+        ease: 'power4.out',
+      })
+      gsap.to(this.scale, {
+        x: 0.5,
+        y: 0.5,
+        duration: 0.2,
+        ease: 'power4.out',
+      })
     })
     this.on('mouseout', (event) => {
-      if (this.serverData.location === CardLocation.Hand) {
-        gsap.to(this.scale, {
-          x: 0.5,
-          y: 0.5,
-          duration: 0.2,
-          ease: 'power1.out',
-        })
-      }
+      if (CardDragState.getDraggedCard() === this) return
+
+      this.zIndex = this.ocardz
+      gsap.to(this, {
+        y: this.ocardy,
+        duration: 0.2,
+        ease: 'power4.out',
+      })
+      gsap.to(this.scale, {
+        x: 0.4,
+        y: 0.4,
+        duration: 0.2,
+        ease: 'power4.out',
+      })
     })
   }
 
   private physicsLoop(delta: any): void {
-    if (this.serverData.location !== CardLocation.Hand) return
     if (!this.physicsReady) return // prevents glitchy behavior on the first loop
 
     this.rx +=
@@ -339,3 +299,5 @@ export class Minion extends PIXI.Container {
     this.ocardy = this.y
   }
 }
+
+export default MinionCardView

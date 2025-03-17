@@ -1,6 +1,6 @@
 import { EventType } from '@constants'
 import Event from '@event'
-import GameInstance from '@gameInstance'
+import Game from '@gameInstance'
 import { notifyClient } from '@ws'
 
 class StartTurnEvent extends Event {
@@ -11,10 +11,7 @@ class StartTurnEvent extends Event {
   execute(): boolean {
     // console.log(`Executing ${this}`)
 
-    const gameInstance = GameInstance.getCurrent()
-    if (!gameInstance) return false
-
-    const playerData = gameInstance.getPlayerData(gameInstance.whoseTurn)
+    const playerData = Game.getPlayerData(Game.whoseTurn)
 
     playerData.hero.canAttack = true
     for (const minion of playerData.board) {

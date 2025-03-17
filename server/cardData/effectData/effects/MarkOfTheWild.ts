@@ -4,7 +4,6 @@ import Effect from '@effect'
 import EffectID from '@effectID' with { type: 'json' }
 import { engine } from '@engine'
 import ChangeStatsEvent from '@events/ChangeStatsEvent.ts'
-import GameInstance from '@gameInstance'
 import Minion from '@minion'
 
 class MarkOfTheWild extends Effect {
@@ -13,9 +12,6 @@ class MarkOfTheWild extends Effect {
   }
 
   apply(source: Character, target: Character | null): void {
-    const gameInstance = GameInstance.getCurrent()
-    if (!gameInstance) return
-
     if (target) {
       engine.queueEvent(
         // ALSO NEED SOME WAY TO GIVE IT TAUNT

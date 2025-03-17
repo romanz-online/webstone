@@ -1,36 +1,34 @@
-const eventHandlers = {}
+import { EventType } from './constants.ts'
+
+const eventHandlers: any = {}
 
 export const wsEventHandler = ({
   socket,
   event,
   onSuccess,
-  onFailure = () => {},
-}) => {
-  if (typeof onSuccess != 'function') {
-    console.error(`${event} onSuccess clause must be a function`)
-    return
-  }
-
+  onFailure,
+}: {
+  socket: WebSocket
+  event: EventType
+  onSuccess: (data: any) => void
+  onFailure: (data: any) => void
+}): void => {
   if (!eventHandlers[event]) {
     eventHandlers[event] = []
   }
 
   eventHandlers[event].push({ onSuccess, onFailure })
 
-  socket.addEventListener('message', (evt) => {
+  socket.addEventListener('message', (evt: any): void => {
     const { signature, success, data } = JSON.parse(evt.data)
 
     // not the right instance of wsEventHandler for this signature
-    if (event != signature) {
-      return
-    }
+    if (event != signature) return
 
     // no handlers specified for the signature
-    if (!eventHandlers[signature]) {
-      return
-    }
+    if (!eventHandlers[signature]) return
 
-    eventHandlers[signature].forEach((handler) => {
+    eventHandlers[signature].forEach((handler: any) => {
       console.log(success ? 'SUCCESS' : 'FAIL', signature)
 
       if (success) {

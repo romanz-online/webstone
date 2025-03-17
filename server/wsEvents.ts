@@ -1,7 +1,7 @@
 import { EventType } from '@constants'
 import { engine } from '@engine'
 import Event from '@event'
-import { GameInstance } from '@gameInstance'
+import Game from '@gameInstance'
 import TryAttackEvent from '@tryEvents/TryAttackEvent.ts'
 import TryCancelEvent from '@tryEvents/TryCancelEvent.ts'
 import TryEndTurnEvent from '@tryEvents/TryEndTurnEvent.ts'
@@ -11,20 +11,20 @@ import TryPlayCardEvent from '@tryEvents/TryPlayCard.ts'
 import TryTargetEvent from '@tryEvents/TryTargetEvent.ts'
 import { setSocket } from '@ws'
 
-const gameInstance =
-  new GameInstance(/* GIVE EACH GameInstance AN ID OF SOME SORT */)
 console.log('Running game instance')
+Game.init()
 
 export const processEvent = async (ws: WebSocket, json: any): Promise<void> => {
   setSocket(ws)
   const event: Event | null = generateEvent(json)
+  console.log(event)
   if (event) {
     engine.queuePlayerAction(event)
   }
 }
 
 const generateEvent = (json: any): Event | null => {
-  const type: EventType = json.type
+  const type: EventType = json.event
   if (!type) return null
 
   try {
@@ -50,6 +50,4 @@ const generateEvent = (json: any): Event | null => {
     console.error('Error parsing JSON into Event:', error.message)
     return null
   }
-
-  return null
 }
