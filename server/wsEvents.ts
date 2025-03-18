@@ -30,9 +30,9 @@ const generateEvent = (json: any): Event | null => {
   try {
     switch (type) {
       case EventType.TryAttack:
-        return new TryAttackEvent(json.attackerID, json.targetID)
+        return new TryAttackEvent(json.data.attackerID, json.data.targetID)
       case EventType.TryPlayCard:
-        return new TryPlayCardEvent(json)
+        return new TryPlayCardEvent(json.data)
       case EventType.TryEndTurn:
         return new TryEndTurnEvent()
       case EventType.TryHeroPower:
@@ -42,7 +42,7 @@ const generateEvent = (json: any): Event | null => {
       case EventType.TryLoad:
         return new TryLoadEvent()
       case EventType.TryTarget:
-        return new TryTargetEvent(json.targetID)
+        return new TryTargetEvent(json.data.targetID)
       default:
         return null
     }

@@ -27,7 +27,11 @@ class SummonMinionEvent extends Event {
 
     this.minion.location = CardLocation.Board
 
-    notifyClient(EventType.SummonMinion, true, {})
+    notifyClient(EventType.SummonMinion, true, {
+      playerID: this.playerID,
+      minionID: this.minion.id,
+      boardIndex: this.boardIndex,
+    })
 
     return true
   }

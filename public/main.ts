@@ -2,7 +2,7 @@ import FontFaceObserver from 'fontfaceobserver'
 import * as PIXI from 'pixi.js'
 import Board from './Board.ts'
 import CardDragState from './CardDragState.ts'
-import { EventType } from './constants.ts'
+import { CardType, EventType } from './constants.ts'
 import Hand from './Hand.ts'
 import Hero from './Hero.ts'
 import MinionBoardView from './MinionBoardView.ts'
@@ -120,6 +120,12 @@ export const app = new PIXI.Application()
       cardBounds.y < dropBounds.y + dropBounds.height
     ) {
       console.log('Dropped on board')
+      triggerWsEvent(EventType.TryPlayCard, {
+        playerID: card.minion.playerOwner,
+        cardType: CardType.Minion,
+        minionID: card.minion.id,
+        boardIndex: 0,
+      })
     } else {
       console.log('Dropped outside')
       card.revert()

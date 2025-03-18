@@ -1,10 +1,10 @@
 import { EventType } from '@constants'
 
 class Event {
-  type: EventType
+  event: EventType
 
-  constructor(type: EventType) {
-    this.type = type
+  constructor(event: EventType) {
+    this.event = event
   }
 
   toString() {

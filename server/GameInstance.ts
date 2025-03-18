@@ -21,6 +21,7 @@ import Minion from '@minion'
 import MinionID from '@minionID' with { type: 'json' }
 import PlayerData from '@playerData'
 import TryEndTurnEvent from '@tryEvents/TryEndTurnEvent.ts'
+import TryPlayCardEvent from '@tryEvents/TryPlayCard.ts'
 import { notifyClient } from '@ws'
 
 const deck1: number[] = [
@@ -69,7 +70,7 @@ export class GameInstance {
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryEndTurn,
-      (data, done) => {
+      (event, done) => {
         this.tryEndTurn()
         done()
       }
@@ -78,7 +79,7 @@ export class GameInstance {
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryCancel,
-      (data, done) => {
+      (event, done) => {
         this.cancel()
         done()
       }
@@ -87,8 +88,8 @@ export class GameInstance {
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryTarget,
-      (data, done) => {
-        this.target(data.targetID)
+      (event, done) => {
+        this.target(event.targetID)
         done()
       }
     )
@@ -96,7 +97,7 @@ export class GameInstance {
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryLoad,
-      (data, done) => {
+      (event, done) => {
         notifyClient(EventType.Load, true, this.toJSON())
         done()
       }
@@ -105,8 +106,8 @@ export class GameInstance {
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryPlayCard,
-      (data, done) => {
-        this.tryPlayCard(data)
+      (event, done) => {
+        this.tryPlayCard(event)
         done()
       }
     )
@@ -114,8 +115,8 @@ export class GameInstance {
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryAttack,
-      (data, done) => {
-        this.tryAttack(data.attackerID, data.targetID)
+      (event, done) => {
+        this.tryAttack(event.attackerID, event.targetID)
         done()
       }
     )
@@ -123,7 +124,7 @@ export class GameInstance {
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryHeroPower,
-      (data, done) => {
+      (event, done) => {
         // NOT IMPLEMENTED YET
         done()
       }
@@ -177,17 +178,17 @@ export class GameInstance {
     notifyClient(EventType.Cancel, true, {})
   }
 
-  tryPlayCard(data: any): void {
-    const type: CardType = data.type
+  tryPlayCard(event: TryPlayCardEvent): void {
+    const type: CardType = event.data.cardType
     switch (type) {
       case CardType.Minion:
-        this.tryPlayMinion(data)
+        this.tryPlayMinion(event)
         break
       case CardType.Spell:
-        this.tryPlaySpell(data)
+        this.tryPlaySpell(event)
         break
       case CardType.Weapon:
-        this.tryPlayWeapon(data)
+        this.tryPlayWeapon(event)
         break
       default:
         notifyClient(EventType.PlayCard, false, this.toJSON())
@@ -196,10 +197,10 @@ export class GameInstance {
     }
   }
 
-  tryPlayMinion(data: any): void {
-    const boardIndex: number = data.boardIndex,
-      cardID: number = data.id,
-      playerData: PlayerData = this.getPlayerData(data.player)
+  tryPlayMinion(event: TryPlayCardEvent): void {
+    const boardIndex: number = event.data.boardIndex,
+      cardID: number = event.data.minionID,
+      playerData: PlayerData = this.getPlayerData(event.data.playerID)
 
     const minion: Minion | null = this.getHandMinion(cardID)
     if (!minion) {
@@ -226,9 +227,9 @@ export class GameInstance {
     }
   }
 
-  tryPlaySpell(data: any): void {
-    const cardID: number = data.id,
-      playerData: PlayerData = this.getPlayerData(data.player)
+  tryPlaySpell(event: TryPlayCardEvent): void {
+    const cardID: number = event.data.cardID,
+      playerData: PlayerData = this.getPlayerData(event.data.playerID)
 
     const spell: Effect | null = this.getHandSpell(cardID)
     if (!spell) {
@@ -260,7 +261,7 @@ export class GameInstance {
     }
   }
 
-  tryPlayWeapon(data: any): void {}
+  tryPlayWeapon(event: TryPlayCardEvent): void {}
 
   target(targetID: number): void {
     const target: Character | null = this.getBoardCharacter(targetID),

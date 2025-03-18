@@ -20,16 +20,18 @@ const wsEventHandler = ({
   eventHandlers[event].push({ onSuccess, onFailure })
 
   socket.addEventListener('message', (evt: any): void => {
-    const { signature, success, data } = JSON.parse(evt.data)
+    const { eventType, success, data } = JSON.parse(evt.data)
+
+    console.log(evt.data)
 
     // not the right instance of wsEventHandler for this signature
-    if (event != signature) return
+    if (event != eventType) return
 
     // no handlers specified for the signature
-    if (!eventHandlers[signature]) return
+    if (!eventHandlers[eventType]) return
 
-    eventHandlers[signature].forEach((handler: any) => {
-      console.log(success ? 'SUCCESS' : 'FAIL', signature)
+    eventHandlers[eventType].forEach((handler: any) => {
+      console.log(success ? 'SUCCESS' : 'FAIL', eventType)
 
       if (success) {
         handler.onSuccess(data)

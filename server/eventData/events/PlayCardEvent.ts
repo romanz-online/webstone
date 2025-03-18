@@ -39,7 +39,10 @@ class PlayCardEvent extends Event {
     // }
     // NOT SURE IF THIS IS NECESSARY OR EVEN CORRECT
 
-    notifyClient(EventType.PlayCard, true, {})
+    notifyClient(EventType.PlayCard, true, {
+      playerID: this.playerID,
+      cardID: this.card.id,
+    })
 
     return true
   }

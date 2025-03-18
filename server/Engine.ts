@@ -106,7 +106,7 @@ class Engine extends EventEmitter {
     // do the event
     e.execute()
     for (const { eventType, listener } of this.listenerQueue) {
-      if (e.type === eventType) {
+      if (e.event === eventType) {
         // then wait for listeners to react to it
         await new Promise<void>((resolve) => listener(e, resolve))
         // before moving on

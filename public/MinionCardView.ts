@@ -268,8 +268,8 @@ class MinionCardView extends PIXI.Container {
         ease: 'power4.out',
       })
       gsap.to(this.scale, {
-        x: 0.5,
-        y: 0.5,
+        x: 0.45,
+        y: 0.45,
         duration: 0.4,
         ease: 'power4.out',
       })
