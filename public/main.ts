@@ -38,16 +38,14 @@ export const app = new PIXI.Application()
   document.getElementById('pixi-container')!.appendChild(app.canvas)
 
   await PIXI.Assets.load([
-    './media/images/jaina.png',
     './media/images/jaina_portrait.png',
     './media/images/mana.png',
     './media/images/attack.png',
     './media/images/health.png',
     './media/images/name-banner-minion.png',
     './media/images/cardimages/cairne_bloodhoof.jpg',
-    './media/images/Card_Inhand_Minion_Priest.png',
     './media/images/card_inhand_minion_priest_frame.png',
-    './media/images/empty_board_frame.png',
+    './media/images/minion_board_frame.png',
   ])
 
   const background = PIXI.Sprite.from(
@@ -151,9 +149,10 @@ export const app = new PIXI.Application()
             cardView = new MinionCardView(model)
           minionModels.push(model)
           minionCardViews.push(cardView)
-          // minionBoardViews.push(new MinionBoardView(model))
+          minionBoardViews.push(new MinionBoardView(model))
         })
         hand.setHandData(minionCardViews)
+        board.setBoardData(minionBoardViews)
       },
       onFailure: (data: any) => {
         setTimeout(() => {

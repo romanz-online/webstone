@@ -1,9 +1,9 @@
 import * as PIXI from 'pixi.js'
 import CardDragState from './CardDragState.ts'
-import MinionCardView from './MinionCardView.ts'
+import MinionBoardView from './MinionBoardView.ts'
 
 class Board extends PIXI.Container {
-  minionArray: MinionCardView[] = []
+  minionViewArray: MinionBoardView[] = []
   bounds: PIXI.Graphics
 
   constructor(width: number, height: number) {
@@ -18,20 +18,31 @@ class Board extends PIXI.Container {
       .stroke({ width: 2, color: 0xff0000 })
     this.addChild(this.bounds)
 
-    // for (let i = 0; i < 1; i++) {
-    //   const card = new Minion()
-    //   card.serverData.location = CardLocation.Board
-    //   card.position.set(this.x, this.y)
-    //   card.scale.set(0.5)
-    //   card.pivot.set(card.width / 2, card.height / 2)
-    //   this.minionArray.push(card)
-    //   this.addChild(card)
-    // }
-
     this.eventMode = 'static'
     this.on('mouseover', (event) => {
       if (!CardDragState.getDraggedCard()) return
     })
+  }
+
+  setBoardData(minions: MinionBoardView[]): void {
+    this.minionViewArray.forEach((minion) => {
+      if (minion instanceof MinionBoardView) {
+        this.removeChild(minion)
+      }
+    })
+
+    this.minionViewArray = minions
+    this.minionViewArray.forEach((minion) => {
+      this.addChild(minion)
+    })
+    this.adjustMinionPositions()
+  }
+
+  adjustMinionPositions() {
+    for (let i = 0; i < this.minionViewArray.length; i++) {
+      this.minionViewArray[i].x = (i + 1) * this.minionViewArray[i].width * 1.2
+      this.minionViewArray[i].y = this.y - this.minionViewArray[i].height * 2
+    }
   }
 }
 

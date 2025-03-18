@@ -75,16 +75,14 @@ class Hand extends PIXI.Container {
       (card) => card.minion.id === id
     )
 
-    gsap.to(cardView, { duration: 0.1, alpha: 0 })
-    gsap.to(cardView.position, {
-      x: cardView.x,
-      y: cardView.y - 50,
-      duration: 0.1,
-      ease: 'power2.out',
-      onComplete: () => {
-        this.removeChild(cardView)
-      },
-    })
+    // gsap.to(cardView, {
+    //   duration: 0.1,
+    //   alpha: 0,
+    //   ease: 'power2.out',
+    //   onComplete: () => {
+    this.removeChild(cardView)
+    //   },
+    // })
   }
 
   adjustCardPositions(): void {

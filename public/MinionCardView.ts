@@ -253,7 +253,7 @@ class MinionCardView extends PIXI.Container {
       this.ocardx = this.x
       this.ocardy = this.y
     })
-    this.on('mouseenter', (event) => {
+    this.on('pointerenter', (event) => {
       if (this.enlarged) return
       if (this.reverting) return
       if (CardDragState.getDraggedCard() === this) return
@@ -274,7 +274,7 @@ class MinionCardView extends PIXI.Container {
         ease: 'power4.out',
       })
     })
-    this.on('mouseleave', (event) => {
+    this.on('pointerleave', (event) => {
       if (this.reverting) return
       if (CardDragState.getDraggedCard() === this) return
 
