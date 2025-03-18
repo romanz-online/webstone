@@ -162,6 +162,22 @@ export const app = new PIXI.Application()
       },
     })
 
+    wsEventHandler({
+      socket: ws,
+      event: EventType.PlayCard,
+      onSuccess: (data: any) => {
+        hand.playCard(data.cardID)
+      },
+    })
+
+    wsEventHandler({
+      socket: ws,
+      event: EventType.SummonMinion,
+      onSuccess: (data: any) => {
+        // board.summonMinion(data.minionID, data.boardIndex)
+      },
+    })
+
     console.log('Loading game state...')
     triggerWsEvent(EventType.TryLoad)
   }

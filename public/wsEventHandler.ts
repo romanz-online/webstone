@@ -6,12 +6,12 @@ const wsEventHandler = ({
   socket,
   event,
   onSuccess,
-  onFailure,
+  onFailure = () => {},
 }: {
   socket: WebSocket
   event: EventType
   onSuccess: (data: any) => void
-  onFailure: (data: any) => void
+  onFailure?: (data: any) => void
 }): void => {
   if (!eventHandlers[event]) {
     eventHandlers[event] = []
@@ -21,8 +21,6 @@ const wsEventHandler = ({
 
   socket.addEventListener('message', (evt: any): void => {
     const { eventType, success, data } = JSON.parse(evt.data)
-
-    console.log(evt.data)
 
     // not the right instance of wsEventHandler for this signature
     if (event != eventType) return

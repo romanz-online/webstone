@@ -211,11 +211,12 @@ export class GameInstance {
       notifyClient(EventType.PlayCard, false, this.toJSON())
       console.error(`Board is full`)
       return
-    } else if (minion.mana > playerData.getAvailableMana()) {
-      notifyClient(EventType.PlayCard, false, this.toJSON())
-      console.error(`Not enough mana to play ${minion}`)
-      return
     }
+    //  else if (minion.mana > playerData.getAvailableMana()) {
+    //   notifyClient(EventType.PlayCard, false, this.toJSON())
+    //   console.error(`Not enough mana to play ${minion}`)
+    //   return
+    // }
 
     this.eventStack.generateStack(
       new PlayCardEvent(playerData.playerID, minion, boardIndex)
