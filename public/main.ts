@@ -103,6 +103,24 @@ export const app = new PIXI.Application()
   // hand1.position.set(app.screen.width / 2 - hand1.width / 2, -hand1.height / 2)
   // app.stage.addChild(hand1)
 
+  app.stage.on('pointermove', (event) => {
+    if (!CardDragState.getDraggedCard()) return
+
+    const card: MinionCardView = CardDragState.getDraggedCard()
+
+    const cardBounds: PIXI.Bounds = card.getBounds(),
+      dropBounds: PIXI.Bounds = board.getBounds()
+
+    if (
+      cardBounds.x + cardBounds.width > dropBounds.x &&
+      cardBounds.x < dropBounds.x + dropBounds.width &&
+      cardBounds.y + cardBounds.height > dropBounds.y &&
+      cardBounds.y < dropBounds.y + dropBounds.height
+    ) {
+      board.handleCardDragOver(cardBounds.x, cardBounds.y)
+    }
+  })
+
   app.stage.on('pointerup', (event) => {
     if (!CardDragState.getDraggedCard()) return
 
@@ -122,12 +140,13 @@ export const app = new PIXI.Application()
         playerID: card.minion.playerOwner,
         cardType: CardType.Minion,
         minionID: card.minion.id,
-        boardIndex: 0,
+        boardIndex: board.placeholderIndex,
       })
     } else {
       console.log('Dropped outside')
       card.revert()
     }
+    board.resetPlaceholder()
 
     CardDragState.clearDraggedCard()
   })

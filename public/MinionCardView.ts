@@ -286,9 +286,9 @@ class MinionCardView extends PIXI.Container {
     if (!this.physicsReady) return // prevents glitchy behavior on the first loop
 
     this.rx +=
-      Math.max(Math.min((this.ocardy - this.y - this.rx) * 3, 15), -15) * 0.01
+      Math.max(Math.min((this.ocardy - this.y - this.rx) * 3, 10), -10) * 0.01
     this.ry +=
-      Math.max(Math.min((this.x - this.ocardx - this.ry) * 3, 15), -15) * 0.01
+      Math.max(Math.min((this.x - this.ocardx - this.ry) * 3, 10), -10) * 0.01
 
     this.rotation = ((this.rx + this.ry) * Math.PI) / 180
 
