@@ -117,7 +117,7 @@ export const app = new PIXI.Application()
       cardBounds.y + cardBounds.height > dropBounds.y &&
       cardBounds.y < dropBounds.y + dropBounds.height
     ) {
-      board.handleCardDragOver(cardBounds.x, cardBounds.y)
+      board.handleCardDragOver(cardBounds.x)
     }
   })
 
@@ -135,18 +135,15 @@ export const app = new PIXI.Application()
       cardBounds.y + cardBounds.height > dropBounds.y &&
       cardBounds.y < dropBounds.y + dropBounds.height
     ) {
-      console.log('Dropped on board')
       triggerWsEvent(EventType.TryPlayCard, {
         playerID: card.minion.playerOwner,
         cardType: CardType.Minion,
         minionID: card.minion.id,
-        boardIndex: board.placeholderIndex,
+        boardIndex: board.getMinionDropIndex(),
       })
     } else {
-      console.log('Dropped outside')
       card.revert()
     }
-    board.resetPlaceholder()
 
     CardDragState.clearDraggedCard()
   })
@@ -165,10 +162,11 @@ export const app = new PIXI.Application()
       onSuccess: (data: any) => {
         data.player1.hand.forEach((card) => {
           const model = new MinionModel(card),
-            cardView = new MinionCardView(model)
+            cardView = new MinionCardView(model),
+            boardView = new MinionBoardView(model)
           minionModels.push(model)
           minionCardViews.push(cardView)
-          minionBoardViews.push(new MinionBoardView(model))
+          minionBoardViews.push(boardView)
         })
         hand.setHandData(minionCardViews)
         board.setBoardData(minionBoardViews)
