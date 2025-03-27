@@ -7,7 +7,7 @@ class HandView {
   private scene: BABYLON.Scene
   private cards: MinionCardView[] = []
   private readonly CARD_SPACING = 1
-  private readonly HAND_Y_POSITION = -3
+  private readonly HAND_Y_POSITION = -3.7
   private readonly HAND_Z_POSITION = -1
 
   constructor(scene: BABYLON.Scene) {
@@ -32,7 +32,6 @@ class HandView {
    * @param card MinionCardView to add to the hand
    */
   public addCard(card: MinionCardView): void {
-    card.transformToHand()
     this.cards.push(card)
     this.arrangeCards()
   }
@@ -59,15 +58,12 @@ class HandView {
 
     this.cards.forEach((card, index) => {
       card.mesh.parent = this.mesh
+      card.transformToHand()
 
       const xPosition = startX + index * this.CARD_SPACING
 
-      // Position the card
       card.mesh.position.set(xPosition, this.HAND_Y_POSITION, -index)
       card.originalPosition = card.mesh.position
-
-      // Ensure the card is in hand view mode
-      card.transformToHand()
     })
   }
 

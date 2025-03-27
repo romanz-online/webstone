@@ -351,7 +351,6 @@ class MinionCardView {
       'textMaterial',
       this.scene
     )
-    textMaterial.emissiveColor = BABYLON.Color3.White()
     textMaterial.useAlphaFromDiffuseTexture = true
     textMaterial.diffuseTexture = this.manaText
     textMaterial.diffuseTexture.hasAlpha = true
@@ -383,7 +382,6 @@ class MinionCardView {
       'textMaterial',
       this.scene
     )
-    textMaterial.emissiveColor = BABYLON.Color3.White()
     textMaterial.useAlphaFromDiffuseTexture = true
     textMaterial.diffuseTexture = this.attackText
     textMaterial.diffuseTexture.hasAlpha = true
@@ -415,7 +413,6 @@ class MinionCardView {
       'textMaterial',
       this.scene
     )
-    textMaterial.emissiveColor = BABYLON.Color3.White()
     textMaterial.useAlphaFromDiffuseTexture = true
     textMaterial.diffuseTexture = this.healthText
     textMaterial.diffuseTexture.hasAlpha = true
@@ -475,31 +472,57 @@ class MinionCardView {
 
     texture.clear()
 
+    const letterSpacingAdjustments = {
+      l: 0.2,
+      i: 0.3,
+      r: 0.1,
+      a: 0.2,
+    }
+
     const cubicBezierVectors = BABYLON.Curve3.CreateCubicBezier(
       BABYLON.Vector3.Zero(),
-      new BABYLON.Vector3(4, 1, 0),
-      new BABYLON.Vector3(11, 4, 0),
-      new BABYLON.Vector3(15, 0, 0),
+      new BABYLON.Vector3(4, 0, 0),
+      new BABYLON.Vector3(10, 4, 0),
+      new BABYLON.Vector3(15, 1, 0),
       50
     )
     const points = cubicBezierVectors.getPoints()
     const spacing = Math.floor(points.length / text.length)
     const context = texture.getContext()
-    context.font = `${fontSize} white Belwe`
+    context.font = `${fontSize} Belwe`
+
     for (let i = 0; i < text.length; i++) {
       const letter = text[i]
       const pointIndex = i * spacing
       const position = points[pointIndex]
-      texture.drawText(
-        letter,
-        position.x * (textureSize.width / text.length) + 30,
-        -position.y * 20 + 110,
-        `bold ${fontSize}px Belwe`,
-        'white',
-        null,
-        true,
-        true
+
+      const currentPoint = points[pointIndex]
+      const nextPoint = points[Math.min(pointIndex + 1, points.length - 1)]
+      const tangent = nextPoint.subtract(currentPoint).normalize()
+      const perpendicular = new BABYLON.Vector3(-tangent.y, tangent.x, 0)
+      const rotationAngle = Math.atan2(perpendicular.x, perpendicular.y)
+
+      context.save()
+      context.translate(
+        position.x * ((textureSize.width / text.length) * 0.9) + 64,
+        -position.y * 20 + 110
       )
+
+      context.rotate(rotationAngle)
+
+      const adjustment = letterSpacingAdjustments[letter] || 0
+      context.translate(adjustment * fontSize, 0)
+
+      // black outline
+      // context.strokeStyle = 'black'
+      // context.lineWidth = 2
+      // context.strokeText(letter, 0, 0)
+
+      context.font = `bold ${fontSize}px Belwe`
+      context.fillStyle = 'white'
+      context.fillText(letter, 0, 0)
+
+      context.restore()
     }
 
     texture.update()
@@ -508,7 +531,6 @@ class MinionCardView {
       'textMaterial',
       this.scene
     )
-    textMaterial.emissiveColor = BABYLON.Color3.White()
     textMaterial.useAlphaFromDiffuseTexture = true
     textMaterial.diffuseTexture = texture
     textMaterial.diffuseTexture.hasAlpha = true
