@@ -1,324 +1,711 @@
-import gsap from 'gsap'
-import * as PIXI from 'pixi.js'
-import CardDragState from './CardDragState.ts'
+import * as BABYLON from 'babylonjs'
 import MinionModel from './MinionModel.ts'
 
-class MinionCardView extends PIXI.Container {
+enum Layer {
+  PORTRAIT = 0,
+  FRAME = -0.1,
+  OVERLAY_ICONS = -0.2,
+  OVERLAY_TEXT = -0.3,
+  CLICKABLE_AREA = -0.4,
+}
+
+class MinionCardView {
+  public static draggedCard: MinionCardView | null = null
+
   public minion: MinionModel
+  public mesh: BABYLON.TransformNode
+  public originalPosition: BABYLON.Vector3
+  public dragOffset: BABYLON.Vector3 | null = null
+  // public isEnlarged: boolean = false
 
-  public revertZ: number
-  public revertX: number = 0
-  public revertY: number = 0
-  public reverting: boolean = false
+  private scene: BABYLON.Scene
+  private frame: BABYLON.Mesh
+  private manaText: BABYLON.DynamicTexture
+  private attackText: BABYLON.DynamicTexture
+  private healthText: BABYLON.DynamicTexture
 
-  public offsetX: number = 0
-  public offsetY: number = 0
-
-  private portrait: PIXI.Sprite
-  private handFrame: PIXI.Sprite
-  private manaIcon: PIXI.Sprite
-  private manaText: PIXI.Text
-  private attackIcon: PIXI.Sprite
-  private attackText: PIXI.Text
-  private healthIcon: PIXI.Sprite
-  private healthText: PIXI.Text
-  private nameBannerImage: PIXI.Sprite
-  private nameBannerText: PIXI.Text
-  private statTextStyle: PIXI.TextStyle
-  private nameTextStyle: PIXI.TextStyle
-
-  private ticker: PIXI.Ticker
-  private ocardx: number
-  private ocardy: number
-  private rx: number = 0
-  private ry: number = 0
-  private physicsReady: boolean = false
-  private enlarged: boolean = false
-
-  constructor(minion: MinionModel) {
-    super()
-
+  constructor(
+    scene: BABYLON.Scene,
+    minion: MinionModel,
+    position?: BABYLON.Vector3
+  ) {
+    this.scene = scene
     this.minion = minion
 
-    this.scale.set(0.4)
-
-    this.portrait = PIXI.Sprite.from(
-      './media/images/cardimages/cairne_bloodhoof.jpg'
-    )
-    this.portrait.anchor.set(0.5)
-    this.portrait.scale.set(0.1)
-    this.portrait.position.set(-50, -90)
-    this.addChild(this.portrait)
-
-    const mask = new PIXI.Graphics()
-      .ellipse(
-        this.portrait.width / 2 + 350,
-        this.portrait.height / 2,
-        1100,
-        1600
-      )
-      .fill(0x000000)
-    this.portrait.mask = mask
-    this.portrait.addChild(mask)
-
-    this.handFrame = PIXI.Sprite.from(
-      './media/images/card_inhand_minion_priest_frame.png'
-    )
-    this.handFrame.anchor.set(0.5)
-    this.handFrame.scale.set(0.5)
-    this.addChild(this.handFrame)
-
-    this.statTextStyle = new PIXI.TextStyle({
-      fontFamily: 'Belwe',
-      stroke: { color: 'black', width: 7 },
-      fontSize: 80,
-      fill: 'white',
-      fontWeight: 'bold',
-      align: 'center',
-    })
-
-    this.handFrame = PIXI.Sprite.from(
-      './media/images/card_inhand_minion_priest_frame.png'
-    )
-    this.handFrame.anchor.set(0.5)
-    this.handFrame.scale.set(0.5)
-    this.addChild(this.handFrame)
-
-    this.statTextStyle = new PIXI.TextStyle({
-      fontFamily: 'Belwe',
-      stroke: { color: 'black', width: 7 },
-      fontSize: 80,
-      fill: 'white',
-      fontWeight: 'bold',
-      align: 'center',
-    })
-
-    this.nameTextStyle = new PIXI.TextStyle({
-      fontFamily: 'Belwe',
-      stroke: { color: 'black', width: 3 },
-      fontSize: 20,
-      fill: 'white',
-      fontWeight: 'bold',
-      align: 'center',
-    })
-
-    this.setupMana()
-    this.setupAttack()
-    this.setupHealth()
-    this.setupNameBanner()
-
-    this.setupCardPhysics()
-  }
-
-  updateMana(newMana: number): void {
-    this.manaText.text = newMana
-  }
-
-  updateAttack(newAttack: number): void {
-    this.attackText.text = newAttack
-  }
-
-  updateHealth(newHealth: number): void {
-    this.healthText.text = newHealth
-  }
-
-  revert(): void {
-    this.reverting = true
-    this.zIndex = this.revertZ
-    gsap.to(this.position, {
-      x: this.revertX,
-      y: this.revertY,
-      duration: 0.4,
-      ease: 'power4.out',
-    })
-    gsap.to(this.scale, {
-      x: 0.4,
-      y: 0.4,
-      duration: 0.4,
-      ease: 'power4.out',
-      onComplete: () => {
-        this.reverting = false
-        this.enlarged = false
-      },
-    })
-  }
-
-  private setupMana(): void {
-    this.manaIcon = new PIXI.Sprite(
-      PIXI.Texture.from('./media/images/mana.png')
-    )
-    this.manaIcon.anchor.set(0.5, 0.5)
-    this.manaIcon.scale.set(0.55)
-    this.manaIcon.position.set(
-      -this.handFrame.width / 2 + 28,
-      -this.handFrame.height / 2 + 56
-    )
-    this.manaText = new PIXI.Text({
-      text: '',
-      style: this.statTextStyle,
-    })
-    this.manaText.anchor.set(0.5, 0.5)
-    this.manaText.position.set(
-      -this.handFrame.width / 2 + 28,
-      -this.handFrame.height / 2 + 48
-    )
-    this.addChild(this.manaIcon)
-    this.addChild(this.manaText)
-
-    this.updateMana(this.minion.mana)
-  }
-
-  private setupAttack(): void {
-    this.attackIcon = new PIXI.Sprite(
-      PIXI.Texture.from('./media/images/attack.png')
-    )
-    this.attackIcon.anchor.set(0.5, 0.5)
-    this.attackIcon.scale.set(0.45)
-    this.attackIcon.position.set(
-      -this.handFrame.width / 2 + 32,
-      this.handFrame.height / 2 - 38
-    )
-    this.attackText = new PIXI.Text({
-      text: '',
-      style: this.statTextStyle,
-    })
-    this.attackText.anchor.set(0.5, 0.5)
-    this.attackText.position.set(
-      -this.handFrame.width / 2 + 35,
-      this.handFrame.height / 2 - 42
-    )
-    this.addChild(this.attackIcon)
-    this.addChild(this.attackText)
-
-    this.updateAttack(this.minion.attack)
-  }
-
-  private setupHealth(): void {
-    this.healthIcon = new PIXI.Sprite(
-      PIXI.Texture.from('./media/images/health.png')
-    )
-    this.healthIcon.anchor.set(0.5, 0.5)
-    this.healthIcon.scale.set(0.4)
-    this.healthIcon.position.set(
-      this.handFrame.width / 2 - 24,
-      this.handFrame.height / 2 - 32
-    )
-    this.healthText = new PIXI.Text({
-      text: '',
-      style: this.statTextStyle,
-    })
-    this.healthText.anchor.set(0.5, 0.5)
-    this.healthText.position.set(
-      this.handFrame.width / 2 - 24,
-      this.handFrame.height / 2 - 40
-    )
-    this.addChild(this.healthIcon)
-    this.addChild(this.healthText)
-
-    this.updateHealth(this.minion.health)
-  }
-
-  private setupNameBanner(): void {
-    this.nameBannerImage = new PIXI.Sprite(
-      PIXI.Texture.from('./media/images/name-banner-minion.png')
-    )
-    this.nameBannerImage.anchor.set(0.5, 0.5)
-    this.nameBannerImage.scale.set(0.5)
-    this.nameBannerImage.position.set(0, 26)
-    this.nameBannerText = new PIXI.Text({
-      text: this.minion.name,
-      style: this.nameTextStyle,
-    })
-    this.nameBannerText.anchor.set(0.5, 0.5)
-    this.nameBannerText.position.set(0, 26)
-    this.addChild(this.nameBannerImage)
-    this.addChild(this.nameBannerText)
-  }
-
-  private setupCardPhysics(): void {
-    this.eventMode = 'static'
-    this.ticker = new PIXI.Ticker()
-    this.ticker.add(this.physicsLoop.bind(this))
-    this.ticker.start()
-    this.ocardx = this.x
-    this.ocardy = this.y
-    this.on('pointerdown', (event) => {
-      if (this.reverting) return
-
-      this.physicsReady = true
-      this.offsetX = this.x - event.global.x
-      this.offsetY = this.y - event.global.y
-      CardDragState.setDraggedCard(this)
-
-      this.ocardx = this.x
-      this.ocardy = this.y
-    })
-    this.on('pointerenter', (event) => {
-      if (this.enlarged) return
-      if (this.reverting) return
-      if (CardDragState.getDraggedCard() === this) return
-
-      this.enlarged = true
-      this.zIndex = 999
-      this.ocardy = this.y
-      gsap.to(this.position, {
-        x: this.x,
-        y: this.y - 100,
-        duration: 0.4,
-        ease: 'power4.out',
-      })
-      gsap.to(this.scale, {
-        x: 0.45,
-        y: 0.45,
-        duration: 0.4,
-        ease: 'power4.out',
-      })
-    })
-    this.on('pointerleave', (event) => {
-      if (this.reverting) return
-      if (CardDragState.getDraggedCard() === this) return
-
-      this.revert()
-    })
-  }
-
-  private physicsLoop(delta: any): void {
-    if (!this.physicsReady) return // prevents glitchy behavior on the first loop
-
-    this.rx +=
-      Math.max(Math.min((this.ocardy - this.y - this.rx) * 3, 10), -10) * 0.01
-    this.ry +=
-      Math.max(Math.min((this.x - this.ocardx - this.ry) * 3, 10), -10) * 0.01
-
-    this.rotation = ((this.rx + this.ry) * Math.PI) / 180
-
-    let dx = this.x - this.ocardx,
-      dy = this.y - this.ocardy
-    if (dx > 0) {
-      if (dy > 0) {
-        // bottom right: + +
-      } else {
-        // top right: + -
-        dx *= -1
-      }
-    } else {
-      if (dy > 0) {
-        // bottom left: - +
-        dy *= -1
-      } else {
-        // top left: - -
-        dx *= -1
-        dy *= -1
-      }
+    this.mesh = new BABYLON.TransformNode('minionCard', this.scene)
+    if (position) {
+      this.mesh.position = position
     }
 
-    // top right/bottom left = - -
-    // top left/bottom right = + +
-    this.skew.x = dx * 0.001
-    this.skew.y = dy * 0.001
+    this.originalPosition = this.mesh.position
 
-    this.ocardx = this.x
-    this.ocardy = this.y
+    this.createCardMesh()
+  }
+
+  private createCardMesh(): void {
+    const portraitTexture = new BABYLON.Texture(
+      './media/images/cardimages/cairne_bloodhoof.jpg',
+      this.scene,
+      undefined,
+      undefined,
+      undefined,
+      () => {
+        portraitTexture.uOffset = 0.2
+        portraitTexture.vOffset = 0.1
+        const ratio =
+          portraitTexture.getSize().height / portraitTexture.getSize().width
+
+        const portrait = BABYLON.MeshBuilder.CreatePlane(
+          'portrait',
+          { width: 6, height: 6 * ratio },
+          this.scene
+        )
+        portrait.parent = this.mesh
+        portrait.position.y = 1.15
+        portrait.position.z = Layer.PORTRAIT
+
+        const material = new BABYLON.StandardMaterial(
+          'portraitMaterial',
+          this.scene
+        )
+        material.diffuseTexture = portraitTexture
+        material.specularColor = new BABYLON.Color3(0, 0, 0)
+        material.useAlphaFromDiffuseTexture = true
+        material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND
+        material.opacityTexture = this.createOvalMaskTexture()
+
+        portrait.material = material
+      },
+      (message) => {
+        console.log('Error loading texture:', message)
+      }
+    )
+
+    const frameTexture = new BABYLON.Texture(
+      './media/images/card_inhand_minion_priest_frame.png',
+      this.scene,
+      undefined,
+      undefined,
+      undefined,
+      () => {
+        frameTexture.hasAlpha = true
+
+        const material = new BABYLON.StandardMaterial(
+          'frameMaterial',
+          this.scene
+        )
+        material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND
+        material.specularColor = new BABYLON.Color3(0, 0, 0)
+        material.diffuseColor = new BABYLON.Color3(1, 1, 1)
+        material.useAlphaFromDiffuseTexture = true
+        material.diffuseTexture = frameTexture
+        material.backFaceCulling = false
+
+        const ratio =
+          frameTexture.getSize().height / frameTexture.getSize().width
+        this.frame = BABYLON.MeshBuilder.CreatePlane(
+          'frame',
+          { width: 4, height: 4 * ratio },
+          this.scene
+        )
+        this.frame.parent = this.mesh
+        this.frame.position.z = Layer.FRAME
+        this.frame.material = material
+        // this.frame.material.alpha = 0.1
+
+        const clickableAreaMesh = BABYLON.MeshBuilder.CreatePlane(
+          'clickableArea',
+          {
+            width: this.frame.getBoundingInfo().boundingBox.extendSize.x * 2,
+            height: this.frame.getBoundingInfo().boundingBox.extendSize.y * 2,
+          },
+          this.scene
+        )
+        clickableAreaMesh.parent = this.mesh
+        clickableAreaMesh.position.z = Layer.CLICKABLE_AREA
+        clickableAreaMesh.metadata = {
+          owner: this,
+        }
+
+        const transparentMaterial = new BABYLON.StandardMaterial(
+          'transparentMaterial',
+          this.scene
+        )
+        transparentMaterial.alpha = 0
+        clickableAreaMesh.material = transparentMaterial
+
+        this.createOverlayElements()
+      },
+      (message) => {
+        console.log('Error loading texture:', message)
+      }
+    )
+  }
+
+  private createOvalMaskTexture(): BABYLON.DynamicTexture {
+    const size = 512
+    const maskTexture = new BABYLON.DynamicTexture(
+      'ovalMask',
+      { width: size, height: size },
+      this.scene,
+      true
+    )
+
+    const context = maskTexture.getContext()
+
+    context.clearRect(0, 0, size, size)
+    context.fillStyle = 'rgba(0,0,0,0)'
+    context.fillRect(0, 0, size, size)
+
+    context.save()
+
+    context.translate(size / 2, size / 2)
+    context.scale(1, 1.7)
+
+    context.beginPath()
+    context.arc(0, 0, size * 0.225, 0, 2 * Math.PI)
+    context.closePath()
+    context.clip()
+
+    const gradient = context.createRadialGradient(0, 0, size * 0.9, 0, 0, size)
+    gradient.addColorStop(0, 'rgba(255,255,255,1)')
+    gradient.addColorStop(1, 'rgba(255,255,255,0)')
+
+    context.fillStyle = gradient
+    context.fill()
+    context.restore()
+
+    maskTexture.update()
+    return maskTexture
+  }
+
+  private async createOverlayElements(): Promise<void> {
+    const statPlaneMaterial = new BABYLON.StandardMaterial(
+      'statPlaneMaterial',
+      this.scene
+    )
+    statPlaneMaterial.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND
+    statPlaneMaterial.alpha = 0
+    statPlaneMaterial.specularColor = new BABYLON.Color3(0, 0, 0)
+    statPlaneMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0)
+
+    const size = this.frame.getBoundingInfo().boundingBox.extendSize,
+      sizeX = size.x,
+      sizeY = size.y
+    const statPlane = BABYLON.MeshBuilder.CreatePlane(
+      'statPlane',
+      {
+        width: sizeX * 2,
+        height: sizeY * 2,
+      },
+      this.scene
+    )
+    statPlane.parent = this.mesh
+    statPlane.position = this.frame.position.clone()
+    statPlane.position.z = Layer.OVERLAY_ICONS
+
+    statPlane.material = statPlaneMaterial
+
+    // Mana
+    try {
+      const mesh = await this.createOverlayIcon(
+        './media/images/mana.png',
+        statPlane,
+        new BABYLON.Vector3(-sizeX + 0.35, sizeY - 0.7, Layer.OVERLAY_ICONS)
+      )
+      this.setupMana(mesh)
+    } catch (error) {
+      console.error('Failed to create mana icon:', error)
+    }
+
+    // Attack
+    try {
+      const mesh = await this.createOverlayIcon(
+        './media/images/attack.png',
+        statPlane,
+        new BABYLON.Vector3(-sizeX + 0.3, -sizeY + 0.4, Layer.OVERLAY_ICONS)
+      )
+      this.setupAttack(mesh)
+    } catch (error) {
+      console.error('Failed to create attack icon:', error)
+    }
+
+    // Health
+    try {
+      const mesh = await this.createOverlayIcon(
+        './media/images/health.png',
+        statPlane,
+        new BABYLON.Vector3(sizeX - 0.3, -sizeY + 0.4, Layer.OVERLAY_ICONS)
+      )
+      this.setupHealth(mesh)
+    } catch (error) {
+      console.error('Failed to create health icon:', error)
+    }
+
+    // Name Banner
+    try {
+      const mesh = await this.createNameBannerImage(
+        './media/images/name-banner-minion.png',
+        statPlane,
+        new BABYLON.Vector3(0, -0.3, Layer.OVERLAY_ICONS)
+      )
+      this.setupNameBanner(mesh)
+    } catch (error) {
+      console.error('Failed to create name banner:', error)
+    }
+  }
+
+  private createOverlayIcon(
+    texturePath: string,
+    parentMesh: BABYLON.Mesh,
+    position: BABYLON.Vector3
+  ): Promise<BABYLON.Mesh> {
+    return new Promise((resolve, reject) => {
+      const texture = new BABYLON.Texture(
+        texturePath,
+        this.scene,
+        undefined,
+        undefined,
+        undefined,
+        () => {
+          const material = new BABYLON.StandardMaterial(
+            'overlayMaterial',
+            this.scene
+          )
+          material.diffuseTexture = texture
+          material.diffuseTexture.hasAlpha = true
+          material.useAlphaFromDiffuseTexture = true
+          material.specularColor = new BABYLON.Color3(0, 0, 0)
+          material.backFaceCulling = false
+
+          const iconMesh = BABYLON.MeshBuilder.CreatePlane(
+            'overlayImage',
+            {},
+            this.scene
+          )
+          iconMesh.parent = parentMesh
+          iconMesh.position = position
+          iconMesh.material = material
+          resolve(iconMesh)
+        },
+        () => {
+          reject(new Error('Texture loading failed'))
+        }
+      )
+    })
+  }
+
+  private createNameBannerImage(
+    texturePath: string,
+    parentMesh: BABYLON.Mesh,
+    position: BABYLON.Vector3
+  ): Promise<BABYLON.Mesh> {
+    return new Promise((resolve, reject) => {
+      const texture = new BABYLON.Texture(
+        texturePath,
+        this.scene,
+        undefined,
+        undefined,
+        undefined,
+        () => {
+          const material = new BABYLON.StandardMaterial(
+            'overlayMaterial',
+            this.scene
+          )
+          material.diffuseTexture = texture
+          material.diffuseTexture.hasAlpha = true
+          material.useAlphaFromDiffuseTexture = true
+          material.specularColor = new BABYLON.Color3(0, 0, 0)
+          material.backFaceCulling = false
+
+          const width =
+            this.frame.getBoundingInfo().boundingBox.extendSize.x * 2 - 0.3
+          const ratio = texture.getSize().height / texture.getSize().width
+          const iconMesh = BABYLON.MeshBuilder.CreatePlane(
+            'overlayImage',
+            { width: width, height: width * ratio },
+            this.scene
+          )
+          iconMesh.parent = parentMesh
+          iconMesh.position = position
+          iconMesh.material = material
+          resolve(iconMesh)
+        },
+        () => {
+          reject(new Error('Texture loading failed'))
+        }
+      )
+    })
+  }
+
+  private setupMana(parentMesh: BABYLON.Mesh): void {
+    this.manaText = new BABYLON.DynamicTexture(
+      'textTexture',
+      256,
+      this.scene,
+      true
+    )
+    this.updateMana(4)
+
+    const textMaterial = new BABYLON.StandardMaterial(
+      'textMaterial',
+      this.scene
+    )
+    textMaterial.emissiveColor = BABYLON.Color3.White()
+    textMaterial.useAlphaFromDiffuseTexture = true
+    textMaterial.diffuseTexture = this.manaText
+    textMaterial.diffuseTexture.hasAlpha = true
+    textMaterial.backFaceCulling = false
+
+    const textPlane = BABYLON.MeshBuilder.CreatePlane(
+      'manaText',
+      {
+        width: 1,
+        height: 1,
+      },
+      this.scene
+    )
+    textPlane.parent = parentMesh
+    textPlane.material = textMaterial
+    textPlane.position.z = Layer.OVERLAY_TEXT
+  }
+
+  private setupAttack(parentMesh: BABYLON.Mesh): void {
+    this.attackText = new BABYLON.DynamicTexture(
+      'textTexture',
+      256,
+      this.scene,
+      true
+    )
+    this.updateAttack(2)
+
+    const textMaterial = new BABYLON.StandardMaterial(
+      'textMaterial',
+      this.scene
+    )
+    textMaterial.emissiveColor = BABYLON.Color3.White()
+    textMaterial.useAlphaFromDiffuseTexture = true
+    textMaterial.diffuseTexture = this.attackText
+    textMaterial.diffuseTexture.hasAlpha = true
+    textMaterial.backFaceCulling = false
+
+    const textPlane = BABYLON.MeshBuilder.CreatePlane(
+      'attackText',
+      {
+        width: 1,
+        height: 1,
+      },
+      this.scene
+    )
+    textPlane.parent = parentMesh
+    textPlane.material = textMaterial
+    textPlane.position.z = Layer.OVERLAY_TEXT
+  }
+
+  private setupHealth(parentMesh: BABYLON.Mesh): void {
+    this.healthText = new BABYLON.DynamicTexture(
+      'textTexture',
+      256,
+      this.scene,
+      true
+    )
+    this.updateHealth(5)
+
+    const textMaterial = new BABYLON.StandardMaterial(
+      'textMaterial',
+      this.scene
+    )
+    textMaterial.emissiveColor = BABYLON.Color3.White()
+    textMaterial.useAlphaFromDiffuseTexture = true
+    textMaterial.diffuseTexture = this.healthText
+    textMaterial.diffuseTexture.hasAlpha = true
+    textMaterial.backFaceCulling = false
+
+    const textPlane = BABYLON.MeshBuilder.CreatePlane(
+      'healthText',
+      {
+        width: 1,
+        height: 1,
+      },
+      this.scene
+    )
+    textPlane.parent = parentMesh
+    textPlane.material = textMaterial
+    textPlane.position.z = Layer.OVERLAY_TEXT
+  }
+
+  private setupNameBanner(parentMesh: BABYLON.Mesh): void {
+    const textureSize = parentMesh.material.getActiveTextures()[0].getSize()
+    const texture = new BABYLON.DynamicTexture(
+      'textTexture',
+      {
+        width: textureSize.width,
+        height: textureSize.height,
+      },
+      this.scene,
+      true
+    )
+
+    const text = 'Cairne Bloodhoof'
+    let fontSize = 200
+
+    do {
+      texture.clear()
+      texture.drawText(
+        text,
+        textureSize.width / 2 - textureSize.width * 0.42,
+        100,
+        `bold ${fontSize}px Belwe`,
+        'white',
+        null,
+        true,
+        true
+      )
+
+      texture.update()
+      const context = texture.getContext()
+      context.font = `bold ${fontSize}px Belwe`
+
+      if (context.measureText(text).width > textureSize.width * 0.75) {
+        fontSize -= 10
+      } else {
+        break
+      }
+    } while (fontSize > 20)
+
+    texture.clear()
+
+    const cubicBezierVectors = BABYLON.Curve3.CreateCubicBezier(
+      BABYLON.Vector3.Zero(),
+      new BABYLON.Vector3(4, 1, 0),
+      new BABYLON.Vector3(11, 4, 0),
+      new BABYLON.Vector3(15, 0, 0),
+      50
+    )
+    const points = cubicBezierVectors.getPoints()
+    const spacing = Math.floor(points.length / text.length)
+    const context = texture.getContext()
+    context.font = `${fontSize} white Belwe`
+    for (let i = 0; i < text.length; i++) {
+      const letter = text[i]
+      const pointIndex = i * spacing
+      const position = points[pointIndex]
+      texture.drawText(
+        letter,
+        position.x * (textureSize.width / text.length) + 30,
+        -position.y * 20 + 110,
+        `bold ${fontSize}px Belwe`,
+        'white',
+        null,
+        true,
+        true
+      )
+    }
+
+    texture.update()
+
+    const textMaterial = new BABYLON.StandardMaterial(
+      'textMaterial',
+      this.scene
+    )
+    textMaterial.emissiveColor = BABYLON.Color3.White()
+    textMaterial.useAlphaFromDiffuseTexture = true
+    textMaterial.diffuseTexture = texture
+    textMaterial.diffuseTexture.hasAlpha = true
+    textMaterial.backFaceCulling = false
+
+    const textPlane = BABYLON.MeshBuilder.CreatePlane(
+      'nameBannerText',
+      {
+        width: parentMesh.getBoundingInfo().boundingBox.extendSize.x * 2,
+        height: parentMesh.getBoundingInfo().boundingBox.extendSize.y * 2,
+      },
+      this.scene
+    )
+    textPlane.parent = parentMesh
+    textPlane.material = textMaterial
+    textPlane.position.z = Layer.OVERLAY_TEXT
+  }
+
+  public setCardDepth(depth: number): void {
+    this.mesh.position.z = depth
+  }
+
+  public transformToHand(): void {
+    this.mesh.scaling.set(0.3, 0.3, 1)
+  }
+
+  // private setupInteraction(): void {
+  //   // Add action manager for interactions
+  //   this.frame.actionManager = new BABYLON.ActionManager(this.scene)
+
+  //   // Hover in - enlarge card
+  //   this.frame.actionManager.registerAction(
+  //     new BABYLON.ExecuteCodeAction(
+  //       BABYLON.ActionManager.OnPointerOverTrigger,
+  //       () => {
+  //         if (!this.isEnlarged && !this.isReverting) {
+  //           this.enlarge()
+  //         }
+  //       }
+  //     )
+  //   )
+
+  //   // Hover out - revert card
+  //   this.frame.actionManager.registerAction(
+  //     new BABYLON.ExecuteCodeAction(
+  //       BABYLON.ActionManager.OnPointerOutTrigger,
+  //       () => {
+  //         if (this.isEnlarged && !this.isReverting) {
+  //           this.revert()
+  //         }
+  //       }
+  //     )
+  //   )
+  // }
+
+  // public enlarge(): void {
+  //   if (this.isDragging) return
+
+  //   this.isEnlarged = true
+
+  //   // Create animation to enlarge card
+  //   BABYLON.Animation.CreateAndStartAnimation(
+  //     'enlargeCard',
+  //     this.mesh,
+  //     'scaling',
+  //     30,
+  //     15,
+  //     this.mesh.scaling,
+  //     new BABYLON.Vector3(0.6, 0.6, 0.6),
+  //     BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+  //   )
+
+  //   // Raise card position
+  //   BABYLON.Animation.CreateAndStartAnimation(
+  //     'raiseCard',
+  //     this.mesh,
+  //     'position.y',
+  //     30,
+  //     15,
+  //     this.mesh.position.y,
+  //     this.mesh.position.y + 0.5,
+  //     BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+  //   )
+  // }
+
+  public revert(): void {
+    // Create animation to revert card size
+    // BABYLON.Animation.CreateAndStartAnimation(
+    //   'revertCardSize',
+    //   this.mesh,
+    //   'scaling',
+    //   30,
+    //   15,
+    //   this.mesh.scaling,
+    //   new BABYLON.Vector3(0.4, 0.4, 0.4),
+    //   BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+    // )
+
+    // Create animation to revert card position
+    setTimeout(() => {
+      BABYLON.Animation.CreateAndStartAnimation(
+        'revertCardPosition',
+        this.mesh,
+        'position',
+        20,
+        2,
+        this.mesh.position,
+        this.originalPosition,
+        BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+        undefined,
+        () => {}
+      )
+    }, 40)
+  }
+
+  public updateMana(newMana: number): void {
+    this.manaText.drawText(
+      newMana.toString(),
+      70,
+      185,
+      'bold 200px Belwe',
+      'white',
+      null,
+      true,
+      true
+    )
+    this.manaText.update()
+  }
+
+  public updateAttack(newAttack: number): void {
+    this.attackText.drawText(
+      newAttack.toString(),
+      96,
+      210,
+      'bold 200px Belwe',
+      'white',
+      null,
+      true,
+      true
+    )
+    this.attackText.update()
+  }
+
+  public updateHealth(newHealth: number): void {
+    this.healthText.drawText(
+      newHealth.toString(),
+      75,
+      215,
+      'bold 200px Belwe',
+      'white',
+      null,
+      true,
+      true
+    )
+    this.healthText.update()
+  }
+
+  public dispose(): void {
+    if (MinionCardView.draggedCard === this) {
+      MinionCardView.draggedCard = null
+    }
+
+    if (this.manaText) {
+      this.manaText.dispose()
+    }
+    if (this.attackText) {
+      this.attackText.dispose()
+    }
+    if (this.healthText) {
+      this.healthText.dispose()
+    }
+
+    const disposeChildMeshes = (node: BABYLON.TransformNode) => {
+      const children = node.getChildMeshes()
+      children.forEach((child) => {
+        // Dispose of materials
+        if (child.material) {
+          child.material.dispose()
+        }
+
+        if (child.getChildMeshes().length > 0) {
+          disposeChildMeshes(child)
+        }
+
+        child.dispose()
+      })
+    }
+
+    disposeChildMeshes(this.mesh)
+
+    this.mesh.dispose()
+
+    this.mesh = null
+    this.frame = null
+    this.manaText = null
+    this.attackText = null
+    this.healthText = null
   }
 }
 

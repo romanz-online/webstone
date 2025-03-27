@@ -11,6 +11,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "types": ["babylonjs"],
     "paths": {
       "@engine": ["Engine.ts"],
       "@ws": ["ws.ts"],
