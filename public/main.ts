@@ -29,6 +29,7 @@ class GameRenderer {
   private camera: BABYLON.FreeCamera
   private sceneRoot: BABYLON.TransformNode
   private gameplayArea: BABYLON.GroundMesh
+  private board: BoardView
 
   private readonly ORTHO_SIZE = 4
   private readonly CORNER_SIZE = 3
@@ -64,13 +65,13 @@ class GameRenderer {
     hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
     hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
 
-    const board = new BoardView(this.scene)
-    board.mesh.position.z = Layer.HAND
-    board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
-    board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
-    board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
-    board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
-    board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
+    this.board = new BoardView(this.scene)
+    this.board.mesh.position.z = Layer.HAND
+    this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
+    this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
+    this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
+    // this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
+    // this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
 
     this.startRenderLoop()
   }
@@ -379,16 +380,56 @@ class GameRenderer {
           MinionCardView.draggedCard.mesh.position.clone(),
           0.3
         )
+
+        if (
+          this.isIntersecting(
+            MinionCardView.draggedCard.getBoundingInfo(),
+            this.board.getBoundingInfo()
+          )
+        ) {
+          const draggedCardWorldMatrix =
+              MinionCardView.draggedCard.mesh.getWorldMatrix(),
+            draggedCardPosition = BABYLON.Vector3.TransformCoordinates(
+              MinionCardView.draggedCard.mesh.position,
+              draggedCardWorldMatrix
+            )
+
+          this.board.updatePlaceholderPosition(draggedCardPosition.x)
+        } else {
+          this.board.removePlaceholder()
+        }
       }
     }
 
     this.scene.onPointerUp = () => {
       if (MinionCardView.draggedCard) {
+        if (
+          this.isIntersecting(
+            MinionCardView.draggedCard.getBoundingInfo(),
+            this.board.getBoundingInfo()
+          )
+        ) {
+          console.log('Card was dropped on board')
+          this.board.removePlaceholder()
+        } else {
+          MinionCardView.draggedCard.revert()
+        }
         MinionCardView.draggedCard.dragOffset = null
-        MinionCardView.draggedCard.revert()
         MinionCardView.draggedCard = null
       }
     }
+  }
+
+  private isIntersecting(
+    item1: BABYLON.BoundingInfo,
+    item2: BABYLON.BoundingInfo
+  ): boolean {
+    return (
+      item1.boundingBox.minimumWorld.x < item2.boundingBox.maximumWorld.x &&
+      item1.boundingBox.maximumWorld.x > item2.boundingBox.minimumWorld.x &&
+      item1.boundingBox.minimumWorld.y < item2.boundingBox.maximumWorld.y &&
+      item1.boundingBox.maximumWorld.y > item2.boundingBox.minimumWorld.y
+    )
   }
 
   private startRenderLoop(): void {

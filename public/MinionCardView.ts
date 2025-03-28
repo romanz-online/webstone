@@ -14,12 +14,12 @@ export default class MinionCardView {
 
   public minion: MinionModel
   public mesh: BABYLON.TransformNode
+  public frame: BABYLON.Mesh
   public originalPosition: BABYLON.Vector3
   public dragOffset: BABYLON.Vector3 | null = null
   // public isEnlarged: boolean = false
 
   private scene: BABYLON.Scene
-  private frame: BABYLON.Mesh
   private manaText: BABYLON.DynamicTexture
   private attackText: BABYLON.DynamicTexture
   private healthText: BABYLON.DynamicTexture
@@ -556,6 +556,10 @@ export default class MinionCardView {
 
   public transformToHand(): void {
     this.mesh.scaling.set(0.3, 0.3, 1)
+  }
+
+  public getBoundingInfo(): BABYLON.BoundingInfo {
+    return this.frame.getBoundingInfo()
   }
 
   // private setupInteraction(): void {
