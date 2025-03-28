@@ -1,19 +1,44 @@
 import * as BABYLON from 'babylonjs'
 import MinionBoardView from './MinionBoardView.ts'
 
+enum Layer {
+  DROPPABLE_AREA = 0,
+  MINION = -0.1,
+}
+
 export default class BoardView {
   public mesh: BABYLON.TransformNode
 
   private scene: BABYLON.Scene
   private minions: MinionBoardView[] = []
   private readonly CARD_SPACING = 1.1
-  private readonly HAND_Y_POSITION = -0.5
-  private readonly HAND_Z_POSITION = -1
+  private readonly BOARD_Y_POSITION = -0.5
 
   constructor(scene: BABYLON.Scene) {
     this.scene = scene
 
-    this.mesh = new BABYLON.TransformNode('hand', this.scene)
+    this.mesh = new BABYLON.TransformNode('board', this.scene)
+
+    const clickableAreaMesh = BABYLON.MeshBuilder.CreatePlane(
+      'clickableArea',
+      {
+        width: 7.5,
+        height: 1.5,
+      },
+      this.scene
+    )
+    clickableAreaMesh.parent = this.mesh
+    clickableAreaMesh.position.y = -0.5
+    clickableAreaMesh.position.z = Layer.DROPPABLE_AREA
+
+    const transparentMaterial = new BABYLON.StandardMaterial(
+      'transparentMaterial',
+      this.scene
+    )
+
+    transparentMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0)
+    transparentMaterial.alpha = 0.5 // 0
+    clickableAreaMesh.material = transparentMaterial
   }
 
   /**
@@ -62,7 +87,7 @@ export default class BoardView {
 
       const xPosition = startX + index * this.CARD_SPACING
 
-      minion.mesh.position.set(xPosition, this.HAND_Y_POSITION, -index)
+      minion.mesh.position.set(xPosition, this.BOARD_Y_POSITION, Layer.MINION)
     })
   }
 

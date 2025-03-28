@@ -464,7 +464,7 @@ export default class MinionCardView {
       context.font = `bold ${fontSize}px Belwe`
 
       if (context.measureText(text).width > textureSize.width * 0.75) {
-        fontSize -= 10
+        fontSize -= 5
       } else {
         break
       }
@@ -477,13 +477,14 @@ export default class MinionCardView {
       i: 0.3,
       r: 0.1,
       a: 0.2,
+      e: 0.1,
     }
 
     const cubicBezierVectors = BABYLON.Curve3.CreateCubicBezier(
       BABYLON.Vector3.Zero(),
-      new BABYLON.Vector3(4, 0, 0),
-      new BABYLON.Vector3(10, 4, 0),
-      new BABYLON.Vector3(15, 1, 0),
+      new BABYLON.Vector3(4.5, 0, 0),
+      new BABYLON.Vector3(12, 3.5, 0),
+      new BABYLON.Vector3(17, 0.5, 0),
       50
     )
     const points = cubicBezierVectors.getPoints()
@@ -504,8 +505,8 @@ export default class MinionCardView {
 
       context.save()
       context.translate(
-        position.x * ((textureSize.width / text.length) * 0.9) + 64,
-        -position.y * 20 + 110
+        position.x * ((textureSize.width / text.length) * 0.8) + 60,
+        -position.y * 20 + 100 + (1 / (i + 1)) * 6
       )
 
       context.rotate(rotationAngle)
