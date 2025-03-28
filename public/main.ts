@@ -1,7 +1,8 @@
 import * as BABYLON from 'babylonjs'
 import FontFaceObserver from 'fontfaceobserver'
-import { createTransparentMaterialWithTexture } from './createTransparentMaterial.ts'
+import BoardView from './BoardView.ts'
 import HandView from './HandView.ts'
+import MinionBoardView from './MinionBoardView.ts'
 import MinionCardView from './MinionCardView.ts'
 import MinionModel from './MinionModel.ts'
 
@@ -62,6 +63,14 @@ class GameRenderer {
     hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
     hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
     hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
+
+    const board = new BoardView(this.scene)
+    board.mesh.position.z = Layer.HAND
+    board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
+    board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
+    board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
+    board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
+    board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
 
     this.startRenderLoop()
   }
@@ -177,31 +186,27 @@ class GameRenderer {
   }
 
   private createCorner(config: CornerConfig): void {
-    const material = createTransparentMaterialWithTexture(
-      this.scene,
-      `${config.name}Mat`,
-      config.texturePath
-    )
-
-    const corner = BABYLON.MeshBuilder.CreateGround(
-      config.name,
-      { width: this.CORNER_SIZE, height: this.CORNER_SIZE },
-      this.scene
-    )
-
-    corner.material = material
-    corner.position.x =
-      this.gameplayArea.position.x +
-      config.anchorX * this.gameplayArea._width * 1.5
-    corner.position.z =
-      this.gameplayArea.position.z +
-      config.anchorZ * this.gameplayArea._height * 3
-    corner.position.y = 3
-
-    // Apply position adjustments based on corner position
-    this.adjustCornerPosition(corner, config.anchorX, config.anchorZ)
-
-    corner.parent = this.sceneRoot
+    // const material = createTransparentMaterialWithTexture(
+    //   this.scene,
+    //   `${config.name}Mat`,
+    //   config.texturePath
+    // )
+    // const corner = BABYLON.MeshBuilder.CreateGround(
+    //   config.name,
+    //   { width: this.CORNER_SIZE, height: this.CORNER_SIZE },
+    //   this.scene
+    // )
+    // corner.material = material
+    // corner.position.x =
+    //   this.gameplayArea.position.x +
+    //   config.anchorX * this.gameplayArea._width * 1.5
+    // corner.position.z =
+    //   this.gameplayArea.position.z +
+    //   config.anchorZ * this.gameplayArea._height * 3
+    // corner.position.y = 3
+    // // Apply position adjustments based on corner position
+    // this.adjustCornerPosition(corner, config.anchorX, config.anchorZ)
+    // corner.parent = this.sceneRoot
   }
 
   private adjustCornerPosition(

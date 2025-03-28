@@ -9,7 +9,7 @@ enum Layer {
   CLICKABLE_AREA = -0.4,
 }
 
-class MinionCardView {
+export default class MinionCardView {
   public static draggedCard: MinionCardView | null = null
 
   public minion: MinionModel
@@ -706,7 +706,6 @@ class MinionCardView {
     const disposeChildMeshes = (node: BABYLON.TransformNode) => {
       const children = node.getChildMeshes()
       children.forEach((child) => {
-        // Dispose of materials
         if (child.material) {
           child.material.dispose()
         }
@@ -730,5 +729,3 @@ class MinionCardView {
     this.healthText = null
   }
 }
-
-export default MinionCardView

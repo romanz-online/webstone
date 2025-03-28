@@ -1,7 +1,7 @@
 import * as BABYLON from 'babylonjs'
 import MinionCardView from './MinionCardView.ts'
 
-class HandView {
+export default class HandView {
   public mesh: BABYLON.TransformNode
 
   private scene: BABYLON.Scene
@@ -82,5 +82,3 @@ class HandView {
     this.cards = []
   }
 }
-
-export default HandView
