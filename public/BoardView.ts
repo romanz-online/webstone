@@ -48,6 +48,80 @@ export default class BoardView {
   }
 
   /**
+   * Play a minion onto the board with a Hearthstone-like entry animation
+   * @param minion MinionBoardView to play
+   * @param targetX Target x position for the minion
+   */
+  public summonMinion(minion: MinionBoardView, targetX: number): void {
+    // Add the minion to the board
+    this.minions.splice(this.placeholderIndex, 0, minion)
+
+    // Arrange minions to set up the correct positioning
+    this.arrangeMinions()
+
+    // Perform the play animation
+    this.animateMinionPlayEntry(minion)
+    // this.arrangeMinions()
+    this.removePlaceholder()
+  }
+
+  /**
+   * Animate a minion being played onto the board
+   * @param minion Minion to animate
+   * @param targetX Target x position
+   */
+  private animateMinionPlayEntry(minion: MinionBoardView): void {
+    // Scale Animation
+    const scaleAnimation = new BABYLON.Animation(
+      `${minion.mesh.name}_playScaleAnimation`,
+      'scaling',
+      20,
+      BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+      BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+    )
+
+    minion.mesh.position.x =
+      ((this.minions.length - 1) * this.CARD_SPACING) / -2 +
+      this.placeholderIndex * this.CARD_SPACING
+    minion.mesh.position.y = this.BOARD_Y_POSITION - 0.4
+    minion.mesh.scaling.setAll(0.35)
+
+    const keyFrames = {
+      scale: [
+        { frame: 0, value: new BABYLON.Vector3(0.35, 0.35, 1) },
+        { frame: 3, value: new BABYLON.Vector3(0.25, 0.25, 1) },
+      ],
+      positionY: [
+        { frame: 0, value: minion.mesh.position.y },
+        { frame: 3, value: this.BOARD_Y_POSITION },
+      ],
+    }
+
+    scaleAnimation.setKeys(keyFrames.scale)
+
+    const positionYAnimation = new BABYLON.Animation(
+      `${minion.mesh.name}_playPositionYAnimation`,
+      'position.y',
+      20,
+      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+      BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
+    )
+    positionYAnimation.setKeys(keyFrames.positionY)
+
+    // Stop any existing animations
+    this.scene.stopAnimation(minion.mesh)
+
+    // Run the animations
+    this.scene.beginDirectAnimation(
+      minion.mesh,
+      [scaleAnimation, positionYAnimation],
+      0,
+      3,
+      false
+    )
+  }
+
+  /**
    * Update board layout with a placeholder for a potential new minion
    * @param hoveredCardWidth Width of the card being hovered
    */
@@ -75,7 +149,7 @@ export default class BoardView {
    */
   public removePlaceholder(): void {
     this.placeholderIndex = -1
-    this.arrangeMinions()
+    // this.arrangeMinions()
   }
 
   /**

@@ -30,6 +30,7 @@ class GameRenderer {
   private sceneRoot: BABYLON.TransformNode
   private gameplayArea: BABYLON.GroundMesh
   private board: BoardView
+  private hand: HandView
 
   private readonly ORTHO_SIZE = 4
   private readonly CORNER_SIZE = 3
@@ -57,13 +58,13 @@ class GameRenderer {
     this.createLighting()
     this.createGameplayArea()
 
-    const hand = new HandView(this.scene)
-    hand.mesh.position.z = Layer.HAND
-    hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
-    hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
-    hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
-    hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
-    hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
+    this.hand = new HandView(this.scene)
+    this.hand.mesh.position.z = Layer.HAND
+    this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
+    this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
+    this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
+    this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
+    this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
 
     this.board = new BoardView(this.scene)
     this.board.mesh.position.z = Layer.HAND
@@ -410,7 +411,14 @@ class GameRenderer {
           )
         ) {
           console.log('Card was dropped on board')
-          this.board.removePlaceholder()
+          this.hand.removeCard(MinionCardView.draggedCard)
+          // triggerEvent playCard
+
+          // triggered by event summonMinion
+          this.board.summonMinion(
+            new MinionBoardView(this.scene, new MinionModel({})),
+            this.board.placeholderIndex
+          )
         } else {
           MinionCardView.draggedCard.revert()
         }
