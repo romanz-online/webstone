@@ -5,6 +5,7 @@ import HandView from './HandView.ts'
 import MinionBoardView from './MinionBoardView.ts'
 import MinionCardView from './MinionCardView.ts'
 import MinionModel from './MinionModel.ts'
+import TargetingArrowSystem from './TargetingArrowSystem.ts'
 
 enum Layer {
   GAMEPLAY_AREA = 0,
@@ -31,6 +32,7 @@ class GameRenderer {
   private gameplayArea: BABYLON.GroundMesh
   private board: BoardView
   private hand: HandView
+  private targetingSystem: TargetingArrowSystem
 
   private readonly ORTHO_SIZE = 4
   private readonly CORNER_SIZE = 3
@@ -56,7 +58,9 @@ class GameRenderer {
     await new FontFaceObserver('Belwe').load()
 
     this.createLighting()
-    this.createGameplayArea()
+    // this.createGameplayArea()
+
+    this.targetingSystem = new TargetingArrowSystem(this.scene)
 
     this.hand = new HandView(this.scene)
     this.hand.mesh.position.z = Layer.HAND
@@ -344,60 +348,78 @@ class GameRenderer {
         const mesh = pickInfo.pickedMesh
         // console.log(mesh.name, mesh.metadata)
         if (mesh.metadata && mesh.metadata.owner) {
-          const card = mesh.metadata.owner
-          const ray = this.scene.createPickingRay(
-            this.scene.pointerX,
-            this.scene.pointerY,
-            BABYLON.Matrix.Identity(),
-            this.camera
-          )
+          if (mesh.metadata.owner instanceof MinionCardView) {
+            const card = mesh.metadata.owner
+            const ray = this.scene.createPickingRay(
+              this.scene.pointerX,
+              this.scene.pointerY,
+              BABYLON.Matrix.Identity(),
+              this.camera
+            )
 
-          const distance = ray.intersectsPlane(new BABYLON.Plane(0, 0, 1, -3))
-          if (distance !== null) {
-            const hitPoint = ray.origin.add(ray.direction.scale(distance))
-            card.dragOffset = card.mesh.position.subtract(hitPoint)
+            const distance = ray.intersectsPlane(new BABYLON.Plane(0, 0, 1, -3))
+            if (distance !== null) {
+              const hitPoint = ray.origin.add(ray.direction.scale(distance))
+              card.dragOffset = card.mesh.position.subtract(hitPoint)
+            }
+            MinionCardView.draggedCard = card
+          } else if (mesh.metadata.owner instanceof MinionBoardView) {
+            console.log(12321)
+            this.targetingSystem.startTargeting(mesh.metadata.owner)
           }
-          MinionCardView.draggedCard = card
         }
       }
     }
 
     this.scene.onPointerMove = () => {
-      if (!MinionCardView.draggedCard) return
-
-      const ray = this.scene.createPickingRay(
-        this.scene.pointerX,
-        this.scene.pointerY,
-        BABYLON.Matrix.Identity(),
-        this.camera
-      )
-
-      const distance = ray.intersectsPlane(new BABYLON.Plane(0, 0, 1, -3))
-      if (distance) {
-        MinionCardView.draggedCard.mesh.position = BABYLON.Vector3.Lerp(
-          ray.origin
-            .add(ray.direction.scale(distance))
-            .add(MinionCardView.draggedCard.dragOffset),
-          MinionCardView.draggedCard.mesh.position.clone(),
-          0.3
+      if (MinionCardView.draggedCard) {
+        const ray = this.scene.createPickingRay(
+          this.scene.pointerX,
+          this.scene.pointerY,
+          BABYLON.Matrix.Identity(),
+          this.camera
         )
 
-        if (
-          this.isIntersecting(
-            MinionCardView.draggedCard.getBoundingInfo(),
-            this.board.getBoundingInfo()
+        const distance = ray.intersectsPlane(new BABYLON.Plane(0, 0, 1, -3))
+        if (distance) {
+          MinionCardView.draggedCard.mesh.position = BABYLON.Vector3.Lerp(
+            ray.origin
+              .add(ray.direction.scale(distance))
+              .add(MinionCardView.draggedCard.dragOffset),
+            MinionCardView.draggedCard.mesh.position.clone(),
+            0.3
           )
-        ) {
-          const draggedCardWorldMatrix =
-              MinionCardView.draggedCard.mesh.getWorldMatrix(),
-            draggedCardPosition = BABYLON.Vector3.TransformCoordinates(
-              MinionCardView.draggedCard.mesh.position,
-              draggedCardWorldMatrix
-            )
 
-          this.board.updatePlaceholderPosition(draggedCardPosition.x)
-        } else {
-          this.board.removePlaceholder()
+          if (
+            this.isIntersecting(
+              MinionCardView.draggedCard.getBoundingInfo(),
+              this.board.getBoundingInfo()
+            )
+          ) {
+            const draggedCardWorldMatrix =
+                MinionCardView.draggedCard.mesh.getWorldMatrix(),
+              draggedCardPosition = BABYLON.Vector3.TransformCoordinates(
+                MinionCardView.draggedCard.mesh.position,
+                draggedCardWorldMatrix
+              )
+
+            this.board.updatePlaceholderPosition(draggedCardPosition.x)
+          } else {
+            this.board.removePlaceholder()
+          }
+        }
+      } else if (this.targetingSystem.isActive) {
+        const ray = this.scene.createPickingRay(
+          this.scene.pointerX,
+          this.scene.pointerY,
+          BABYLON.Matrix.Identity(),
+          this.camera
+        )
+
+        const distance = ray.intersectsPlane(new BABYLON.Plane(0, 0, 1, -3))
+        if (distance) {
+          const targetPosition = ray.origin.add(ray.direction.scale(distance))
+          this.targetingSystem.updateTargetingPosition(targetPosition)
         }
       }
     }
@@ -424,6 +446,33 @@ class GameRenderer {
         }
         MinionCardView.draggedCard.dragOffset = null
         MinionCardView.draggedCard = null
+      } else if (this.targetingSystem.isActive) {
+        // Check if targeting ended on a valid target
+        const pickResult = this.scene.pick(
+          this.scene.pointerX,
+          this.scene.pointerY
+        )
+
+        if (
+          pickResult.hit &&
+          pickResult.pickedMesh &&
+          pickResult.pickedMesh.metadata &&
+          pickResult.pickedMesh.metadata.owner instanceof MinionBoardView
+        ) {
+          const targetMinion = pickResult.pickedMesh.metadata.owner
+
+          // Handle targeting success - implement your attack logic here
+          // this.handleMinionAttack(this.targetingSystem.sourceMinion, targetMinion);
+          console.log(
+            'Attack from',
+            this.targetingSystem.sourceMinion,
+            'to',
+            targetMinion
+          )
+        }
+
+        // End targeting regardless of result
+        this.targetingSystem.endTargeting()
       }
     }
   }
