@@ -364,7 +364,6 @@ class GameRenderer {
             }
             MinionCardView.draggedCard = card
           } else if (mesh.metadata.owner instanceof MinionBoardView) {
-            console.log(12321)
             this.targetingSystem.startTargeting(mesh.metadata.owner)
           }
         }

@@ -39,7 +39,7 @@ export default class BoardView {
     )
 
     transparentMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0)
-    transparentMaterial.alpha = 0.5 // 0
+    transparentMaterial.alpha = 0
     this.droppableArea.material = transparentMaterial
   }
 

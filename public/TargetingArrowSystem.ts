@@ -9,11 +9,7 @@ export default class TargetingArrowSystem {
   private arrowMesh: BABYLON.Mesh = null
   private arrowMaterial: BABYLON.StandardMaterial
   private arrowColor: BABYLON.Color3 = new BABYLON.Color3(1, 0, 0)
-  private arrowWidth: number = 0.3
   private dashLength: number = 0.4
-  private dashGap: number = 0.3
-  private animationSpeed: number = 1.5
-  private cursorRadius: number = 0.6
   private arrowHeadSize: number = 0.5
   private cursorMesh: BABYLON.TransformNode = null
   private arrowParticles: BABYLON.Mesh[] = []
@@ -29,11 +25,12 @@ export default class TargetingArrowSystem {
     )
     this.arrowMaterial.diffuseColor = this.arrowColor
     this.arrowMaterial.emissiveColor = this.arrowColor
+    this.arrowMaterial.specularColor = new BABYLON.Color3(0, 0, 0)
 
     this.scene.registerBeforeRender(() => {
       if (this.isActive) {
         this.animationTime +=
-          (this.scene.getEngine().getDeltaTime() / 1000) * this.animationSpeed
+          (this.scene.getEngine().getDeltaTime() / 1000) * 1.5
         this.updateArrowAnimation()
       }
     })
@@ -68,7 +65,7 @@ export default class TargetingArrowSystem {
     const circle = BABYLON.MeshBuilder.CreateTorus(
       'cursorCircle',
       {
-        diameter: this.cursorRadius * 2,
+        diameter: 0.6 * 2,
         thickness: 0.1,
         tessellation: 32,
       },
@@ -103,7 +100,7 @@ export default class TargetingArrowSystem {
       const dash = BABYLON.MeshBuilder.CreateBox(
         `arrowDash_${i}`,
         {
-          width: this.arrowWidth,
+          width: 0.3,
           height: 0.1,
           depth: this.dashLength,
         },
@@ -116,82 +113,73 @@ export default class TargetingArrowSystem {
     }
   }
 
-  // Calculate position on a simple parabolic arc
-  private getArcPoint(
-    start: BABYLON.Vector3,
-    end: BABYLON.Vector3,
-    t: number // 0-1 along the path
-  ): BABYLON.Vector3 {
-    // Linear interpolation for x and y
-    const x = start.x + (end.x - start.x) * t
-    const y = start.y + (end.y - start.y) * t
-
-    // Parabolic arc for z (height)
-    // Simple parabola: z = 4 * h * t * (1-t) where h is max height
-    // This gives z=0 at t=0 and t=1, and z=h at t=0.5
-    const z = 4 * this.arcHeight * t * (1 - t)
-
-    return new BABYLON.Vector3(x, y, z)
-  }
-
-  // Calculate tangent at point t along the simple arc
-  private getArcTangent(
+  private getArcPoint = (
     start: BABYLON.Vector3,
     end: BABYLON.Vector3,
     t: number
-  ): BABYLON.Vector3 {
-    // Derivative of position with respect to t
-    const dx = end.x - start.x
-    const dy = end.y - start.y
+  ): BABYLON.Vector3 =>
+    new BABYLON.Vector3(
+      start.x + (end.x - start.x) * t,
+      start.y + (end.y - start.y) * t,
+      -4 * this.arcHeight * (t - 0.5) * (t - 0.5) + this.arcHeight
+    )
 
-    // Derivative of z = 4 * h * t * (1-t) is z' = 4 * h * (1-2t)
-    const dz = 2 * this.arcHeight * (1 - 2 * t)
+  private getArcTangent = (
+    start: BABYLON.Vector3,
+    end: BABYLON.Vector3,
+    t: number
+  ): BABYLON.Vector3 =>
+    new BABYLON.Vector3(
+      end.x - start.x,
+      end.y - start.y,
+      -8 * this.arcHeight * (t - 0.5)
+    ).normalize()
 
-    return new BABYLON.Vector3(Math.PI * 0.1, Math.PI * 3, dz).normalize()
-  }
-
-  // Update arrow meshes between source and target using a simple arc
   private updateArrowMeshes(
     sourcePosition: BABYLON.Vector3,
     targetPosition: BABYLON.Vector3
   ): void {
-    // Calculate the total distance (in 2D, ignoring height)
     const dx = targetPosition.x - sourcePosition.x
     const dy = targetPosition.y - sourcePosition.y
     const distance = Math.sqrt(dx * dx + dy * dy)
 
-    // Calculate number of dashes that fit along the arc
-    const dashPeriod = this.dashLength + this.dashGap
+    const dashPeriod = this.dashLength + 0.3 /* gap */
     const numDashes = Math.floor(distance / dashPeriod)
 
     for (let i = 0; i < this.arrowParticles.length; i++) {
       const dash = this.arrowParticles[i]
 
       if (i < numDashes) {
-        // Position base is determined by animation time and period
-        let baseOffset =
+        const baseOffset =
           (i * dashPeriod + (this.animationTime % dashPeriod)) % distance
 
-        // Parameter t along the arc (0-1)
         const t = baseOffset / distance
 
-        // Get position on the arc
-        const position = this.getArcPoint(sourcePosition, targetPosition, t)
+        dash.position = this.getArcPoint(sourcePosition, targetPosition, t)
 
-        // Get tangent direction for orienting the dash
+        if (!dash.rotationQuaternion) {
+          dash.rotationQuaternion = new BABYLON.Quaternion()
+          dash.rotation = BABYLON.Vector3.Zero()
+        }
+
         const tangent = this.getArcTangent(sourcePosition, targetPosition, t)
 
-        // Position the dash
-        dash.position = position
+        const right = BABYLON.Vector3.Cross(
+          tangent,
+          new BABYLON.Vector3(0, 0, 1)
+        ).normalize()
+        const up = BABYLON.Vector3.Cross(right, tangent).normalize()
 
-        // Orient the dash along the tangent direction
-        const lookAtPoint = position.add(tangent)
-        dash.lookAt(lookAtPoint)
+        const rotationX = BABYLON.Quaternion.RotationAxis(right, Math.PI / 2)
+        const rotationY = BABYLON.Quaternion.RotationAxis(up, 0)
+        const rotationZ = BABYLON.Quaternion.RotationAxis(tangent, 0)
 
-        // Make dash visible
+        dash.rotationQuaternion = rotationX
+          .multiply(rotationY)
+          .multiply(rotationZ)
+
         dash.isVisible = true
       } else {
-        // Hide unnecessary dashes
         dash.isVisible = false
       }
     }
