@@ -558,9 +558,8 @@ export default class MinionCardView {
     this.mesh.scaling.set(0.3, 0.3, 1)
   }
 
-  public getBoundingInfo(): BABYLON.BoundingInfo {
-    return this.frame.getBoundingInfo()
-  }
+  public getBoundingInfo = (): BABYLON.BoundingInfo =>
+    this.frame.getBoundingInfo()
 
   // private setupInteraction(): void {
   //   // Add action manager for interactions

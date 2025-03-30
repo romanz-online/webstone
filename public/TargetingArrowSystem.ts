@@ -14,7 +14,7 @@ export default class TargetingArrowSystem {
   private cursorMesh: BABYLON.TransformNode = null
   private arrowParticles: BABYLON.Mesh[] = []
   private animationTime: number = 0
-  private arcHeight: number = 10.0
+  private arcHeight: number = 20.0
 
   constructor(scene: BABYLON.Scene) {
     this.scene = scene
@@ -25,7 +25,7 @@ export default class TargetingArrowSystem {
     )
     this.arrowMaterial.diffuseColor = this.arrowColor
     this.arrowMaterial.emissiveColor = this.arrowColor
-    this.arrowMaterial.specularColor = new BABYLON.Color3(0, 0, 0)
+    // this.arrowMaterial.specularColor = new BABYLON.Color3(0, 0, 0)
 
     this.scene.registerBeforeRender(() => {
       if (this.isActive) {
@@ -113,70 +113,77 @@ export default class TargetingArrowSystem {
     }
   }
 
-  private getArcPoint = (
+  private getArcData(
     start: BABYLON.Vector3,
     end: BABYLON.Vector3,
     t: number
-  ): BABYLON.Vector3 =>
-    new BABYLON.Vector3(
-      start.x + (end.x - start.x) * t,
-      start.y + (end.y - start.y) * t,
-      -4 * this.arcHeight * (t - 0.5) * (t - 0.5) + this.arcHeight
-    )
-
-  private getArcTangent = (
-    start: BABYLON.Vector3,
-    end: BABYLON.Vector3,
-    t: number
-  ): BABYLON.Vector3 =>
-    new BABYLON.Vector3(
-      end.x - start.x,
-      end.y - start.y,
-      -8 * this.arcHeight * (t - 0.5)
-    ).normalize()
+  ): any {
+    const mid = new BABYLON.Vector3(
+        (start.x + end.x) / 2,
+        (start.y + end.y) / 2,
+        this.arcHeight
+      ),
+      points = BABYLON.Curve3.CreateQuadraticBezier(
+        start,
+        mid,
+        end,
+        300
+      ).getPoints(),
+      index = Math.floor(t * (points.length - 1)),
+      point = points[Math.max(0, Math.min(points.length - 1, index))],
+      nextPoint = points[Math.min(index + 1, points.length - 1)],
+      tangent = nextPoint.subtract(point).normalize()
+    return {
+      position: point,
+      tangent: tangent,
+    }
+  }
 
   private updateArrowMeshes(
     sourcePosition: BABYLON.Vector3,
     targetPosition: BABYLON.Vector3
   ): void {
-    const dx = targetPosition.x - sourcePosition.x
-    const dy = targetPosition.y - sourcePosition.y
-    const distance = Math.sqrt(dx * dx + dy * dy)
-
-    const dashPeriod = this.dashLength + 0.3 /* gap */
-    const numDashes = Math.floor(distance / dashPeriod)
+    const dx = targetPosition.x - sourcePosition.x,
+      dy = targetPosition.y - sourcePosition.y,
+      distance = Math.sqrt(dx * dx + dy * dy),
+      dashPeriod = this.dashLength + 0.3 /* gap */,
+      numDashes = Math.floor(distance / dashPeriod)
 
     for (let i = 0; i < this.arrowParticles.length; i++) {
       const dash = this.arrowParticles[i]
-
       if (i < numDashes) {
         const baseOffset =
           (i * dashPeriod + (this.animationTime % dashPeriod)) % distance
 
-        const t = baseOffset / distance
-
-        dash.position = this.getArcPoint(sourcePosition, targetPosition, t)
+        const { position, tangent } = this.getArcData(
+          sourcePosition,
+          targetPosition,
+          baseOffset / distance
+        )
+        dash.position = position
 
         if (!dash.rotationQuaternion) {
           dash.rotationQuaternion = new BABYLON.Quaternion()
           dash.rotation = BABYLON.Vector3.Zero()
         }
 
-        const tangent = this.getArcTangent(sourcePosition, targetPosition, t)
+        const up = new BABYLON.Vector3(0, 0, 1)
+        const lookAtMatrix = BABYLON.Matrix.LookAtLH(
+          position,
+          position.add(tangent),
+          up
+        )
 
-        const right = BABYLON.Vector3.Cross(
-          tangent,
-          new BABYLON.Vector3(0, 0, 1)
-        ).normalize()
-        const up = BABYLON.Vector3.Cross(right, tangent).normalize()
+        const lookAtQuaternion =
+          BABYLON.Quaternion.FromRotationMatrix(lookAtMatrix).invert()
 
-        const rotationX = BABYLON.Quaternion.RotationAxis(right, Math.PI / 2)
-        const rotationY = BABYLON.Quaternion.RotationAxis(up, 0)
-        const rotationZ = BABYLON.Quaternion.RotationAxis(tangent, 0)
+        const adjustmentQuaternion = BABYLON.Quaternion.RotationAxis(
+          new BABYLON.Vector3(0, 1, 0),
+          -Math.PI / 2
+        )
 
-        dash.rotationQuaternion = rotationX
-          .multiply(rotationY)
-          .multiply(rotationZ)
+        dash.rotationQuaternion =
+          adjustmentQuaternion.multiply(lookAtQuaternion)
 
         dash.isVisible = true
       } else {
