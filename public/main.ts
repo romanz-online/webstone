@@ -27,6 +27,7 @@ class GameRenderer {
   private canvas: HTMLCanvasElement
   private engine: BABYLON.Engine
   private scene: BABYLON.Scene
+  private shadowGenerator: BABYLON.ShadowGenerator
   private camera: BABYLON.FreeCamera
   private sceneRoot: BABYLON.TransformNode
   private gameplayArea: BABYLON.GroundMesh
@@ -60,7 +61,10 @@ class GameRenderer {
     this.createLighting()
     // this.createGameplayArea()
 
-    this.targetingSystem = new TargetingArrowSystem(this.scene)
+    this.targetingSystem = new TargetingArrowSystem(
+      this.scene,
+      this.shadowGenerator
+    )
 
     this.hand = new HandView(this.scene)
     this.hand.mesh.position.z = Layer.HAND
@@ -105,6 +109,16 @@ class GameRenderer {
       new BABYLON.Vector3(0, 0, -10),
       this.scene
     )
+    const dirLight = new BABYLON.DirectionalLight(
+      'dirLight',
+      new BABYLON.Vector3(0, 0, 1),
+      this.scene
+    )
+    dirLight.intensity = 0.5
+    this.shadowGenerator = new BABYLON.ShadowGenerator(1024, dirLight)
+    this.shadowGenerator.useExponentialShadowMap = true
+    this.shadowGenerator.blurScale = 2
+    this.shadowGenerator.setDarkness(0.3)
 
     // const light = new BABYLON.DirectionalLight(
     //   'mainLight',

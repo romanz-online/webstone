@@ -6,6 +6,7 @@ export default class TargetingArrowSystem {
   public sourceMinion: MinionBoardView = null
 
   private scene: BABYLON.Scene
+  private shadowGenerator: BABYLON.ShadowGenerator
   private arrowMesh: BABYLON.Mesh = null
   private arrowMaterial: BABYLON.StandardMaterial
   private arrowColor: BABYLON.Color3 = new BABYLON.Color3(1, 0, 0)
@@ -14,10 +15,11 @@ export default class TargetingArrowSystem {
   private cursorMesh: BABYLON.TransformNode = null
   private arrowParticles: BABYLON.Mesh[] = []
   private animationTime: number = 0
-  private arcHeight: number = 20.0
+  private arcHeight: number = 0.35
 
-  constructor(scene: BABYLON.Scene) {
+  constructor(scene: BABYLON.Scene, shadowGenerator: BABYLON.ShadowGenerator) {
     this.scene = scene
+    this.shadowGenerator = shadowGenerator
 
     this.arrowMaterial = new BABYLON.StandardMaterial(
       'arrowMaterial',
@@ -25,7 +27,8 @@ export default class TargetingArrowSystem {
     )
     this.arrowMaterial.diffuseColor = this.arrowColor
     this.arrowMaterial.emissiveColor = this.arrowColor
-    // this.arrowMaterial.specularColor = new BABYLON.Color3(0, 0, 0)
+    this.arrowMaterial.disableLighting = false
+    this.arrowMaterial.specularColor = new BABYLON.Color3(0, 0, 0)
 
     this.scene.registerBeforeRender(() => {
       if (this.isActive) {
@@ -108,7 +111,9 @@ export default class TargetingArrowSystem {
       )
 
       dash.material = this.arrowMaterial.clone(`dashMaterial_${i}`)
+      dash.receiveShadows = true
       dash.isVisible = false
+      this.shadowGenerator.addShadowCaster(dash)
       this.arrowParticles.push(dash)
     }
   }
@@ -118,24 +123,57 @@ export default class TargetingArrowSystem {
     end: BABYLON.Vector3,
     t: number
   ): any {
-    const mid = new BABYLON.Vector3(
-        (start.x + end.x) / 2,
-        (start.y + end.y) / 2,
-        this.arcHeight
-      ),
-      points = BABYLON.Curve3.CreateQuadraticBezier(
-        start,
-        mid,
-        end,
-        300
-      ).getPoints(),
-      index = Math.floor(t * (points.length - 1)),
-      point = points[Math.max(0, Math.min(points.length - 1, index))],
-      nextPoint = points[Math.min(index + 1, points.length - 1)],
-      tangent = nextPoint.subtract(point).normalize()
+    const direction = end.subtract(start)
+    const distance = direction.length()
+
+    const a = -4 * this.arcHeight * distance
+    const b = 4 * this.arcHeight * distance
+    const c = 0
+    const height = a * t * t + b * t + c
+    const currentPos = new BABYLON.Vector3(
+      start.x + direction.x * t,
+      start.y + direction.y * t,
+      start.z - height // Subtracting height because higher arc is negative z
+    )
+
+    const delta = 0.01
+    const prevT = Math.max(0, t - delta)
+    const nextT = Math.min(1, t + delta)
+
+    const prevHeight = a * prevT * prevT + b * prevT + c
+    const nextHeight = a * nextT * nextT + b * nextT + c
+
+    const prevPos = new BABYLON.Vector3(
+      start.x + direction.x * prevT,
+      start.y + direction.y * prevT,
+      start.z - prevHeight
+    )
+
+    const nextPos = new BABYLON.Vector3(
+      start.x + direction.x * nextT,
+      start.y + direction.y * nextT,
+      start.z - nextHeight
+    )
+
+    const forward = nextPos.subtract(prevPos).normalize()
+
+    const up = new BABYLON.Vector3(0, 0, -1)
+
+    const right = BABYLON.Vector3.Cross(forward, up).normalize()
+
+    // Recalculate up to ensure orthogonality
+    const trueUp = BABYLON.Vector3.Cross(right, forward).normalize()
+
     return {
-      position: point,
-      tangent: tangent,
+      position: currentPos,
+      forward: forward,
+      up: trueUp,
+      right: right,
+      height: height,
+      t: t,
+      a: a,
+      b: b,
+      c: c,
     }
   }
 
@@ -146,8 +184,12 @@ export default class TargetingArrowSystem {
     const dx = targetPosition.x - sourcePosition.x,
       dy = targetPosition.y - sourcePosition.y,
       distance = Math.sqrt(dx * dx + dy * dy),
-      dashPeriod = this.dashLength + 0.3 /* gap */,
+      dashPeriod = this.dashLength + 0.2 /* gap */,
       numDashes = Math.floor(distance / dashPeriod)
+
+    const horizontalAngle = Math.atan2(dy, dx)
+    const rotationFactor = 0.15 * distance
+    const rotationDirection = targetPosition.x >= sourcePosition.x ? 1 : -1
 
     for (let i = 0; i < this.arrowParticles.length; i++) {
       const dash = this.arrowParticles[i]
@@ -155,35 +197,54 @@ export default class TargetingArrowSystem {
         const baseOffset =
           (i * dashPeriod + (this.animationTime % dashPeriod)) % distance
 
-        const { position, tangent } = this.getArcData(
+        const arcData = this.getArcData(
           sourcePosition,
           targetPosition,
           baseOffset / distance
         )
-        dash.position = position
+
+        dash.position = arcData.position.clone()
 
         if (!dash.rotationQuaternion) {
           dash.rotationQuaternion = new BABYLON.Quaternion()
-          dash.rotation = BABYLON.Vector3.Zero()
         }
 
-        const up = new BABYLON.Vector3(0, 0, 1)
-        const lookAtMatrix = BABYLON.Matrix.LookAtLH(
-          position,
-          position.add(tangent),
-          up
+        const lookAtMatrix = BABYLON.Matrix.Identity()
+
+        // Z axis (forward in BJS standard orientation) = our forward direction
+        const zAxis = arcData.forward
+
+        // Y axis (up in BJS standard orientation) = our up direction
+        const yAxis = arcData.up
+
+        const rotatedUpVector = new BABYLON.Vector3(
+          arcData.up.x +
+            Math.sin(horizontalAngle) * rotationFactor * rotationDirection,
+          arcData.up.y -
+            Math.cos(horizontalAngle) * rotationFactor * rotationDirection,
+          arcData.up.z
+        ).normalize()
+
+        // X axis = cross product of Y and Z for orthogonality
+        const xAxis = BABYLON.Vector3.Cross(rotatedUpVector, zAxis).normalize()
+
+        // Recalculate Y to ensure perfect orthogonality
+        const correctedYAxis = BABYLON.Vector3.Cross(zAxis, xAxis).normalize()
+
+        // Set matrix values directly
+        lookAtMatrix.setRowFromFloats(0, xAxis.x, xAxis.y, xAxis.z, 0)
+        lookAtMatrix.setRowFromFloats(
+          1,
+          correctedYAxis.x,
+          correctedYAxis.y,
+          correctedYAxis.z,
+          0
         )
+        lookAtMatrix.setRowFromFloats(2, zAxis.x, zAxis.y, zAxis.z, 0)
 
-        const lookAtQuaternion =
-          BABYLON.Quaternion.FromRotationMatrix(lookAtMatrix).invert()
-
-        const adjustmentQuaternion = BABYLON.Quaternion.RotationAxis(
-          new BABYLON.Vector3(0, 1, 0),
-          -Math.PI / 2
-        )
-
+        // Extract rotation quaternion from the matrix
         dash.rotationQuaternion =
-          adjustmentQuaternion.multiply(lookAtQuaternion)
+          BABYLON.Quaternion.FromRotationMatrix(lookAtMatrix)
 
         dash.isVisible = true
       } else {
