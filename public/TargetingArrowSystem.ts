@@ -6,20 +6,18 @@ export default class TargetingArrowSystem {
   public sourceMinion: MinionBoardView = null
 
   private scene: BABYLON.Scene
-  private shadowGenerator: BABYLON.ShadowGenerator
   private arrowMesh: BABYLON.Mesh = null
   private arrowMaterial: BABYLON.StandardMaterial
-  private arrowColor: BABYLON.Color3 = new BABYLON.Color3(1, 0, 0)
-  private dashLength: number = 0.4
+  private arrowColor: BABYLON.Color3 = new BABYLON.Color3(1, 0.1, 0.1)
+  private dashLength: number = 0.6
   private arrowHeadSize: number = 0.5
   private cursorMesh: BABYLON.TransformNode = null
   private arrowParticles: BABYLON.Mesh[] = []
   private animationTime: number = 0
   private arcHeight: number = 0.35
 
-  constructor(scene: BABYLON.Scene, shadowGenerator: BABYLON.ShadowGenerator) {
+  constructor(scene: BABYLON.Scene) {
     this.scene = scene
-    this.shadowGenerator = shadowGenerator
 
     this.arrowMaterial = new BABYLON.StandardMaterial(
       'arrowMaterial',
@@ -28,7 +26,7 @@ export default class TargetingArrowSystem {
     this.arrowMaterial.diffuseColor = this.arrowColor
     this.arrowMaterial.emissiveColor = this.arrowColor
     this.arrowMaterial.disableLighting = false
-    this.arrowMaterial.specularColor = new BABYLON.Color3(0, 0, 0)
+    this.arrowMaterial.specularColor = new BABYLON.Color3(1, 0, 0)
 
     this.scene.registerBeforeRender(() => {
       if (this.isActive) {
@@ -65,34 +63,28 @@ export default class TargetingArrowSystem {
   private createCursorMesh(): void {
     this.cursorMesh = new BABYLON.TransformNode('cursorMesh', this.scene)
 
-    const circle = BABYLON.MeshBuilder.CreateTorus(
-      'cursorCircle',
+    const ring = BABYLON.MeshBuilder.CreateTorus(
+      'targetingRing',
       {
-        diameter: 0.6 * 2,
-        thickness: 0.1,
+        diameter: 0.75,
+        thickness: 0.09,
         tessellation: 32,
       },
       this.scene
     )
-    circle.parent = this.cursorMesh
-    circle.material = this.arrowMaterial.clone('cursorMaterial')
+    ring.rotation.x = Math.PI / 2
+    ring.material = this.arrowMaterial
+    ring.parent = this.cursorMesh
 
-    const arrowHead = BABYLON.MeshBuilder.CreateCylinder(
-      'arrowHead',
-      {
-        height: this.arrowHeadSize,
-        diameterTop: 0,
-        diameterBottom: this.arrowHeadSize,
-        tessellation: 12,
-      },
-      this.scene
-    )
-    arrowHead.parent = this.cursorMesh
-    arrowHead.position.y = 0.3
-    arrowHead.rotation.x = Math.PI / 2
-    arrowHead.material = this.arrowMaterial.clone('arrowHeadMaterial')
+    // const arrowheadVertexData = new BABYLON.VertexData()
+    // arrowheadVertexData.positions = [1, 0, 0, 0.5, 0.4, 0, 0.5, -0.4, 0]
+    // arrowheadVertexData.indices = [0, 1, 2]
 
-    this.cursorMesh.position = new BABYLON.Vector3(0, 0, 0)
+    // const arrowhead = new BABYLON.Mesh('targetingArrow', this.scene)
+    // arrowheadVertexData.applyToMesh(arrowhead)
+
+    // arrowhead.material = this.arrowMaterial
+    // arrowhead.parent = this.cursorMesh
   }
 
   private createArrowDashes(): void {
@@ -103,8 +95,8 @@ export default class TargetingArrowSystem {
       const dash = BABYLON.MeshBuilder.CreateBox(
         `arrowDash_${i}`,
         {
-          width: 0.3,
-          height: 0.1,
+          width: 0.4,
+          height: 0.15,
           depth: this.dashLength,
         },
         this.scene
@@ -113,7 +105,6 @@ export default class TargetingArrowSystem {
       dash.material = this.arrowMaterial.clone(`dashMaterial_${i}`)
       dash.receiveShadows = true
       dash.isVisible = false
-      this.shadowGenerator.addShadowCaster(dash)
       this.arrowParticles.push(dash)
     }
   }
@@ -183,12 +174,12 @@ export default class TargetingArrowSystem {
   ): void {
     const dx = targetPosition.x - sourcePosition.x,
       dy = targetPosition.y - sourcePosition.y,
-      distance = Math.sqrt(dx * dx + dy * dy),
+      distance = Math.sqrt(dx * dx + dy * dy) - 1,
       dashPeriod = this.dashLength + 0.2 /* gap */,
       numDashes = Math.floor(distance / dashPeriod)
 
     const horizontalAngle = Math.atan2(dy, dx)
-    const rotationFactor = 0.15 * distance
+    const rotationFactor = 0.05 * distance
     const rotationDirection = targetPosition.x >= sourcePosition.x ? 1 : -1
 
     for (let i = 0; i < this.arrowParticles.length; i++) {

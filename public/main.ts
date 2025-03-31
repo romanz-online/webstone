@@ -13,7 +13,7 @@ enum Layer {
   CORNER = -0.2,
   MINION = -0.3,
   HERO = -0.4,
-  HAND = -0.5,
+  MINIONS = -0.5,
 }
 
 interface CornerConfig {
@@ -31,7 +31,7 @@ class GameRenderer {
   private camera: BABYLON.FreeCamera
   private sceneRoot: BABYLON.TransformNode
   private gameplayArea: BABYLON.GroundMesh
-  private board: BoardView
+  private playerBoard: BoardView
   private hand: HandView
   private targetingSystem: TargetingArrowSystem
 
@@ -59,26 +59,29 @@ class GameRenderer {
     await new FontFaceObserver('Belwe').load()
 
     this.createLighting()
-    // this.createGameplayArea()
+    this.createGameplayArea()
 
-    this.targetingSystem = new TargetingArrowSystem(
-      this.scene,
-      this.shadowGenerator
-    )
+    this.targetingSystem = new TargetingArrowSystem(this.scene)
 
     this.hand = new HandView(this.scene)
-    this.hand.mesh.position.z = Layer.HAND
+    this.hand.mesh.position.z = Layer.MINIONS
     this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
     this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
     this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
     this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
     this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
 
-    this.board = new BoardView(this.scene)
-    this.board.mesh.position.z = Layer.HAND
-    this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
-    this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
-    this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
+    this.playerBoard = new BoardView(this.scene)
+    this.playerBoard.mesh.position.z = Layer.MINIONS
+    this.playerBoard.addMinion(
+      new MinionBoardView(this.scene, new MinionModel({}))
+    )
+    this.playerBoard.addMinion(
+      new MinionBoardView(this.scene, new MinionModel({}))
+    )
+    this.playerBoard.addMinion(
+      new MinionBoardView(this.scene, new MinionModel({}))
+    )
     // this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
     // this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
 
@@ -111,7 +114,7 @@ class GameRenderer {
     )
     const dirLight = new BABYLON.DirectionalLight(
       'dirLight',
-      new BABYLON.Vector3(0, 0, 1),
+      new BABYLON.Vector3(-1, -1, -2),
       this.scene
     )
     dirLight.intensity = 0.5
@@ -119,19 +122,6 @@ class GameRenderer {
     this.shadowGenerator.useExponentialShadowMap = true
     this.shadowGenerator.blurScale = 2
     this.shadowGenerator.setDarkness(0.3)
-
-    // const light = new BABYLON.DirectionalLight(
-    //   'mainLight',
-    //   new BABYLON.Vector3(-1, -2, -1),
-    //   this.scene
-    // )
-    // light.intensity = 0.7
-
-    // // Configure shadow generator
-    // const shadowGenerator = new BABYLON.ShadowGenerator(1024, light)
-    // shadowGenerator.useBlurExponentialShadowMap = true
-    // shadowGenerator.blurScale = 2
-    // shadowGenerator.setDarkness(0.3)
   }
 
   private createGameplayArea(): void {
@@ -406,7 +396,7 @@ class GameRenderer {
           if (
             this.isIntersecting(
               MinionCardView.draggedCard.getBoundingInfo(),
-              this.board.getBoundingInfo()
+              this.playerBoard.getBoundingInfo()
             )
           ) {
             const draggedCardWorldMatrix =
@@ -416,9 +406,9 @@ class GameRenderer {
                 draggedCardWorldMatrix
               )
 
-            this.board.updatePlaceholderPosition(draggedCardPosition.x)
+            this.playerBoard.updatePlaceholderPosition(draggedCardPosition.x)
           } else {
-            this.board.removePlaceholder()
+            this.playerBoard.removePlaceholder()
           }
         }
       } else if (this.targetingSystem.isActive) {
@@ -442,7 +432,7 @@ class GameRenderer {
         if (
           this.isIntersecting(
             MinionCardView.draggedCard.getBoundingInfo(),
-            this.board.getBoundingInfo()
+            this.playerBoard.getBoundingInfo()
           )
         ) {
           console.log('Card was dropped on board')
@@ -450,9 +440,9 @@ class GameRenderer {
           // triggerEvent playCard
 
           // triggered by event summonMinion
-          this.board.summonMinion(
+          this.playerBoard.summonMinion(
             new MinionBoardView(this.scene, new MinionModel({})),
-            this.board.placeholderIndex
+            this.playerBoard.placeholderIndex
           )
         } else {
           MinionCardView.draggedCard.revert()
@@ -460,7 +450,6 @@ class GameRenderer {
         MinionCardView.draggedCard.dragOffset = null
         MinionCardView.draggedCard = null
       } else if (this.targetingSystem.isActive) {
-        // Check if targeting ended on a valid target
         const pickResult = this.scene.pick(
           this.scene.pointerX,
           this.scene.pointerY
@@ -474,7 +463,6 @@ class GameRenderer {
         ) {
           const targetMinion = pickResult.pickedMesh.metadata.owner
 
-          // Handle targeting success - implement your attack logic here
           // this.handleMinionAttack(this.targetingSystem.sourceMinion, targetMinion);
           console.log(
             'Attack from',
@@ -484,7 +472,6 @@ class GameRenderer {
           )
         }
 
-        // End targeting regardless of result
         this.targetingSystem.endTargeting()
       }
     }
