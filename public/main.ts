@@ -43,6 +43,8 @@ class GameRenderer {
 
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace
+    
 
     this.scene = new THREE.Scene()
     this.sceneRoot = new THREE.Object3D()
