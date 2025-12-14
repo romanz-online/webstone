@@ -2,10 +2,10 @@ import FontFaceObserver from 'fontfaceobserver'
 import * as THREE from 'three'
 import BoardView from './BoardView.ts'
 import HandView from './HandView.ts'
+import InteractionManager from './InteractionManager.ts'
 import MinionBoardView from './MinionBoardView.ts'
 import MinionCardView from './MinionCardView.ts'
 import MinionModel from './MinionModel.ts'
-import TargetingArrowSystem from './TargetingArrowSystem.ts'
 
 enum Layer {
   GAMEPLAY_AREA = 0,
@@ -32,7 +32,7 @@ class GameRenderer {
   private gameplayArea: THREE.Mesh
   private playerBoard: BoardView
   private hand: HandView
-  private targetingSystem: TargetingArrowSystem
+  private interactionManager: InteractionManager
   private raycaster: THREE.Raycaster
   private mouse: THREE.Vector2
 
@@ -70,15 +70,25 @@ class GameRenderer {
     this.createLighting()
     this.createGameplayArea()
 
-    this.targetingSystem = new TargetingArrowSystem(this.scene)
+    // Initialize interaction manager
+    this.interactionManager = new InteractionManager(this.camera, this.renderer)
 
     this.hand = new HandView(this.scene)
     this.hand.mesh.position.z = Layer.HAND
-    this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
-    this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
-    this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
-    this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
-    this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
+
+    // Create cards and register them for dragging
+    const cards = [
+      new MinionCardView(this.scene, new MinionModel({})),
+      new MinionCardView(this.scene, new MinionModel({})),
+      new MinionCardView(this.scene, new MinionModel({})),
+      new MinionCardView(this.scene, new MinionModel({})),
+      new MinionCardView(this.scene, new MinionModel({})),
+    ]
+
+    cards.forEach((card) => {
+      this.hand.addCard(card)
+      this.interactionManager.addDraggableObject(card.mesh)
+    })
 
     this.playerBoard = new BoardView(this.scene)
     this.playerBoard.mesh.position.z = Layer.HAND
@@ -91,6 +101,12 @@ class GameRenderer {
     this.playerBoard.addMinion(
       new MinionBoardView(this.scene, new MinionModel({}))
     )
+
+    // Register the board as a drop zone
+    this.interactionManager.addDropZone(this.playerBoard)
+
+    // Set up interaction event listeners
+    this.setupInteractionEventListeners()
 
     this.startRenderLoop()
   }
@@ -180,108 +196,60 @@ class GameRenderer {
     )
   }
 
+  private setupInteractionEventListeners(): void {
+    // Listen for hover over drop zones
+    this.interactionManager.addEventListener('hoverdropzone', (event: any) => {
+      const { dropZone, draggable } = event.detail
+
+      if (
+        draggable instanceof MinionCardView &&
+        dropZone === this.playerBoard
+      ) {
+        this.playerBoard.updatePlaceholderPosition(draggable.mesh.position.x)
+      }
+    })
+
+    // Listen for leaving drop zones
+    this.interactionManager.addEventListener('leavedropzone', (event: any) => {
+      const { dropZone, draggable } = event.detail
+
+      if (
+        draggable instanceof MinionCardView &&
+        dropZone === this.playerBoard
+      ) {
+        this.playerBoard.removePlaceholder()
+      }
+    })
+
+    // Listen for successful drops to remove cards from hand
+    this.interactionManager.addEventListener('dragend', (event: any) => {
+      const dragEvent = event.detail
+      const draggable = dragEvent.object.userData.owner
+
+      if (draggable instanceof MinionCardView) {
+        // Check if the card was successfully dropped on board
+        if (
+          this.isIntersecting(
+            draggable.getBoundingInfo(),
+            this.playerBoard.getBoundingInfo()
+          )
+        ) {
+          // Remove card from interaction manager and hand after successful drop
+          this.interactionManager.removeDraggableObject(draggable.mesh)
+          this.hand.removeCard(draggable)
+        } else {
+          // Revert card position if not dropped on valid zone
+          draggable.revert()
+        }
+        this.playerBoard.removePlaceholder()
+      }
+    })
+  }
+
   private setupEventListeners(): void {
     window.addEventListener('resize', () => {
       this.renderer.setSize(window.innerWidth, window.innerHeight)
       this.updateViewport()
-    })
-
-    this.canvas.addEventListener('mousedown', (event) => {
-      this.updateMousePosition(event)
-      const intersects = this.raycastFromMouse()
-
-      if (intersects.length > 0) {
-        const mesh = intersects[0].object as THREE.Mesh
-        if (mesh.userData && mesh.userData.owner) {
-          if (mesh.userData.owner instanceof MinionCardView) {
-            const card = mesh.userData.owner
-            const worldPos = this.getWorldPositionOnPlane()
-            if (worldPos) {
-              card.dragOffset = card.mesh.position.clone().sub(worldPos)
-            }
-            MinionCardView.draggedCard = card
-          } else if (mesh.userData.owner instanceof MinionBoardView) {
-            this.targetingSystem.startTargeting(mesh.userData.owner)
-          }
-        }
-      }
-    })
-
-    this.canvas.addEventListener('mousemove', (event) => {
-      this.updateMousePosition(event)
-
-      if (MinionCardView.draggedCard) {
-        const worldPos = this.getWorldPositionOnPlane()
-        if (worldPos) {
-          const targetPos = worldPos
-            .clone()
-            .add(MinionCardView.draggedCard.dragOffset)
-          MinionCardView.draggedCard.mesh.position.lerp(targetPos, 0.7)
-
-          if (
-            this.isIntersecting(
-              MinionCardView.draggedCard.getBoundingInfo(),
-              this.playerBoard.getBoundingInfo()
-            )
-          ) {
-            this.playerBoard.updatePlaceholderPosition(
-              MinionCardView.draggedCard.mesh.position.x
-            )
-          } else {
-            this.playerBoard.removePlaceholder()
-          }
-        }
-      } else if (this.targetingSystem.isActive) {
-        const worldPos = this.getWorldPositionOnPlane()
-        if (worldPos) {
-          this.targetingSystem.updateTargetingPosition(worldPos)
-        }
-      }
-    })
-
-    this.canvas.addEventListener('mouseup', (event) => {
-      this.updateMousePosition(event)
-
-      if (MinionCardView.draggedCard) {
-        if (
-          this.isIntersecting(
-            MinionCardView.draggedCard.getBoundingInfo(),
-            this.playerBoard.getBoundingInfo()
-          )
-        ) {
-          console.log('Card was dropped on board')
-          this.hand.removeCard(MinionCardView.draggedCard)
-          // triggerEvent playCard
-
-          // triggered by event summonMinion
-          this.playerBoard.summonMinion(
-            new MinionBoardView(this.scene, new MinionModel({})),
-            this.playerBoard.placeholderIndex
-          )
-        } else {
-          MinionCardView.draggedCard.revert()
-        }
-        MinionCardView.draggedCard.dragOffset = null
-        MinionCardView.draggedCard = null
-      } else if (this.targetingSystem.isActive) {
-        const intersects = this.raycastFromMouse()
-
-        if (intersects.length > 0) {
-          const mesh = intersects[0].object as THREE.Mesh
-          if (mesh.userData && mesh.userData.owner instanceof MinionBoardView) {
-            const targetMinion = mesh.userData.owner
-
-            console.log(
-              'Attack from',
-              this.targetingSystem.sourceMinion,
-              'to',
-              targetMinion
-            )
-          }
-        }
-
-        this.targetingSystem.endTargeting()
-      }
     })
   }
 

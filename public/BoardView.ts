@@ -1,12 +1,14 @@
 import * as THREE from 'three'
 import MinionBoardView from './MinionBoardView.ts'
+import { DropZone, Draggable, DragEvent } from './Draggable.ts'
+import MinionCardView from './MinionCardView.ts'
 
 enum Layer {
   DROPPABLE_AREA = 0,
   MINION = -0.1,
 }
 
-export default class BoardView {
+export default class BoardView implements DropZone {
   public mesh: THREE.Object3D
   public placeholderIndex: number = 0
 
@@ -230,6 +232,25 @@ export default class BoardView {
    */
   public get minionCount(): number {
     return this.minions.length
+  }
+
+  public canAcceptDrop(draggable: Draggable): boolean {
+    return draggable instanceof MinionCardView
+  }
+
+  public onDrop(draggable: Draggable, event: DragEvent): void {
+    if (draggable instanceof MinionCardView) {
+      console.log('Card was dropped on board')
+      
+      // Create a new minion for the board
+      const newMinion = new MinionBoardView(this.scene, draggable.minion)
+      
+      // Summon the minion at the placeholder position
+      this.summonMinion(newMinion, this.placeholderIndex)
+      
+      // Remove the card from its original location (this would be handled by the hand)
+      // The hand should listen for the dragend event and remove the card
+    }
   }
 
   /**

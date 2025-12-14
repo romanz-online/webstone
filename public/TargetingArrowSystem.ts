@@ -6,11 +6,9 @@ export default class TargetingArrowSystem {
   public sourceMinion: MinionBoardView = null
 
   private scene: THREE.Scene
-  private arrowMesh: THREE.Mesh = null
   private arrowMaterial: THREE.MeshBasicMaterial
   private arrowColor: THREE.Color = new THREE.Color(1, 0.1, 0.1)
   private dashLength: number = 0.6
-  private arrowHeadSize: number = 0.5
   private cursorMesh: THREE.Object3D = null
   private arrowParticles: THREE.Mesh[] = []
   private animationTime: number = 0
@@ -22,7 +20,7 @@ export default class TargetingArrowSystem {
     this.arrowMaterial = new THREE.MeshBasicMaterial({
       color: this.arrowColor,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.8,
     })
 
     // Use animation loop instead of registerBeforeRender
@@ -78,7 +76,7 @@ export default class TargetingArrowSystem {
     for (let i = 0; i < totalDashes; i++) {
       const dashGeometry = new THREE.BoxGeometry(0.4, 0.15, this.dashLength)
       const dash = new THREE.Mesh(dashGeometry, this.arrowMaterial.clone())
-      
+
       dash.name = `arrowDash_${i}`
       dash.visible = false
       dash.castShadow = true
@@ -87,11 +85,7 @@ export default class TargetingArrowSystem {
     }
   }
 
-  private getArcData(
-    start: THREE.Vector3,
-    end: THREE.Vector3,
-    t: number
-  ): any {
+  private getArcData(start: THREE.Vector3, end: THREE.Vector3, t: number): any {
     const direction = end.clone().sub(start)
     const distance = direction.length()
 
@@ -99,7 +93,7 @@ export default class TargetingArrowSystem {
     const b = 4 * this.arcHeight * distance
     const c = 0
     const height = a * t * t + b * t + c
-    
+
     const currentPos = new THREE.Vector3(
       start.x + direction.x * t,
       start.y + direction.y * t,
@@ -181,9 +175,13 @@ export default class TargetingArrowSystem {
             Math.cos(horizontalAngle) * rotationFactor * rotationDirection,
           arcData.up.z
         ).normalize()
-        
-        const xAxis = new THREE.Vector3().crossVectors(rotatedUpVector, zAxis).normalize()
-        const correctedYAxis = new THREE.Vector3().crossVectors(zAxis, xAxis).normalize()
+
+        const xAxis = new THREE.Vector3()
+          .crossVectors(rotatedUpVector, zAxis)
+          .normalize()
+        const correctedYAxis = new THREE.Vector3()
+          .crossVectors(zAxis, xAxis)
+          .normalize()
 
         matrix.makeBasis(xAxis, correctedYAxis, zAxis)
         dash.setRotationFromMatrix(matrix)
@@ -210,7 +208,7 @@ export default class TargetingArrowSystem {
         if (object instanceof THREE.Mesh) {
           if (object.material) {
             if (Array.isArray(object.material)) {
-              object.material.forEach(mat => mat.dispose())
+              object.material.forEach((mat) => mat.dispose())
             } else {
               object.material.dispose()
             }
@@ -228,7 +226,7 @@ export default class TargetingArrowSystem {
       if (dash) {
         if (dash.material) {
           if (Array.isArray(dash.material)) {
-            dash.material.forEach(mat => mat.dispose())
+            dash.material.forEach((mat) => mat.dispose())
           } else {
             dash.material.dispose()
           }

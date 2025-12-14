@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { DragEvent, Draggable } from './Draggable.ts'
 import MinionModel from './MinionModel.ts'
 import { CARD_HEIGHT, CARD_WIDTH } from './main.ts'
 
@@ -10,14 +11,11 @@ enum Layer {
   CLICKABLE_AREA = 0.4,
 }
 
-export default class MinionCardView {
-  public static draggedCard: MinionCardView | null = null
-
+export default class MinionCardView implements Draggable {
   public minion: MinionModel
-  public mesh: THREE.Object3D
+  public mesh: THREE.Mesh  // Now points to clickableArea
   public frame: THREE.Mesh
   public originalPosition: THREE.Vector3
-  public dragOffset: THREE.Vector3 | null = null
 
   private scene: THREE.Scene
   private manaCanvas: HTMLCanvasElement
@@ -35,8 +33,16 @@ export default class MinionCardView {
     this.scene = scene
     this.minion = minion
 
-    this.mesh = new THREE.Object3D()
+    // Create clickable area as the main mesh container
+    const frameGeometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT)
+    const clickableMaterial = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0,
+    })
+
+    this.mesh = new THREE.Mesh(frameGeometry, clickableMaterial)
     this.mesh.name = 'minionCard'
+    this.mesh.userData = { owner: this }
     scene.add(this.mesh)
 
     if (position) {
@@ -47,6 +53,7 @@ export default class MinionCardView {
 
     this.createCardMesh()
   }
+
 
   private createCardMesh(): void {
     const loader = new THREE.TextureLoader()
@@ -69,7 +76,7 @@ export default class MinionCardView {
 
         const portrait = new THREE.Mesh(portraitGeometry, portraitMaterial)
         portrait.name = 'portrait'
-        portrait.position.set(0, 1.15, Layer.PORTRAIT)
+        portrait.position.set(0, 1.15, -Layer.PORTRAIT)  // Negative to be behind clickable area
         this.mesh.add(portrait)
       },
       undefined,
@@ -92,20 +99,8 @@ export default class MinionCardView {
         const frameGeometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT) // Full card size
         this.frame = new THREE.Mesh(frameGeometry, frameMaterial)
         this.frame.name = 'frame'
-        this.frame.position.set(0, 0, Layer.FRAME)
+        this.frame.position.set(0, 0, -Layer.FRAME)  // Negative to be behind clickable area
         this.mesh.add(this.frame)
-
-        // Clickable area
-        const clickableMaterial = new THREE.MeshBasicMaterial({
-          transparent: true,
-          opacity: 0,
-        })
-
-        const clickableArea = new THREE.Mesh(frameGeometry, clickableMaterial)
-        clickableArea.name = 'clickableArea'
-        clickableArea.position.set(0, 0, Layer.CLICKABLE_AREA)
-        clickableArea.userData = { owner: this }
-        this.mesh.add(clickableArea)
 
         this.createOverlayElements()
       },
@@ -173,7 +168,7 @@ export default class MinionCardView {
     this.updateMana(4)
     this.createTextPlane(
       this.manaTexture,
-      new THREE.Vector3(-1.5, 2.5, Layer.OVERLAY_TEXT)
+      new THREE.Vector3(-1.5, 2.5, Layer.OVERLAY_TEXT)  // Positive to be in front of clickable area
     )
   }
 
@@ -181,7 +176,7 @@ export default class MinionCardView {
     this.updateAttack(2)
     this.createTextPlane(
       this.attackTexture,
-      new THREE.Vector3(-1.5, -2.5, Layer.OVERLAY_TEXT)
+      new THREE.Vector3(-1.5, -2.5, Layer.OVERLAY_TEXT)  // Positive to be in front of clickable area
     )
   }
 
@@ -189,7 +184,7 @@ export default class MinionCardView {
     this.updateHealth(5)
     this.createTextPlane(
       this.healthTexture,
-      new THREE.Vector3(1.5, -2.5, Layer.OVERLAY_TEXT)
+      new THREE.Vector3(1.5, -2.5, Layer.OVERLAY_TEXT)  // Positive to be in front of clickable area
     )
   }
 
@@ -305,11 +300,33 @@ export default class MinionCardView {
     this.healthTexture.needsUpdate = true
   }
 
-  public dispose(): void {
-    if (MinionCardView.draggedCard === this) {
-      MinionCardView.draggedCard = null
-    }
+  public isDraggable(): boolean {
+    return true
+  }
 
+  public onDragStart(event: DragEvent): void {
+    // Store original position for potential revert
+    this.originalPosition = this.mesh.position.clone()
+
+    // Raise card slightly to show it's being dragged
+    this.mesh.position.z += 0.1
+
+    // Optional: Scale up slightly for visual feedback
+    this.mesh.scale.setScalar(1.05)
+  }
+
+  public onDrag(event: DragEvent): void {
+    // The DragControls will handle position updates
+    // We can add any additional visual feedback here
+  }
+
+  public onDragEnd(event: DragEvent): void {
+    // Reset visual state
+    this.mesh.scale.setScalar(1.0)
+    this.mesh.position.z -= 0.1
+  }
+
+  public dispose(): void {
     if (this.manaTexture) {
       this.manaTexture.dispose()
     }

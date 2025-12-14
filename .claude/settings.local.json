@@ -13,7 +13,8 @@
       "Bash(. \"$NVM_DIR/nvm.sh\")",
       "Bash(nvm install:*)",
       "Bash(nvm use:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
