@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import MinionModel from './MinionModel.ts'
-import { MINION_BOARD_HEIGHT, MINION_BOARD_WIDTH } from './main.ts'
+import { MINION_BOARD_HEIGHT, MINION_BOARD_WIDTH } from './gameConstants.ts'
 
 enum Layer {
   PORTRAIT = 0,

@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { DragEvent, Draggable } from './Draggable.ts'
 import MinionModel from './MinionModel.ts'
-import { CARD_HEIGHT, CARD_WIDTH } from './main.ts'
+import { CARD_HEIGHT, CARD_WIDTH } from './gameConstants.ts'
 
 export default class MinionCardView implements Draggable {
   // Logical unit constants

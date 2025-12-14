@@ -6,22 +6,11 @@ import InteractionManager from './InteractionManager.ts'
 import MinionBoardView from './MinionBoardView.ts'
 import MinionCardView from './MinionCardView.ts'
 import MinionModel from './MinionModel.ts'
-
-enum Layer {
-  GAMEPLAY_AREA = 0,
-  HERO = 0.1,
-  HAND = 0.2,
-}
+import { CARD_WIDTH, CARD_HEIGHT, MINION_BOARD_WIDTH, MINION_BOARD_HEIGHT, Layer } from './gameConstants.ts'
 
 // Logical game dimensions (16:9 ratio)
 const GAME_WIDTH = 16
 const GAME_HEIGHT = 9
-
-// Standard object sizes in logical units
-export const CARD_WIDTH = 1.2
-export const CARD_HEIGHT = 1.8
-export const MINION_BOARD_WIDTH = 1.0
-export const MINION_BOARD_HEIGHT = 1.2
 
 class GameRenderer {
   private canvas: HTMLCanvasElement
