@@ -14,13 +14,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "babylonjs": "^7.53.3",
-    "babylonjs-gui": "^7.54.0",
+    "@types/three": "^0.182.0",
     "fontfaceobserver": "^2.3.0",
     "madge": "^8.0.0",
     "mime-types": "^2.1.35",
     "pixi.js": "^8.8.1",
     "prettier": "^3.5.2",
+    "three": "^0.182.0",
     "tsx": "^4.19.3",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.43.0"
   },

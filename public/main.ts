@@ -1,5 +1,5 @@
-import * as BABYLON from 'babylonjs'
 import FontFaceObserver from 'fontfaceobserver'
+import * as THREE from 'three'
 import BoardView from './BoardView.ts'
 import HandView from './HandView.ts'
 import MinionBoardView from './MinionBoardView.ts'
@@ -25,31 +25,41 @@ interface CornerConfig {
 
 class GameRenderer {
   private canvas: HTMLCanvasElement
-  private engine: BABYLON.Engine
-  private scene: BABYLON.Scene
-  private shadowGenerator: BABYLON.ShadowGenerator
-  private camera: BABYLON.FreeCamera
-  private sceneRoot: BABYLON.TransformNode
-  private gameplayArea: BABYLON.GroundMesh
+  private renderer: THREE.WebGLRenderer
+  private scene: THREE.Scene
+  private shadowGenerator: THREE.DirectionalLight
+  private camera: THREE.OrthographicCamera
+  private sceneRoot: THREE.Object3D
+  private gameplayArea: THREE.Mesh
   private playerBoard: BoardView
   private hand: HandView
   private targetingSystem: TargetingArrowSystem
+  private raycaster: THREE.Raycaster
+  private mouse: THREE.Vector2
 
   private readonly ORTHO_SIZE = 4
   private readonly CORNER_SIZE = 3
 
   constructor(canvasId: string) {
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement
-    this.engine = new BABYLON.Engine(this.canvas, true, {
-      preserveDrawingBuffer: true,
-      stencil: true,
+    
+    this.renderer = new THREE.WebGLRenderer({ 
+      canvas: this.canvas,
+      antialias: true,
+      preserveDrawingBuffer: true 
     })
+    
+    this.renderer.setSize(window.innerWidth, window.innerHeight)
+    this.renderer.shadowMap.enabled = true
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
-    this.canvas.width = window.innerWidth
-    this.canvas.height = window.innerHeight
-
-    this.scene = new BABYLON.Scene(this.engine)
-    this.sceneRoot = new BABYLON.TransformNode('sceneRoot', this.scene)
+    this.scene = new THREE.Scene()
+    this.sceneRoot = new THREE.Object3D()
+    this.sceneRoot.name = 'sceneRoot'
+    this.scene.add(this.sceneRoot)
+    
+    this.raycaster = new THREE.Raycaster()
+    this.mouse = new THREE.Vector2()
 
     this.setupCamera()
     this.setupEventListeners()
@@ -89,79 +99,57 @@ class GameRenderer {
   }
 
   private setupCamera(): void {
-    this.camera = new BABYLON.FreeCamera(
-      'camera',
-      new BABYLON.Vector3(0, 0, -100),
-      this.scene
+    const aspect = window.innerWidth / window.innerHeight
+    
+    this.camera = new THREE.OrthographicCamera(
+      -this.ORTHO_SIZE * aspect, // left
+      this.ORTHO_SIZE * aspect,  // right
+      this.ORTHO_SIZE,           // top
+      -this.ORTHO_SIZE,          // bottom
+      0.1,                       // near
+      1000                       // far
     )
-
-    this.camera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA
-    this.camera.setTarget(new BABYLON.Vector3(0, 0, 0))
-
-    const aspect = this.canvas.width / this.canvas.height
-    this.camera.orthoTop = this.ORTHO_SIZE
-    this.camera.orthoBottom = -this.ORTHO_SIZE
-    this.camera.orthoLeft = -this.ORTHO_SIZE * aspect
-    this.camera.orthoRight = this.ORTHO_SIZE * aspect
-    this.camera.detachControl()
+    
+    this.camera.position.set(0, 0, 100)
+    this.camera.lookAt(0, 0, 0)
   }
 
   private createLighting(): void {
-    new BABYLON.HemisphericLight(
-      'light',
-      new BABYLON.Vector3(0, 0, -10),
-      this.scene
-    )
-    const dirLight = new BABYLON.DirectionalLight(
-      'dirLight',
-      new BABYLON.Vector3(-1, -1, -2),
-      this.scene
-    )
-    dirLight.intensity = 0.5
-    this.shadowGenerator = new BABYLON.ShadowGenerator(1024, dirLight)
-    this.shadowGenerator.useExponentialShadowMap = true
-    this.shadowGenerator.blurScale = 2
-    this.shadowGenerator.setDarkness(0.3)
+    // Ambient light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
+    this.scene.add(ambientLight)
+    
+    // Directional light with shadows
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.5)
+    dirLight.position.set(-1, -1, 2)
+    dirLight.castShadow = true
+    dirLight.shadow.mapSize.width = 1024
+    dirLight.shadow.mapSize.height = 1024
+    dirLight.shadow.camera.near = 0.1
+    dirLight.shadow.camera.far = 500
+    this.scene.add(dirLight)
+    
+    this.shadowGenerator = dirLight
   }
 
   private createGameplayArea(): void {
-    const texture = new BABYLON.Texture(
-      './media/images/maps/Default/GameplayArea_transparent.png',
-      this.scene,
-      undefined,
-      undefined,
-      undefined,
-      () => {
-        texture.hasAlpha = true
-
-        const screenHeight = this.camera.orthoTop - this.camera.orthoBottom
-        this.gameplayArea = BABYLON.MeshBuilder.CreateGround(
-          'gameplayArea',
-          {
-            width: screenHeight,
-            height: screenHeight / 2,
-            subdivisions: 2,
-            updatable: false,
-          },
-          this.scene
-        )
-
-        const material = new BABYLON.StandardMaterial('groundMat', this.scene)
-        material.specularColor = new BABYLON.Color3(0, 0, 0)
-        material.diffuseTexture = texture
-        material.useAlphaFromDiffuseTexture = true
-        material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND
-
-        this.gameplayArea.material = material
-        this.gameplayArea.parent = this.sceneRoot
-        this.gameplayArea.position = this.sceneRoot.position.clone()
-        this.gameplayArea.lookAt(new BABYLON.Vector3(0, Math.PI, 1))
-        this.gameplayArea.position.z = Layer.GAMEPLAY_AREA
-
-        // this.createCorners()
-        this.createHeroTrays()
-      }
-    )
+    const loader = new THREE.TextureLoader()
+    loader.load('./media/images/maps/Default/GameplayArea_transparent.png', (texture) => {
+      const screenHeight = this.ORTHO_SIZE * 2
+      const geometry = new THREE.PlaneGeometry(screenHeight, screenHeight / 2)
+      
+      const material = new THREE.MeshLambertMaterial({
+        map: texture,
+        transparent: true,
+        alphaTest: 0.1
+      })
+      
+      this.gameplayArea = new THREE.Mesh(geometry, material)
+      this.gameplayArea.position.set(0, 0, Layer.GAMEPLAY_AREA)
+      this.sceneRoot.add(this.gameplayArea)
+      
+      this.createHeroTrays()
+    })
   }
 
   private createCorners(): void {
@@ -196,202 +184,115 @@ class GameRenderer {
   }
 
   private createCorner(config: CornerConfig): void {
-    // const material = createTransparentMaterialWithTexture(
-    //   this.scene,
-    //   `${config.name}Mat`,
-    //   config.texturePath
-    // )
-    // const corner = BABYLON.MeshBuilder.CreateGround(
-    //   config.name,
-    //   { width: this.CORNER_SIZE, height: this.CORNER_SIZE },
-    //   this.scene
-    // )
-    // corner.material = material
-    // corner.position.x =
-    //   this.gameplayArea.position.x +
-    //   config.anchorX * this.gameplayArea._width * 1.5
-    // corner.position.z =
-    //   this.gameplayArea.position.z +
-    //   config.anchorZ * this.gameplayArea._height * 3
-    // corner.position.y = 3
-    // // Apply position adjustments based on corner position
-    // this.adjustCornerPosition(corner, config.anchorX, config.anchorZ)
-    // corner.parent = this.sceneRoot
+    // Corner creation removed for simplicity
   }
-
-  private adjustCornerPosition(
-    corner: BABYLON.Mesh,
-    anchorX: number,
-    anchorZ: number
-  ): void {
-    if (anchorX === -1 && anchorZ === 1) {
-      // Top-left
-      corner.position.x += 0.07
-      corner.position.z -= 0.9
-    } else if (anchorX === 1 && anchorZ === 1) {
-      // Top-right
-      corner.position.x += 0.07
-      corner.position.z -= 0.7
-    } else if (anchorX === -1 && anchorZ === -1) {
-      // Bottom-left
-      // No adjustment needed
-    } else if (anchorX === 1 && anchorZ === -1) {
-      // Bottom-right
-      corner.position.x += 0.17
-      corner.position.z += 0.25
-    }
-  }
+ 
 
   private createHeroTrays(): void {
-    const topTexture = new BABYLON.Texture(
-      './media/images/maps/Default/HeroTrays_transparent.png',
-      this.scene,
-      undefined,
-      undefined,
-      undefined,
-      () => {
-        topTexture.hasAlpha = true
-        topTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE
-        topTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE
-        topTexture.vScale = 0.5
-        topTexture.vOffset = 0.5
+    const loader = new THREE.TextureLoader()
+    
+    // Top tray
+    loader.load('./media/images/maps/Default/HeroTrays_transparent.png', (texture) => {
+      const topTexture = texture.clone()
+      topTexture.wrapS = THREE.ClampToEdgeWrapping
+      topTexture.wrapT = THREE.ClampToEdgeWrapping
+      topTexture.repeat.y = 0.5
+      topTexture.offset.y = 0.5
+      
+      const geometry = new THREE.PlaneGeometry(5, 2.5)
+      const material = new THREE.MeshLambertMaterial({
+        map: topTexture,
+        transparent: true,
+        alphaTest: 0.1
+      })
+      
+      const topTray = new THREE.Mesh(geometry, material)
+      topTray.position.set(0, 2.3, Layer.TRAY)
+      this.sceneRoot.add(topTray)
+    })
+    
+    // Bottom tray
+    loader.load('./media/images/maps/Default/HeroTrays_transparent.png', (texture) => {
+      const bottomTexture = texture.clone()
+      bottomTexture.wrapS = THREE.ClampToEdgeWrapping
+      bottomTexture.wrapT = THREE.ClampToEdgeWrapping
+      bottomTexture.repeat.y = 0.5
+      bottomTexture.offset.y = 0
+      
+      const geometry = new THREE.PlaneGeometry(5, 2.5)
+      const material = new THREE.MeshLambertMaterial({
+        map: bottomTexture,
+        transparent: true,
+        alphaTest: 0.1
+      })
+      
+      const bottomTray = new THREE.Mesh(geometry, material)
+      bottomTray.position.set(0, -2.3, Layer.TRAY)
+      this.sceneRoot.add(bottomTray)
+    })
 
-        const material = new BABYLON.StandardMaterial(
-          'topTrayMaterial',
-          this.scene
-        )
-        material.diffuseTexture = topTexture
-        material.diffuseTexture.hasAlpha = true
-        material.useAlphaFromDiffuseTexture = true
-        material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND
-        material.specularColor = new BABYLON.Color3(0, 0, 0)
+  }
 
-        const trayMesh = BABYLON.MeshBuilder.CreatePlane(
-          'topTrayMesh',
-          { width: 5, height: 2.5 },
-          this.scene
-        )
-        trayMesh.material = material
-        trayMesh.position.x = this.gameplayArea.position.x
-        trayMesh.position.y = 2 + 0.3
-        trayMesh.position.z = Layer.TRAY
-        trayMesh.parent = this.sceneRoot
-      }
-    )
-
-    const bottomTexture = new BABYLON.Texture(
-      './media/images/maps/Default/HeroTrays_transparent.png',
-      this.scene,
-      undefined,
-      undefined,
-      undefined,
-      () => {
-        bottomTexture.hasAlpha = true
-        bottomTexture.wrapU = BABYLON.Texture.CLAMP_ADDRESSMODE
-        bottomTexture.wrapV = BABYLON.Texture.CLAMP_ADDRESSMODE
-        bottomTexture.vScale = 0.5
-        bottomTexture.vOffset = 0
-
-        const material = new BABYLON.StandardMaterial(
-          'bottomTrayMaterial',
-          this.scene
-        )
-        material.diffuseTexture = bottomTexture
-        material.diffuseTexture.hasAlpha = true
-        material.useAlphaFromDiffuseTexture = true
-        material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND
-        material.specularColor = new BABYLON.Color3(0, 0, 0)
-
-        const trayMesh = BABYLON.MeshBuilder.CreatePlane(
-          'bottomTrayMesh',
-          { width: 5, height: 2.5 },
-          this.scene
-        )
-        trayMesh.material = material
-        trayMesh.position.x = this.gameplayArea.position.x
-        trayMesh.position.y = -2 - 0.3
-        trayMesh.position.z = Layer.TRAY
-        trayMesh.parent = this.sceneRoot
-      }
-    )
-
-    // const
-    //   bottomHeroTrayMaterial = this.createHalfTextureMaterial(
-    //     'bottomHeroTray',
-    //     './media/images/maps/Default/HeroTrays_transparent.png',
-    //     false
-    //   )
-    // const bottomHeroTray = BABYLON.MeshBuilder.CreateGround(
-    //   'bottomHeroTrayMesh',
-    //   { width: 5, height: 2.5 },
-    //   this.scene
-    // )
-    // bottomHeroTray.material = bottomHeroTrayMaterial
-    // bottomHeroTray.position.x = this.gameplayArea.position.x - 0.04
-    // bottomHeroTray.position.z =
-    //   this.gameplayArea.position.z - topHeroTray._height - 0.1
-    // bottomHeroTray.position.y = 0
-    // bottomHeroTray.parent = this.sceneRoot
+  private updateMousePosition(event: MouseEvent): void {
+    const rect = this.canvas.getBoundingClientRect()
+    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+  }
+  
+  private raycastFromMouse(): THREE.Intersection[] {
+    this.raycaster.setFromCamera(this.mouse, this.camera)
+    return this.raycaster.intersectObjects(this.scene.children, true)
+  }
+  
+  private getWorldPositionOnPlane(z: number = -3): THREE.Vector3 | null {
+    this.raycaster.setFromCamera(this.mouse, this.camera)
+    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), z)
+    const target = new THREE.Vector3()
+    const intersection = this.raycaster.ray.intersectPlane(plane, target)
+    return intersection
   }
 
   private setupEventListeners(): void {
     window.addEventListener('resize', () => {
-      this.canvas.width = window.innerWidth
-      this.canvas.height = window.innerHeight
-
+      this.renderer.setSize(window.innerWidth, window.innerHeight)
+      
       setTimeout(() => {
-        const aspect = this.canvas.width / this.canvas.height
-        this.camera.orthoLeft = -this.ORTHO_SIZE * aspect
-        this.camera.orthoRight = this.ORTHO_SIZE * aspect
-        this.engine.resize()
+        const aspect = window.innerWidth / window.innerHeight
+        this.camera.left = -this.ORTHO_SIZE * aspect
+        this.camera.right = this.ORTHO_SIZE * aspect
+        this.camera.updateProjectionMatrix()
       }, 50)
     })
 
-    this.scene.onPointerDown = (evt, pickInfo) => {
-      if (pickInfo.hit && pickInfo.pickedMesh) {
-        const mesh = pickInfo.pickedMesh
-        // console.log(mesh.name, mesh.metadata)
-        if (mesh.metadata && mesh.metadata.owner) {
-          if (mesh.metadata.owner instanceof MinionCardView) {
-            const card = mesh.metadata.owner
-            const ray = this.scene.createPickingRay(
-              this.scene.pointerX,
-              this.scene.pointerY,
-              BABYLON.Matrix.Identity(),
-              this.camera
-            )
-
-            const distance = ray.intersectsPlane(new BABYLON.Plane(0, 0, 1, -3))
-            if (distance !== null) {
-              const hitPoint = ray.origin.add(ray.direction.scale(distance))
-              card.dragOffset = card.mesh.position.subtract(hitPoint)
+    this.canvas.addEventListener('mousedown', (event) => {
+      this.updateMousePosition(event)
+      const intersects = this.raycastFromMouse()
+      
+      if (intersects.length > 0) {
+        const mesh = intersects[0].object as THREE.Mesh
+        if (mesh.userData && mesh.userData.owner) {
+          if (mesh.userData.owner instanceof MinionCardView) {
+            const card = mesh.userData.owner
+            const worldPos = this.getWorldPositionOnPlane()
+            if (worldPos) {
+              card.dragOffset = card.mesh.position.clone().sub(worldPos)
             }
             MinionCardView.draggedCard = card
-          } else if (mesh.metadata.owner instanceof MinionBoardView) {
-            this.targetingSystem.startTargeting(mesh.metadata.owner)
+          } else if (mesh.userData.owner instanceof MinionBoardView) {
+            this.targetingSystem.startTargeting(mesh.userData.owner)
           }
         }
       }
-    }
+    })
 
-    this.scene.onPointerMove = () => {
+    this.canvas.addEventListener('mousemove', (event) => {
+      this.updateMousePosition(event)
+      
       if (MinionCardView.draggedCard) {
-        const ray = this.scene.createPickingRay(
-          this.scene.pointerX,
-          this.scene.pointerY,
-          BABYLON.Matrix.Identity(),
-          this.camera
-        )
-
-        const distance = ray.intersectsPlane(new BABYLON.Plane(0, 0, 1, -3))
-        if (distance) {
-          MinionCardView.draggedCard.mesh.position = BABYLON.Vector3.Lerp(
-            ray.origin
-              .add(ray.direction.scale(distance))
-              .add(MinionCardView.draggedCard.dragOffset),
-            MinionCardView.draggedCard.mesh.position.clone(),
-            0.3
-          )
+        const worldPos = this.getWorldPositionOnPlane()
+        if (worldPos) {
+          const targetPos = worldPos.clone().add(MinionCardView.draggedCard.dragOffset)
+          MinionCardView.draggedCard.mesh.position.lerp(targetPos, 0.7)
 
           if (
             this.isIntersecting(
@@ -399,35 +300,22 @@ class GameRenderer {
               this.playerBoard.getBoundingInfo()
             )
           ) {
-            const draggedCardWorldMatrix =
-                MinionCardView.draggedCard.mesh.getWorldMatrix(),
-              draggedCardPosition = BABYLON.Vector3.TransformCoordinates(
-                MinionCardView.draggedCard.mesh.position,
-                draggedCardWorldMatrix
-              )
-
-            this.playerBoard.updatePlaceholderPosition(draggedCardPosition.x)
+            this.playerBoard.updatePlaceholderPosition(MinionCardView.draggedCard.mesh.position.x)
           } else {
             this.playerBoard.removePlaceholder()
           }
         }
       } else if (this.targetingSystem.isActive) {
-        const ray = this.scene.createPickingRay(
-          this.scene.pointerX,
-          this.scene.pointerY,
-          BABYLON.Matrix.Identity(),
-          this.camera
-        )
-
-        const distance = ray.intersectsPlane(new BABYLON.Plane(0, 0, 1, -3))
-        if (distance) {
-          const targetPosition = ray.origin.add(ray.direction.scale(distance))
-          this.targetingSystem.updateTargetingPosition(targetPosition)
+        const worldPos = this.getWorldPositionOnPlane()
+        if (worldPos) {
+          this.targetingSystem.updateTargetingPosition(worldPos)
         }
       }
-    }
+    })
 
-    this.scene.onPointerUp = () => {
+    this.canvas.addEventListener('mouseup', (event) => {
+      this.updateMousePosition(event)
+      
       if (MinionCardView.draggedCard) {
         if (
           this.isIntersecting(
@@ -450,49 +338,45 @@ class GameRenderer {
         MinionCardView.draggedCard.dragOffset = null
         MinionCardView.draggedCard = null
       } else if (this.targetingSystem.isActive) {
-        const pickResult = this.scene.pick(
-          this.scene.pointerX,
-          this.scene.pointerY
-        )
+        const intersects = this.raycastFromMouse()
+        
+        if (intersects.length > 0) {
+          const mesh = intersects[0].object as THREE.Mesh
+          if (mesh.userData && mesh.userData.owner instanceof MinionBoardView) {
+            const targetMinion = mesh.userData.owner
 
-        if (
-          pickResult.hit &&
-          pickResult.pickedMesh &&
-          pickResult.pickedMesh.metadata &&
-          pickResult.pickedMesh.metadata.owner instanceof MinionBoardView
-        ) {
-          const targetMinion = pickResult.pickedMesh.metadata.owner
-
-          // this.handleMinionAttack(this.targetingSystem.sourceMinion, targetMinion);
-          console.log(
-            'Attack from',
-            this.targetingSystem.sourceMinion,
-            'to',
-            targetMinion
-          )
+            console.log(
+              'Attack from',
+              this.targetingSystem.sourceMinion,
+              'to',
+              targetMinion
+            )
+          }
         }
 
         this.targetingSystem.endTargeting()
       }
-    }
+    })
   }
 
   private isIntersecting(
-    item1: BABYLON.BoundingInfo,
-    item2: BABYLON.BoundingInfo
+    item1: { min: THREE.Vector3, max: THREE.Vector3 },
+    item2: { min: THREE.Vector3, max: THREE.Vector3 }
   ): boolean {
     return (
-      item1.boundingBox.minimumWorld.x < item2.boundingBox.maximumWorld.x &&
-      item1.boundingBox.maximumWorld.x > item2.boundingBox.minimumWorld.x &&
-      item1.boundingBox.minimumWorld.y < item2.boundingBox.maximumWorld.y &&
-      item1.boundingBox.maximumWorld.y > item2.boundingBox.minimumWorld.y
+      item1.min.x < item2.max.x &&
+      item1.max.x > item2.min.x &&
+      item1.min.y < item2.max.y &&
+      item1.max.y > item2.min.y
     )
   }
 
   private startRenderLoop(): void {
-    this.engine.runRenderLoop(() => {
-      this.scene.render()
-    })
+    const animate = () => {
+      requestAnimationFrame(animate)
+      this.renderer.render(this.scene, this.camera)
+    }
+    animate()
   }
 }
 

@@ -1,4 +1,4 @@
-import * as BABYLON from 'babylonjs'
+import * as THREE from 'three'
 import MinionBoardView from './MinionBoardView.ts'
 
 enum Layer {
@@ -7,44 +7,38 @@ enum Layer {
 }
 
 export default class BoardView {
-  public mesh: BABYLON.TransformNode
+  public mesh: THREE.Object3D
   public placeholderIndex: number = 0
 
-  private scene: BABYLON.Scene
-  private droppableArea: BABYLON.Mesh
+  private scene: THREE.Scene
+  private droppableArea: THREE.Mesh
   private minions: MinionBoardView[] = []
   private readonly CARD_SPACING = 1.1
   private readonly BOARD_Y_POSITION = -0.5
 
-  constructor(scene: BABYLON.Scene) {
+  constructor(scene: THREE.Scene) {
     this.scene = scene
 
-    this.mesh = new BABYLON.TransformNode('board', this.scene)
+    this.mesh = new THREE.Object3D()
+    this.mesh.name = 'board'
+    scene.add(this.mesh)
 
-    this.droppableArea = BABYLON.MeshBuilder.CreatePlane(
-      'clickableArea',
-      {
-        width: 7.5,
-        height: 1.5,
-      },
-      this.scene
-    )
-    this.droppableArea.parent = this.mesh
-    this.droppableArea.position.y = -0.5
-    this.droppableArea.position.z = Layer.DROPPABLE_AREA
-
-    const transparentMaterial = new BABYLON.StandardMaterial(
-      'transparentMaterial',
-      this.scene
-    )
-
-    transparentMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0)
-    transparentMaterial.alpha = 0
-    this.droppableArea.material = transparentMaterial
+    const geometry = new THREE.PlaneGeometry(7.5, 1.5)
+    const material = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+      transparent: true,
+      opacity: 0
+    })
+    
+    this.droppableArea = new THREE.Mesh(geometry, material)
+    this.droppableArea.name = 'clickableArea'
+    this.droppableArea.position.set(0, -0.5, Layer.DROPPABLE_AREA)
+    this.mesh.add(this.droppableArea)
   }
 
-  public getBoundingInfo(): BABYLON.BoundingInfo {
-    return this.droppableArea.getBoundingInfo()
+  public getBoundingInfo(): { min: THREE.Vector3, max: THREE.Vector3 } {
+    const box = new THREE.Box3().setFromObject(this.droppableArea)
+    return { min: box.min, max: box.max }
   }
 
   /**
@@ -68,57 +62,41 @@ export default class BoardView {
   /**
    * Animate a minion being played onto the board
    * @param minion Minion to animate
-   * @param targetX Target x position
    */
   private animateMinionPlayEntry(minion: MinionBoardView): void {
-    // Scale Animation
-    const scaleAnimation = new BABYLON.Animation(
-      `${minion.mesh.name}_playScaleAnimation`,
-      'scaling',
-      20,
-      BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
-      BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-    )
-
     minion.mesh.position.x =
       ((this.minions.length - 1) * this.CARD_SPACING) / -2 +
       this.placeholderIndex * this.CARD_SPACING
     minion.mesh.position.y = this.BOARD_Y_POSITION - 0.4
-    minion.mesh.scaling.setAll(0.35)
+    minion.mesh.scale.set(0.35, 0.35, 1)
 
-    const keyFrames = {
-      scale: [
-        { frame: 0, value: new BABYLON.Vector3(0.35, 0.35, 1) },
-        { frame: 3, value: new BABYLON.Vector3(0.25, 0.25, 1) },
-      ],
-      positionY: [
-        { frame: 0, value: minion.mesh.position.y },
-        { frame: 3, value: this.BOARD_Y_POSITION },
-      ],
+    // Animate using simple lerp in render loop
+    const startScale = 0.35
+    const endScale = 0.25
+    const startY = minion.mesh.position.y
+    const endY = this.BOARD_Y_POSITION
+    const duration = 150 // ms
+    const startTime = Date.now()
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      
+      // Ease out function
+      const easeProgress = 1 - Math.pow(1 - progress, 3)
+      
+      const currentScale = startScale + (endScale - startScale) * easeProgress
+      const currentY = startY + (endY - startY) * easeProgress
+      
+      minion.mesh.scale.set(currentScale, currentScale, 1)
+      minion.mesh.position.y = currentY
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      }
     }
-
-    scaleAnimation.setKeys(keyFrames.scale)
-
-    const positionYAnimation = new BABYLON.Animation(
-      `${minion.mesh.name}_playPositionYAnimation`,
-      'position.y',
-      20,
-      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-      BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-    )
-    positionYAnimation.setKeys(keyFrames.positionY)
-
-    // Stop any existing animations
-    this.scene.stopAnimation(minion.mesh)
-
-    // Run the animations
-    this.scene.beginDirectAnimation(
-      minion.mesh,
-      [scaleAnimation, positionYAnimation],
-      0,
-      3,
-      false
-    )
+    
+    animate()
   }
 
   /**
@@ -198,7 +176,7 @@ export default class BoardView {
     const startX = -totalWidth / 2
 
     this.minions.forEach((minion, index) => {
-      minion.mesh.parent = this.mesh
+      this.mesh.add(minion.mesh)
       minion.mesh.position.y = this.BOARD_Y_POSITION
       minion.mesh.position.z = Layer.MINION
       minion.transformToBoard()
@@ -225,36 +203,26 @@ export default class BoardView {
     minion: MinionBoardView,
     targetX: number
   ): void {
-    const positionAnimation = new BABYLON.Animation(
-      `${minion.mesh.name}_positionAnimation`,
-      'position.x',
-      20,
-      BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-      BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-    )
+    const startX = minion.mesh.position.x
+    const duration = 250 // ms
+    const startTime = Date.now()
 
-    const keyFrames = []
-    keyFrames.push({ frame: 0, value: minion.mesh.position.x })
-    keyFrames.push({ frame: 5, value: targetX })
-
-    positionAnimation.setKeys(keyFrames)
-
-    // Use smooth easing
-    const easingFunction = new BABYLON.CircleEase()
-    easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEOUT)
-    positionAnimation.setEasingFunction(easingFunction)
-
-    // Stop any existing animations
-    this.scene.stopAnimation(minion.mesh)
-
-    // Run the animation
-    this.scene.beginDirectAnimation(
-      minion.mesh,
-      [positionAnimation],
-      0,
-      5,
-      false
-    )
+    const animate = () => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      
+      // Ease out function
+      const easeProgress = 1 - Math.pow(1 - progress, 3)
+      
+      const currentX = startX + (targetX - startX) * easeProgress
+      minion.mesh.position.x = currentX
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      }
+    }
+    
+    animate()
   }
 
   /**

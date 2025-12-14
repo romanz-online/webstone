@@ -1,19 +1,21 @@
-import * as BABYLON from 'babylonjs'
+import * as THREE from 'three'
 import MinionCardView from './MinionCardView.ts'
 
 export default class HandView {
-  public mesh: BABYLON.TransformNode
+  public mesh: THREE.Object3D
 
-  private scene: BABYLON.Scene
+  private scene: THREE.Scene
   private cards: MinionCardView[] = []
   private readonly CARD_SPACING = 1
   private readonly HAND_Y_POSITION = -3.7
   private readonly HAND_Z_POSITION = -1
 
-  constructor(scene: BABYLON.Scene) {
+  constructor(scene: THREE.Scene) {
     this.scene = scene
 
-    this.mesh = new BABYLON.TransformNode('hand', this.scene)
+    this.mesh = new THREE.Object3D()
+    this.mesh.name = 'hand'
+    scene.add(this.mesh)
   }
 
   /**
@@ -57,13 +59,13 @@ export default class HandView {
     const startX = -totalWidth / 2
 
     this.cards.forEach((card, index) => {
-      card.mesh.parent = this.mesh
+      this.mesh.add(card.mesh)
       card.transformToHand()
 
       const xPosition = startX + index * this.CARD_SPACING
 
       card.mesh.position.set(xPosition, this.HAND_Y_POSITION, -index)
-      card.originalPosition = card.mesh.position
+      card.originalPosition = card.mesh.position.clone()
     })
   }
 

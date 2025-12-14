@@ -1,4 +1,4 @@
-import * as BABYLON from 'babylonjs'
+import * as THREE from 'three'
 import MinionModel from './MinionModel.ts'
 
 enum Layer {
@@ -13,683 +13,270 @@ export default class MinionCardView {
   public static draggedCard: MinionCardView | null = null
 
   public minion: MinionModel
-  public mesh: BABYLON.TransformNode
-  public frame: BABYLON.Mesh
-  public originalPosition: BABYLON.Vector3
-  public dragOffset: BABYLON.Vector3 | null = null
+  public mesh: THREE.Object3D
+  public frame: THREE.Mesh
+  public originalPosition: THREE.Vector3
+  public dragOffset: THREE.Vector3 | null = null
   // public isEnlarged: boolean = false
 
-  private scene: BABYLON.Scene
-  private manaText: BABYLON.DynamicTexture
-  private attackText: BABYLON.DynamicTexture
-  private healthText: BABYLON.DynamicTexture
+  private scene: THREE.Scene
+  private manaCanvas: HTMLCanvasElement
+  private attackCanvas: HTMLCanvasElement
+  private healthCanvas: HTMLCanvasElement
+  private manaTexture: THREE.CanvasTexture
+  private attackTexture: THREE.CanvasTexture
+  private healthTexture: THREE.CanvasTexture
 
   constructor(
-    scene: BABYLON.Scene,
+    scene: THREE.Scene,
     minion: MinionModel,
-    position?: BABYLON.Vector3
+    position?: THREE.Vector3
   ) {
     this.scene = scene
     this.minion = minion
 
-    this.mesh = new BABYLON.TransformNode('minionCard', this.scene)
+    this.mesh = new THREE.Object3D()
+    this.mesh.name = 'minionCard'
+    scene.add(this.mesh)
+    
     if (position) {
-      this.mesh.position = position
+      this.mesh.position.copy(position)
     }
 
-    this.originalPosition = this.mesh.position
+    this.originalPosition = this.mesh.position.clone()
 
     this.createCardMesh()
   }
 
   private createCardMesh(): void {
-    const portraitTexture = new BABYLON.Texture(
-      './media/images/cardimages/cairne_bloodhoof.jpg',
-      this.scene,
-      undefined,
-      undefined,
-      undefined,
-      () => {
-        portraitTexture.uOffset = 0.2
-        portraitTexture.vOffset = 0.1
-        const ratio =
-          portraitTexture.getSize().height / portraitTexture.getSize().width
+    const loader = new THREE.TextureLoader()
+    
+    // Portrait
+    loader.load('./media/images/cardimages/cairne_bloodhoof.jpg', (texture) => {
+      texture.offset.set(0.2, 0.1)
+      
+      const portraitGeometry = new THREE.PlaneGeometry(6, 6 * 0.8) // Approximate ratio
+      const portraitMaterial = new THREE.MeshLambertMaterial({
+        map: texture,
+        transparent: true,
+        alphaTest: 0.1
+      })
+      
+      const portrait = new THREE.Mesh(portraitGeometry, portraitMaterial)
+      portrait.name = 'portrait'
+      portrait.position.set(0, 1.15, Layer.PORTRAIT)
+      this.mesh.add(portrait)
+    }, undefined, (error) => {
+      console.log('Error loading portrait texture:', error)
+    })
 
-        const portrait = BABYLON.MeshBuilder.CreatePlane(
-          'portrait',
-          { width: 6, height: 6 * ratio },
-          this.scene
-        )
-        portrait.parent = this.mesh
-        portrait.position.y = 1.15
-        portrait.position.z = Layer.PORTRAIT
-
-        const material = new BABYLON.StandardMaterial(
-          'portraitMaterial',
-          this.scene
-        )
-        material.diffuseTexture = portraitTexture
-        material.specularColor = new BABYLON.Color3(0, 0, 0)
-        material.useAlphaFromDiffuseTexture = true
-        material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND
-        material.opacityTexture = this.createOvalMaskTexture()
-
-        portrait.material = material
-      },
-      (message) => {
-        console.log('Error loading texture:', message)
-      }
-    )
-
-    const frameTexture = new BABYLON.Texture(
-      './media/images/card_inhand_minion_priest_frame.png',
-      this.scene,
-      undefined,
-      undefined,
-      undefined,
-      () => {
-        frameTexture.hasAlpha = true
-
-        const material = new BABYLON.StandardMaterial(
-          'frameMaterial',
-          this.scene
-        )
-        material.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND
-        material.specularColor = new BABYLON.Color3(0, 0, 0)
-        material.diffuseColor = new BABYLON.Color3(1, 1, 1)
-        material.useAlphaFromDiffuseTexture = true
-        material.diffuseTexture = frameTexture
-        material.backFaceCulling = false
-
-        const ratio =
-          frameTexture.getSize().height / frameTexture.getSize().width
-        this.frame = BABYLON.MeshBuilder.CreatePlane(
-          'frame',
-          { width: 4, height: 4 * ratio },
-          this.scene
-        )
-        this.frame.parent = this.mesh
-        this.frame.position.z = Layer.FRAME
-        this.frame.material = material
-        // this.frame.material.alpha = 0.1
-
-        const clickableAreaMesh = BABYLON.MeshBuilder.CreatePlane(
-          'clickableArea',
-          {
-            width: this.frame.getBoundingInfo().boundingBox.extendSize.x * 2,
-            height: this.frame.getBoundingInfo().boundingBox.extendSize.y * 2,
-          },
-          this.scene
-        )
-        clickableAreaMesh.parent = this.mesh
-        clickableAreaMesh.position.z = Layer.CLICKABLE_AREA
-        clickableAreaMesh.metadata = {
-          owner: this,
-        }
-
-        const transparentMaterial = new BABYLON.StandardMaterial(
-          'transparentMaterial',
-          this.scene
-        )
-        transparentMaterial.alpha = 0
-        clickableAreaMesh.material = transparentMaterial
-
-        this.createOverlayElements()
-      },
-      (message) => {
-        console.log('Error loading texture:', message)
-      }
-    )
+    // Frame
+    loader.load('./media/images/card_inhand_minion_priest_frame.png', (texture) => {
+      const frameMaterial = new THREE.MeshLambertMaterial({
+        map: texture,
+        transparent: true,
+        alphaTest: 0.1,
+        side: THREE.DoubleSide
+      })
+      
+      const frameGeometry = new THREE.PlaneGeometry(4, 4 * 1.5) // Approximate ratio
+      this.frame = new THREE.Mesh(frameGeometry, frameMaterial)
+      this.frame.name = 'frame'
+      this.frame.position.set(0, 0, Layer.FRAME)
+      this.mesh.add(this.frame)
+      
+      // Clickable area
+      const clickableGeometry = new THREE.PlaneGeometry(4, 6) // Slightly larger
+      const clickableMaterial = new THREE.MeshBasicMaterial({
+        transparent: true,
+        opacity: 0
+      })
+      
+      const clickableArea = new THREE.Mesh(clickableGeometry, clickableMaterial)
+      clickableArea.name = 'clickableArea'
+      clickableArea.position.set(0, 0, Layer.CLICKABLE_AREA)
+      clickableArea.userData = { owner: this }
+      this.mesh.add(clickableArea)
+      
+      this.createOverlayElements()
+    }, undefined, (error) => {
+      console.log('Error loading frame texture:', error)
+    })
   }
 
-  private createOvalMaskTexture(): BABYLON.DynamicTexture {
-    const size = 512
-    const maskTexture = new BABYLON.DynamicTexture(
-      'ovalMask',
-      { width: size, height: size },
-      this.scene,
-      true
-    )
-
-    const context = maskTexture.getContext()
-
-    context.clearRect(0, 0, size, size)
-    context.fillStyle = 'rgba(0,0,0,0)'
-    context.fillRect(0, 0, size, size)
-
-    context.save()
-
-    context.translate(size / 2, size / 2)
-    context.scale(1, 1.7)
-
-    context.beginPath()
-    context.arc(0, 0, size * 0.225, 0, 2 * Math.PI)
-    context.closePath()
-    context.clip()
-
-    const gradient = context.createRadialGradient(0, 0, size * 0.9, 0, 0, size)
-    gradient.addColorStop(0, 'rgba(255,255,255,1)')
-    gradient.addColorStop(1, 'rgba(255,255,255,0)')
-
-    context.fillStyle = gradient
-    context.fill()
-    context.restore()
-
-    maskTexture.update()
-    return maskTexture
+  private createCanvasTexture(width: number = 256, height: number = 256): { canvas: HTMLCanvasElement, texture: THREE.CanvasTexture } {
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    
+    const texture = new THREE.CanvasTexture(canvas)
+    texture.needsUpdate = true
+    
+    return { canvas, texture }
   }
 
   private async createOverlayElements(): Promise<void> {
-    const statPlaneMaterial = new BABYLON.StandardMaterial(
-      'statPlaneMaterial',
-      this.scene
-    )
-    statPlaneMaterial.transparencyMode = BABYLON.Material.MATERIAL_ALPHABLEND
-    statPlaneMaterial.alpha = 0
-    statPlaneMaterial.specularColor = new BABYLON.Color3(0, 0, 0)
-    statPlaneMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0)
-
-    const size = this.frame.getBoundingInfo().boundingBox.extendSize,
-      sizeX = size.x,
-      sizeY = size.y
-    const statPlane = BABYLON.MeshBuilder.CreatePlane(
-      'statPlane',
-      {
-        width: sizeX * 2,
-        height: sizeY * 2,
-      },
-      this.scene
-    )
-    statPlane.parent = this.mesh
-    statPlane.position = this.frame.position.clone()
-    statPlane.position.z = Layer.OVERLAY_ICONS
-
-    statPlane.material = statPlaneMaterial
-
-    // Mana
-    try {
-      const mesh = await this.createOverlayIcon(
-        './media/images/mana.png',
-        statPlane,
-        new BABYLON.Vector3(-sizeX + 0.35, sizeY - 0.7, Layer.OVERLAY_ICONS)
-      )
-      this.setupMana(mesh)
-    } catch (error) {
-      console.error('Failed to create mana icon:', error)
-    }
-
-    // Attack
-    try {
-      const mesh = await this.createOverlayIcon(
-        './media/images/attack.png',
-        statPlane,
-        new BABYLON.Vector3(-sizeX + 0.3, -sizeY + 0.4, Layer.OVERLAY_ICONS)
-      )
-      this.setupAttack(mesh)
-    } catch (error) {
-      console.error('Failed to create attack icon:', error)
-    }
-
-    // Health
-    try {
-      const mesh = await this.createOverlayIcon(
-        './media/images/health.png',
-        statPlane,
-        new BABYLON.Vector3(sizeX - 0.3, -sizeY + 0.4, Layer.OVERLAY_ICONS)
-      )
-      this.setupHealth(mesh)
-    } catch (error) {
-      console.error('Failed to create health icon:', error)
-    }
-
-    // Name Banner
-    try {
-      const mesh = await this.createNameBannerImage(
-        './media/images/name-banner-minion.png',
-        statPlane,
-        new BABYLON.Vector3(0, -0.3, Layer.OVERLAY_ICONS)
-      )
-      this.setupNameBanner(mesh)
-    } catch (error) {
-      console.error('Failed to create name banner:', error)
-    }
+    // Simplified overlay system for Three.js
+    const sizeX = 2
+    const sizeY = 3
+    
+    // Create text canvases
+    const manaResult = this.createCanvasTexture()
+    this.manaCanvas = manaResult.canvas
+    this.manaTexture = manaResult.texture
+    
+    const attackResult = this.createCanvasTexture()
+    this.attackCanvas = attackResult.canvas
+    this.attackTexture = attackResult.texture
+    
+    const healthResult = this.createCanvasTexture()
+    this.healthCanvas = healthResult.canvas
+    this.healthTexture = healthResult.texture
+    
+    // Create simple stat displays
+    this.setupMana()
+    this.setupAttack()
+    this.setupHealth()
   }
 
-  private createOverlayIcon(
-    texturePath: string,
-    parentMesh: BABYLON.Mesh,
-    position: BABYLON.Vector3
-  ): Promise<BABYLON.Mesh> {
-    return new Promise((resolve, reject) => {
-      const texture = new BABYLON.Texture(
-        texturePath,
-        this.scene,
-        undefined,
-        undefined,
-        undefined,
-        () => {
-          const material = new BABYLON.StandardMaterial(
-            'overlayMaterial',
-            this.scene
-          )
-          material.diffuseTexture = texture
-          material.diffuseTexture.hasAlpha = true
-          material.useAlphaFromDiffuseTexture = true
-          material.specularColor = new BABYLON.Color3(0, 0, 0)
-          material.backFaceCulling = false
-
-          const iconMesh = BABYLON.MeshBuilder.CreatePlane(
-            'overlayImage',
-            {},
-            this.scene
-          )
-          iconMesh.parent = parentMesh
-          iconMesh.position = position
-          iconMesh.material = material
-          resolve(iconMesh)
-        },
-        () => {
-          reject(new Error('Texture loading failed'))
-        }
-      )
+  private createTextPlane(texture: THREE.CanvasTexture, position: THREE.Vector3): THREE.Mesh {
+    const geometry = new THREE.PlaneGeometry(0.8, 0.8)
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true
     })
+    
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.copy(position)
+    this.mesh.add(mesh)
+    
+    return mesh
   }
 
-  private createNameBannerImage(
-    texturePath: string,
-    parentMesh: BABYLON.Mesh,
-    position: BABYLON.Vector3
-  ): Promise<BABYLON.Mesh> {
-    return new Promise((resolve, reject) => {
-      const texture = new BABYLON.Texture(
-        texturePath,
-        this.scene,
-        undefined,
-        undefined,
-        undefined,
-        () => {
-          const material = new BABYLON.StandardMaterial(
-            'overlayMaterial',
-            this.scene
-          )
-          material.diffuseTexture = texture
-          material.diffuseTexture.hasAlpha = true
-          material.useAlphaFromDiffuseTexture = true
-          material.specularColor = new BABYLON.Color3(0, 0, 0)
-          material.backFaceCulling = false
+  // Simplified - no name banner for now
 
-          const width =
-            this.frame.getBoundingInfo().boundingBox.extendSize.x * 2 - 0.3
-          const ratio = texture.getSize().height / texture.getSize().width
-          const iconMesh = BABYLON.MeshBuilder.CreatePlane(
-            'overlayImage',
-            { width: width, height: width * ratio },
-            this.scene
-          )
-          iconMesh.parent = parentMesh
-          iconMesh.position = position
-          iconMesh.material = material
-          resolve(iconMesh)
-        },
-        () => {
-          reject(new Error('Texture loading failed'))
-        }
-      )
-    })
-  }
-
-  private setupMana(parentMesh: BABYLON.Mesh): void {
-    this.manaText = new BABYLON.DynamicTexture(
-      'textTexture',
-      256,
-      this.scene,
-      true
-    )
+  private setupMana(): void {
     this.updateMana(4)
-
-    const textMaterial = new BABYLON.StandardMaterial(
-      'textMaterial',
-      this.scene
-    )
-    textMaterial.useAlphaFromDiffuseTexture = true
-    textMaterial.diffuseTexture = this.manaText
-    textMaterial.diffuseTexture.hasAlpha = true
-    textMaterial.backFaceCulling = false
-
-    const textPlane = BABYLON.MeshBuilder.CreatePlane(
-      'manaText',
-      {
-        width: 1,
-        height: 1,
-      },
-      this.scene
-    )
-    textPlane.parent = parentMesh
-    textPlane.material = textMaterial
-    textPlane.position.z = Layer.OVERLAY_TEXT
+    this.createTextPlane(this.manaTexture, new THREE.Vector3(-1.5, 2.5, Layer.OVERLAY_TEXT))
   }
 
-  private setupAttack(parentMesh: BABYLON.Mesh): void {
-    this.attackText = new BABYLON.DynamicTexture(
-      'textTexture',
-      256,
-      this.scene,
-      true
-    )
+  private setupAttack(): void {
     this.updateAttack(2)
-
-    const textMaterial = new BABYLON.StandardMaterial(
-      'textMaterial',
-      this.scene
-    )
-    textMaterial.useAlphaFromDiffuseTexture = true
-    textMaterial.diffuseTexture = this.attackText
-    textMaterial.diffuseTexture.hasAlpha = true
-    textMaterial.backFaceCulling = false
-
-    const textPlane = BABYLON.MeshBuilder.CreatePlane(
-      'attackText',
-      {
-        width: 1,
-        height: 1,
-      },
-      this.scene
-    )
-    textPlane.parent = parentMesh
-    textPlane.material = textMaterial
-    textPlane.position.z = Layer.OVERLAY_TEXT
+    this.createTextPlane(this.attackTexture, new THREE.Vector3(-1.5, -2.5, Layer.OVERLAY_TEXT))
   }
 
-  private setupHealth(parentMesh: BABYLON.Mesh): void {
-    this.healthText = new BABYLON.DynamicTexture(
-      'textTexture',
-      256,
-      this.scene,
-      true
-    )
+  private setupHealth(): void {
     this.updateHealth(5)
-
-    const textMaterial = new BABYLON.StandardMaterial(
-      'textMaterial',
-      this.scene
-    )
-    textMaterial.useAlphaFromDiffuseTexture = true
-    textMaterial.diffuseTexture = this.healthText
-    textMaterial.diffuseTexture.hasAlpha = true
-    textMaterial.backFaceCulling = false
-
-    const textPlane = BABYLON.MeshBuilder.CreatePlane(
-      'healthText',
-      {
-        width: 1,
-        height: 1,
-      },
-      this.scene
-    )
-    textPlane.parent = parentMesh
-    textPlane.material = textMaterial
-    textPlane.position.z = Layer.OVERLAY_TEXT
+    this.createTextPlane(this.healthTexture, new THREE.Vector3(1.5, -2.5, Layer.OVERLAY_TEXT))
   }
 
-  private setupNameBanner(parentMesh: BABYLON.Mesh): void {
-    const textureSize = parentMesh.material.getActiveTextures()[0].getSize()
-    const texture = new BABYLON.DynamicTexture(
-      'textTexture',
-      {
-        width: textureSize.width,
-        height: textureSize.height,
-      },
-      this.scene,
-      true
-    )
-
-    const text = 'Cairne Bloodhoof'
-    let fontSize = 200
-
-    do {
-      texture.clear()
-      texture.drawText(
-        text,
-        textureSize.width / 2 - textureSize.width * 0.42,
-        100,
-        `bold ${fontSize}px Belwe`,
-        'white',
-        null,
-        true,
-        true
-      )
-
-      texture.update()
-      const context = texture.getContext()
-      context.font = `bold ${fontSize}px Belwe`
-
-      if (context.measureText(text).width > textureSize.width * 0.75) {
-        fontSize -= 5
-      } else {
-        break
-      }
-    } while (fontSize > 20)
-
-    texture.clear()
-
-    const letterSpacingAdjustments = {
-      l: 0.2,
-      i: 0.3,
-      r: 0.1,
-      a: 0.2,
-      e: 0.1,
-    }
-
-    const cubicBezierVectors = BABYLON.Curve3.CreateCubicBezier(
-      BABYLON.Vector3.Zero(),
-      new BABYLON.Vector3(4.5, 0, 0),
-      new BABYLON.Vector3(12, 3.5, 0),
-      new BABYLON.Vector3(17, 0.5, 0),
-      50
-    )
-    const points = cubicBezierVectors.getPoints()
-    const spacing = Math.floor(points.length / text.length)
-    const context = texture.getContext()
-    context.font = `${fontSize} Belwe`
-
-    for (let i = 0; i < text.length; i++) {
-      const letter = text[i]
-      const pointIndex = i * spacing
-      const position = points[pointIndex]
-
-      const currentPoint = points[pointIndex]
-      const nextPoint = points[Math.min(pointIndex + 1, points.length - 1)]
-      const tangent = nextPoint.subtract(currentPoint).normalize()
-      const perpendicular = new BABYLON.Vector3(-tangent.y, tangent.x, 0)
-      const rotationAngle = Math.atan2(perpendicular.x, perpendicular.y)
-
-      context.save()
-      context.translate(
-        position.x * ((textureSize.width / text.length) * 0.8) + 60,
-        -position.y * 20 + 100 + (1 / (i + 1)) * 6
-      )
-
-      context.rotate(rotationAngle)
-
-      const adjustment = letterSpacingAdjustments[letter] || 0
-      context.translate(adjustment * fontSize, 0)
-
-      // black outline
-      // context.strokeStyle = 'black'
-      // context.lineWidth = 2
-      // context.strokeText(letter, 0, 0)
-
-      context.font = `bold ${fontSize}px Belwe`
-      context.fillStyle = 'white'
-      context.fillText(letter, 0, 0)
-
-      context.restore()
-    }
-
-    texture.update()
-
-    const textMaterial = new BABYLON.StandardMaterial(
-      'textMaterial',
-      this.scene
-    )
-    textMaterial.useAlphaFromDiffuseTexture = true
-    textMaterial.diffuseTexture = texture
-    textMaterial.diffuseTexture.hasAlpha = true
-    textMaterial.backFaceCulling = false
-
-    const textPlane = BABYLON.MeshBuilder.CreatePlane(
-      'nameBannerText',
-      {
-        width: parentMesh.getBoundingInfo().boundingBox.extendSize.x * 2,
-        height: parentMesh.getBoundingInfo().boundingBox.extendSize.y * 2,
-      },
-      this.scene
-    )
-    textPlane.parent = parentMesh
-    textPlane.material = textMaterial
-    textPlane.position.z = Layer.OVERLAY_TEXT
-  }
+  // Name banner removed for simplicity
 
   public setCardDepth(depth: number): void {
     this.mesh.position.z = depth
   }
 
   public transformToHand(): void {
-    this.mesh.scaling.set(0.3, 0.3, 1)
+    this.mesh.scale.set(0.3, 0.3, 1)
   }
 
-  public getBoundingInfo = (): BABYLON.BoundingInfo =>
-    this.frame.getBoundingInfo()
+  public getBoundingInfo(): { min: THREE.Vector3, max: THREE.Vector3 } {
+    const box = new THREE.Box3().setFromObject(this.frame)
+    return { min: box.min, max: box.max }
+  }
 
-  // private setupInteraction(): void {
-  //   // Add action manager for interactions
-  //   this.frame.actionManager = new BABYLON.ActionManager(this.scene)
-
-  //   // Hover in - enlarge card
-  //   this.frame.actionManager.registerAction(
-  //     new BABYLON.ExecuteCodeAction(
-  //       BABYLON.ActionManager.OnPointerOverTrigger,
-  //       () => {
-  //         if (!this.isEnlarged && !this.isReverting) {
-  //           this.enlarge()
-  //         }
-  //       }
-  //     )
-  //   )
-
-  //   // Hover out - revert card
-  //   this.frame.actionManager.registerAction(
-  //     new BABYLON.ExecuteCodeAction(
-  //       BABYLON.ActionManager.OnPointerOutTrigger,
-  //       () => {
-  //         if (this.isEnlarged && !this.isReverting) {
-  //           this.revert()
-  //         }
-  //       }
-  //     )
-  //   )
-  // }
-
-  // public enlarge(): void {
-  //   if (this.isDragging) return
-
-  //   this.isEnlarged = true
-
-  //   // Create animation to enlarge card
-  //   BABYLON.Animation.CreateAndStartAnimation(
-  //     'enlargeCard',
-  //     this.mesh,
-  //     'scaling',
-  //     30,
-  //     15,
-  //     this.mesh.scaling,
-  //     new BABYLON.Vector3(0.6, 0.6, 0.6),
-  //     BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-  //   )
-
-  //   // Raise card position
-  //   BABYLON.Animation.CreateAndStartAnimation(
-  //     'raiseCard',
-  //     this.mesh,
-  //     'position.y',
-  //     30,
-  //     15,
-  //     this.mesh.position.y,
-  //     this.mesh.position.y + 0.5,
-  //     BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-  //   )
-  // }
 
   public revert(): void {
-    // Create animation to revert card size
-    // BABYLON.Animation.CreateAndStartAnimation(
-    //   'revertCardSize',
-    //   this.mesh,
-    //   'scaling',
-    //   30,
-    //   15,
-    //   this.mesh.scaling,
-    //   new BABYLON.Vector3(0.4, 0.4, 0.4),
-    //   BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
-    // )
-
-    // Create animation to revert card position
     setTimeout(() => {
-      BABYLON.Animation.CreateAndStartAnimation(
-        'revertCardPosition',
-        this.mesh,
-        'position',
-        20,
-        2,
-        this.mesh.position,
-        this.originalPosition,
-        BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
-        undefined,
-        () => {}
-      )
+      const startPos = this.mesh.position.clone()
+      const startTime = Date.now()
+      const duration = 100 // ms
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime
+        const progress = Math.min(elapsed / duration, 1)
+        
+        this.mesh.position.lerpVectors(startPos, this.originalPosition, progress)
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate)
+        }
+      }
+      
+      animate()
     }, 40)
   }
 
   public updateMana(newMana: number): void {
-    this.manaText.drawText(
-      newMana.toString(),
-      70,
-      185,
-      'bold 200px Belwe',
-      'white',
-      null,
-      true,
-      true
-    )
-    this.manaText.update()
+    if (!this.manaCanvas) return
+    
+    const ctx = this.manaCanvas.getContext('2d')
+    if (!ctx) return
+    
+    ctx.clearRect(0, 0, this.manaCanvas.width, this.manaCanvas.height)
+    ctx.font = 'bold 120px Arial'
+    ctx.fillStyle = 'white'
+    ctx.strokeStyle = 'black'
+    ctx.lineWidth = 4
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    
+    const text = newMana.toString()
+    const x = this.manaCanvas.width / 2
+    const y = this.manaCanvas.height / 2
+    
+    ctx.strokeText(text, x, y)
+    ctx.fillText(text, x, y)
+    
+    this.manaTexture.needsUpdate = true
   }
 
   public updateAttack(newAttack: number): void {
-    this.attackText.drawText(
-      newAttack.toString(),
-      96,
-      210,
-      'bold 200px Belwe',
-      'white',
-      null,
-      true,
-      true
-    )
-    this.attackText.update()
+    if (!this.attackCanvas) return
+    
+    const ctx = this.attackCanvas.getContext('2d')
+    if (!ctx) return
+    
+    ctx.clearRect(0, 0, this.attackCanvas.width, this.attackCanvas.height)
+    ctx.font = 'bold 120px Arial'
+    ctx.fillStyle = 'white'
+    ctx.strokeStyle = 'black'
+    ctx.lineWidth = 4
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    
+    const text = newAttack.toString()
+    const x = this.attackCanvas.width / 2
+    const y = this.attackCanvas.height / 2
+    
+    ctx.strokeText(text, x, y)
+    ctx.fillText(text, x, y)
+    
+    this.attackTexture.needsUpdate = true
   }
 
   public updateHealth(newHealth: number): void {
-    this.healthText.drawText(
-      newHealth.toString(),
-      75,
-      215,
-      'bold 200px Belwe',
-      'white',
-      null,
-      true,
-      true
-    )
-    this.healthText.update()
+    if (!this.healthCanvas) return
+    
+    const ctx = this.healthCanvas.getContext('2d')
+    if (!ctx) return
+    
+    ctx.clearRect(0, 0, this.healthCanvas.width, this.healthCanvas.height)
+    ctx.font = 'bold 120px Arial'
+    ctx.fillStyle = 'white'
+    ctx.strokeStyle = 'black'
+    ctx.lineWidth = 4
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    
+    const text = newHealth.toString()
+    const x = this.healthCanvas.width / 2
+    const y = this.healthCanvas.height / 2
+    
+    ctx.strokeText(text, x, y)
+    ctx.fillText(text, x, y)
+    
+    this.healthTexture.needsUpdate = true
   }
 
   public dispose(): void {
@@ -697,39 +284,32 @@ export default class MinionCardView {
       MinionCardView.draggedCard = null
     }
 
-    if (this.manaText) {
-      this.manaText.dispose()
+    if (this.manaTexture) {
+      this.manaTexture.dispose()
     }
-    if (this.attackText) {
-      this.attackText.dispose()
+    if (this.attackTexture) {
+      this.attackTexture.dispose()
     }
-    if (this.healthText) {
-      this.healthText.dispose()
+    if (this.healthTexture) {
+      this.healthTexture.dispose()
     }
 
-    const disposeChildMeshes = (node: BABYLON.TransformNode) => {
-      const children = node.getChildMeshes()
-      children.forEach((child) => {
-        if (child.material) {
-          child.material.dispose()
+    // Dispose Three.js objects
+    this.mesh.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        if (object.material) {
+          if (Array.isArray(object.material)) {
+            object.material.forEach(mat => mat.dispose())
+          } else {
+            object.material.dispose()
+          }
         }
-
-        if (child.getChildMeshes().length > 0) {
-          disposeChildMeshes(child)
+        if (object.geometry) {
+          object.geometry.dispose()
         }
+      }
+    })
 
-        child.dispose()
-      })
-    }
-
-    disposeChildMeshes(this.mesh)
-
-    this.mesh.dispose()
-
-    this.mesh = null
-    this.frame = null
-    this.manaText = null
-    this.attackText = null
-    this.healthText = null
+    this.scene.remove(this.mesh)
   }
 }

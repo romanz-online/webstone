@@ -1,40 +1,39 @@
-import * as BABYLON from 'babylonjs'
+import * as THREE from 'three'
 import MinionBoardView from './MinionBoardView.ts'
 
 export default class TargetingArrowSystem {
   public isActive: boolean = false
   public sourceMinion: MinionBoardView = null
 
-  private scene: BABYLON.Scene
-  private arrowMesh: BABYLON.Mesh = null
-  private arrowMaterial: BABYLON.StandardMaterial
-  private arrowColor: BABYLON.Color3 = new BABYLON.Color3(1, 0.1, 0.1)
+  private scene: THREE.Scene
+  private arrowMesh: THREE.Mesh = null
+  private arrowMaterial: THREE.MeshBasicMaterial
+  private arrowColor: THREE.Color = new THREE.Color(1, 0.1, 0.1)
   private dashLength: number = 0.6
   private arrowHeadSize: number = 0.5
-  private cursorMesh: BABYLON.TransformNode = null
-  private arrowParticles: BABYLON.Mesh[] = []
+  private cursorMesh: THREE.Object3D = null
+  private arrowParticles: THREE.Mesh[] = []
   private animationTime: number = 0
   private arcHeight: number = 0.35
 
-  constructor(scene: BABYLON.Scene) {
+  constructor(scene: THREE.Scene) {
     this.scene = scene
 
-    this.arrowMaterial = new BABYLON.StandardMaterial(
-      'arrowMaterial',
-      this.scene
-    )
-    this.arrowMaterial.diffuseColor = this.arrowColor
-    this.arrowMaterial.emissiveColor = this.arrowColor
-    this.arrowMaterial.disableLighting = false
-    this.arrowMaterial.specularColor = new BABYLON.Color3(1, 0, 0)
+    this.arrowMaterial = new THREE.MeshBasicMaterial({
+      color: this.arrowColor,
+      transparent: true,
+      opacity: 0.8
+    })
 
-    this.scene.registerBeforeRender(() => {
+    // Use animation loop instead of registerBeforeRender
+    const animate = () => {
       if (this.isActive) {
-        this.animationTime +=
-          (this.scene.getEngine().getDeltaTime() / 1000) * 1.5
+        this.animationTime += 0.025 // Fixed delta time for consistency
         this.updateArrowAnimation()
       }
-    })
+      requestAnimationFrame(animate)
+    }
+    animate()
   }
 
   public startTargeting(sourceMinion: MinionBoardView): void {
@@ -44,10 +43,10 @@ export default class TargetingArrowSystem {
     this.createArrowDashes()
   }
 
-  public updateTargetingPosition(pointerPosition: BABYLON.Vector3): void {
+  public updateTargetingPosition(pointerPosition: THREE.Vector3): void {
     if (!this.isActive || !this.sourceMinion) return
 
-    this.cursorMesh.position = pointerPosition.clone()
+    this.cursorMesh.position.copy(pointerPosition)
     this.updateArrowMeshes(
       this.sourceMinion.mesh.position.clone(),
       pointerPosition
@@ -61,30 +60,15 @@ export default class TargetingArrowSystem {
   }
 
   private createCursorMesh(): void {
-    this.cursorMesh = new BABYLON.TransformNode('cursorMesh', this.scene)
+    this.cursorMesh = new THREE.Object3D()
+    this.cursorMesh.name = 'cursorMesh'
+    this.scene.add(this.cursorMesh)
 
-    const ring = BABYLON.MeshBuilder.CreateTorus(
-      'targetingRing',
-      {
-        diameter: 0.75,
-        thickness: 0.09,
-        tessellation: 32,
-      },
-      this.scene
-    )
+    const ringGeometry = new THREE.TorusGeometry(0.375, 0.045, 8, 32)
+    const ring = new THREE.Mesh(ringGeometry, this.arrowMaterial.clone())
     ring.rotation.x = Math.PI / 2
-    ring.material = this.arrowMaterial
-    ring.parent = this.cursorMesh
-
-    // const arrowheadVertexData = new BABYLON.VertexData()
-    // arrowheadVertexData.positions = [1, 0, 0, 0.5, 0.4, 0, 0.5, -0.4, 0]
-    // arrowheadVertexData.indices = [0, 1, 2]
-
-    // const arrowhead = new BABYLON.Mesh('targetingArrow', this.scene)
-    // arrowheadVertexData.applyToMesh(arrowhead)
-
-    // arrowhead.material = this.arrowMaterial
-    // arrowhead.parent = this.cursorMesh
+    ring.name = 'targetingRing'
+    this.cursorMesh.add(ring)
   }
 
   private createArrowDashes(): void {
@@ -92,36 +76,31 @@ export default class TargetingArrowSystem {
 
     const totalDashes = 20
     for (let i = 0; i < totalDashes; i++) {
-      const dash = BABYLON.MeshBuilder.CreateBox(
-        `arrowDash_${i}`,
-        {
-          width: 0.4,
-          height: 0.15,
-          depth: this.dashLength,
-        },
-        this.scene
-      )
-
-      dash.material = this.arrowMaterial.clone(`dashMaterial_${i}`)
-      dash.receiveShadows = true
-      dash.isVisible = false
+      const dashGeometry = new THREE.BoxGeometry(0.4, 0.15, this.dashLength)
+      const dash = new THREE.Mesh(dashGeometry, this.arrowMaterial.clone())
+      
+      dash.name = `arrowDash_${i}`
+      dash.visible = false
+      dash.castShadow = true
+      this.scene.add(dash)
       this.arrowParticles.push(dash)
     }
   }
 
   private getArcData(
-    start: BABYLON.Vector3,
-    end: BABYLON.Vector3,
+    start: THREE.Vector3,
+    end: THREE.Vector3,
     t: number
   ): any {
-    const direction = end.subtract(start)
+    const direction = end.clone().sub(start)
     const distance = direction.length()
 
     const a = -4 * this.arcHeight * distance
     const b = 4 * this.arcHeight * distance
     const c = 0
     const height = a * t * t + b * t + c
-    const currentPos = new BABYLON.Vector3(
+    
+    const currentPos = new THREE.Vector3(
       start.x + direction.x * t,
       start.y + direction.y * t,
       start.z - height // Subtracting height because higher arc is negative z
@@ -134,26 +113,22 @@ export default class TargetingArrowSystem {
     const prevHeight = a * prevT * prevT + b * prevT + c
     const nextHeight = a * nextT * nextT + b * nextT + c
 
-    const prevPos = new BABYLON.Vector3(
+    const prevPos = new THREE.Vector3(
       start.x + direction.x * prevT,
       start.y + direction.y * prevT,
       start.z - prevHeight
     )
 
-    const nextPos = new BABYLON.Vector3(
+    const nextPos = new THREE.Vector3(
       start.x + direction.x * nextT,
       start.y + direction.y * nextT,
       start.z - nextHeight
     )
 
-    const forward = nextPos.subtract(prevPos).normalize()
-
-    const up = new BABYLON.Vector3(0, 0, -1)
-
-    const right = BABYLON.Vector3.Cross(forward, up).normalize()
-
-    // Recalculate up to ensure orthogonality
-    const trueUp = BABYLON.Vector3.Cross(right, forward).normalize()
+    const forward = nextPos.clone().sub(prevPos).normalize()
+    const up = new THREE.Vector3(0, 0, -1)
+    const right = new THREE.Vector3().crossVectors(forward, up).normalize()
+    const trueUp = new THREE.Vector3().crossVectors(right, forward).normalize()
 
     return {
       position: currentPos,
@@ -169,14 +144,14 @@ export default class TargetingArrowSystem {
   }
 
   private updateArrowMeshes(
-    sourcePosition: BABYLON.Vector3,
-    targetPosition: BABYLON.Vector3
+    sourcePosition: THREE.Vector3,
+    targetPosition: THREE.Vector3
   ): void {
-    const dx = targetPosition.x - sourcePosition.x,
-      dy = targetPosition.y - sourcePosition.y,
-      distance = Math.sqrt(dx * dx + dy * dy) - 1,
-      dashPeriod = this.dashLength + 0.2 /* gap */,
-      numDashes = Math.floor(distance / dashPeriod)
+    const dx = targetPosition.x - sourcePosition.x
+    const dy = targetPosition.y - sourcePosition.y
+    const distance = Math.sqrt(dx * dx + dy * dy) - 1
+    const dashPeriod = this.dashLength + 0.2 /* gap */
+    const numDashes = Math.floor(distance / dashPeriod)
 
     const horizontalAngle = Math.atan2(dy, dx)
     const rotationFactor = 0.05 * distance
@@ -194,52 +169,28 @@ export default class TargetingArrowSystem {
           baseOffset / distance
         )
 
-        dash.position = arcData.position.clone()
+        dash.position.copy(arcData.position)
 
-        if (!dash.rotationQuaternion) {
-          dash.rotationQuaternion = new BABYLON.Quaternion()
-        }
-
-        const lookAtMatrix = BABYLON.Matrix.Identity()
-
-        // Z axis (forward in BJS standard orientation) = our forward direction
+        // Create rotation matrix for dash orientation
+        const matrix = new THREE.Matrix4()
         const zAxis = arcData.forward
-
-        // Y axis (up in BJS standard orientation) = our up direction
-        const yAxis = arcData.up
-
-        const rotatedUpVector = new BABYLON.Vector3(
+        const rotatedUpVector = new THREE.Vector3(
           arcData.up.x +
             Math.sin(horizontalAngle) * rotationFactor * rotationDirection,
           arcData.up.y -
             Math.cos(horizontalAngle) * rotationFactor * rotationDirection,
           arcData.up.z
         ).normalize()
+        
+        const xAxis = new THREE.Vector3().crossVectors(rotatedUpVector, zAxis).normalize()
+        const correctedYAxis = new THREE.Vector3().crossVectors(zAxis, xAxis).normalize()
 
-        // X axis = cross product of Y and Z for orthogonality
-        const xAxis = BABYLON.Vector3.Cross(rotatedUpVector, zAxis).normalize()
+        matrix.makeBasis(xAxis, correctedYAxis, zAxis)
+        dash.setRotationFromMatrix(matrix)
 
-        // Recalculate Y to ensure perfect orthogonality
-        const correctedYAxis = BABYLON.Vector3.Cross(zAxis, xAxis).normalize()
-
-        // Set matrix values directly
-        lookAtMatrix.setRowFromFloats(0, xAxis.x, xAxis.y, xAxis.z, 0)
-        lookAtMatrix.setRowFromFloats(
-          1,
-          correctedYAxis.x,
-          correctedYAxis.y,
-          correctedYAxis.z,
-          0
-        )
-        lookAtMatrix.setRowFromFloats(2, zAxis.x, zAxis.y, zAxis.z, 0)
-
-        // Extract rotation quaternion from the matrix
-        dash.rotationQuaternion =
-          BABYLON.Quaternion.FromRotationMatrix(lookAtMatrix)
-
-        dash.isVisible = true
+        dash.visible = true
       } else {
-        dash.isVisible = false
+        dash.visible = false
       }
     }
   }
@@ -255,13 +206,38 @@ export default class TargetingArrowSystem {
 
   public disposeMeshes(): void {
     if (this.cursorMesh) {
-      this.cursorMesh.getChildMeshes().forEach((mesh) => mesh.dispose())
-      this.cursorMesh.dispose()
+      this.cursorMesh.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              object.material.forEach(mat => mat.dispose())
+            } else {
+              object.material.dispose()
+            }
+          }
+          if (object.geometry) {
+            object.geometry.dispose()
+          }
+        }
+      })
+      this.scene.remove(this.cursorMesh)
       this.cursorMesh = null
     }
 
     this.arrowParticles.forEach((dash) => {
-      if (dash) dash.dispose()
+      if (dash) {
+        if (dash.material) {
+          if (Array.isArray(dash.material)) {
+            dash.material.forEach(mat => mat.dispose())
+          } else {
+            dash.material.dispose()
+          }
+        }
+        if (dash.geometry) {
+          dash.geometry.dispose()
+        }
+        this.scene.remove(dash)
+      }
     })
     this.arrowParticles = []
   }
