@@ -13,6 +13,16 @@ enum Layer {
   HAND = 0.2,
 }
 
+// Logical game dimensions (16:9 ratio)
+const GAME_WIDTH = 16
+const GAME_HEIGHT = 9
+
+// Standard object sizes in logical units
+export const CARD_WIDTH = 1.2
+export const CARD_HEIGHT = 1.8
+export const MINION_BOARD_WIDTH = 1.0
+export const MINION_BOARD_HEIGHT = 1.2
+
 class GameRenderer {
   private canvas: HTMLCanvasElement
   private renderer: THREE.WebGLRenderer
@@ -82,43 +92,25 @@ class GameRenderer {
       new MinionBoardView(this.scene, new MinionModel({}))
     )
 
-    // Debug: Scale board minions for pixel coordinate system
-    // this.playerBoard.mesh.children.forEach((child) => {
-    //   if (child.name !== 'clickableArea') {
-    //     child.scale.set(30, 30, 1)
-    //   }
-    // })
-
-    // Debug Test 4: Force first hand card to center screen for visibility test
-    setTimeout(() => {
-      if (this.hand.mesh.children.length > 0) {
-        const firstCard = this.hand.mesh.children[0]
-        firstCard.position.set(1920, 1080, 2) // Center screen (corrected coordinates)
-        console.log('Debug: Positioned test card at center screen', firstCard)
-      }
-    }, 1000)
-    // this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
-    // this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
-
     this.startRenderLoop()
   }
 
   private setupCamera(): void {
     this.camera = new THREE.OrthographicCamera(
-      0, // left - start at 0
-      1920, // right - full width
-      1080, // top - full height
-      0, // bottom - start at 0
+      -GAME_WIDTH / 2, // -8
+      GAME_WIDTH / 2, // 8
+      GAME_HEIGHT / 2, // 4.5
+      -GAME_HEIGHT / 2, // -4.5
       0.1,
       100
     )
 
-    this.camera.position.set(960, 540, 50) // Center camera
-    this.camera.lookAt(960, 540, 0)
+    this.camera.position.set(0, 0, 50) // Center camera
+    this.camera.lookAt(0, 0, 0)
   }
 
   private updateViewport(): void {
-    const aspect = 1920 / 1080
+    const aspect = GAME_WIDTH / GAME_HEIGHT
     const windowAspect = window.innerWidth / window.innerHeight
 
     if (windowAspect > aspect) {
@@ -154,10 +146,7 @@ class GameRenderer {
     new THREE.TextureLoader().load(
       './media/images/maps/Uldaman_Board.png',
       (texture) => {
-        const geometry = new THREE.PlaneGeometry(
-          texture.image.width,
-          texture.image.height
-        )
+        const geometry = new THREE.PlaneGeometry(GAME_WIDTH, GAME_HEIGHT)
 
         const material = new THREE.MeshBasicMaterial({
           map: texture,
@@ -166,11 +155,7 @@ class GameRenderer {
         })
 
         this.gameplayArea = new THREE.Mesh(geometry, material)
-        this.gameplayArea.position.set(
-          texture.image.width,
-          texture.image.height,
-          0
-        )
+        this.gameplayArea.position.set(0, 0, 0)
         this.sceneRoot.add(this.gameplayArea)
       }
     )
@@ -191,8 +176,7 @@ class GameRenderer {
     this.raycaster.setFromCamera(this.mouse, this.camera)
     const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), z)
     const target = new THREE.Vector3()
-    const intersection = this.raycaster.ray.intersectPlane(plane, target)
-    return intersection
+    return this.raycaster.ray.intersectPlane(plane, target)
   }
 
   private setupEventListeners(): void {

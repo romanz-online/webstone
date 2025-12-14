@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import MinionModel from './MinionModel.ts'
+import { CARD_HEIGHT, CARD_WIDTH } from './main.ts'
 
 enum Layer {
   PORTRAIT = 0,
@@ -57,7 +58,10 @@ export default class MinionCardView {
       (texture) => {
         texture.offset.set(0.2, 0.1)
 
-        const portraitGeometry = new THREE.PlaneGeometry(240, 240 * 0.8) // Approximate ratio
+        const portraitGeometry = new THREE.PlaneGeometry(
+          CARD_WIDTH,
+          CARD_HEIGHT * 0.8
+        ) // Portrait area
         const portraitMaterial = new THREE.MeshBasicMaterial({
           map: texture,
           transparent: true,
@@ -86,7 +90,7 @@ export default class MinionCardView {
           side: THREE.DoubleSide,
         })
 
-        const frameGeometry = new THREE.PlaneGeometry(240, 240 * 1.5) // Approximate ratio
+        const frameGeometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT) // Full card size
         this.frame = new THREE.Mesh(frameGeometry, frameMaterial)
         this.frame.name = 'frame'
         this.frame.position.set(0, 0, Layer.FRAME)

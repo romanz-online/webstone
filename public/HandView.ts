@@ -6,8 +6,8 @@ export default class HandView {
 
   private scene: THREE.Scene
   private cards: MinionCardView[] = []
-  private readonly CARD_SPACING = 150
-  private readonly HAND_Y_POSITION = 300
+  private readonly CARD_SPACING = 1.5
+  private readonly HAND_Y_POSITION = -3.5
   private readonly HAND_Z_POSITION = -1
 
   constructor(scene: THREE.Scene) {
@@ -56,7 +56,7 @@ export default class HandView {
    */
   private arrangeCards(): void {
     const totalWidth = (this.cards.length - 1) * this.CARD_SPACING
-    const startX = 1920 - totalWidth / 2
+    const startX = -totalWidth / 2
 
     this.cards.forEach((card, index) => {
       this.mesh.add(card.mesh)
