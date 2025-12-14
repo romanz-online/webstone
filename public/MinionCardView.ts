@@ -7,6 +7,7 @@ export default class MinionCardView implements Draggable {
   // Logical unit constants
   private static readonly CANVAS_SCALE = 256 // Pixels per logical unit
   private static readonly TEXT_SIZE_RATIO = 0.15 // Text size as fraction of card width
+  private static readonly ICON_SIZE_RATIO = 0.25 // Text size as fraction of card width
   private static readonly TEXT_CANVAS_RATIO = 0.3 // Text canvas size as fraction of card width
 
   public minion: MinionModel
@@ -24,6 +25,9 @@ export default class MinionCardView implements Draggable {
   // For texture loading promises
   private portraitTexture: THREE.Texture | null = null
   private frameTexture: THREE.Texture | null = null
+  private manaIconTexture: THREE.Texture | null = null
+  private attackIconTexture: THREE.Texture | null = null
+  private healthIconTexture: THREE.Texture | null = null
   private texturesLoaded: Promise<void>
 
   constructor(
@@ -62,7 +66,6 @@ export default class MinionCardView implements Draggable {
   private async loadAllTextures(): Promise<void> {
     const loader = new THREE.TextureLoader()
 
-    // Load portrait texture
     const portraitPromise = new Promise<THREE.Texture>((resolve, reject) => {
       loader.load(
         './media/images/cardimages/cairne_bloodhoof.jpg',
@@ -76,7 +79,6 @@ export default class MinionCardView implements Draggable {
       )
     })
 
-    // Load frame texture
     const framePromise = new Promise<THREE.Texture>((resolve, reject) => {
       loader.load(
         './media/images/card_inhand_minion_priest_frame.png',
@@ -86,16 +88,32 @@ export default class MinionCardView implements Draggable {
       )
     })
 
-    // Wait for both textures to load
+    const manaIconPromise = new Promise<THREE.Texture>((resolve, reject) => {
+      loader.load('./media/images/mana.png', resolve, undefined, reject)
+    })
+
+    const attackIconPromise = new Promise<THREE.Texture>((resolve, reject) => {
+      loader.load('./media/images/attack.png', resolve, undefined, reject)
+    })
+
+    const healthIconPromise = new Promise<THREE.Texture>((resolve, reject) => {
+      loader.load('./media/images/health.png', resolve, undefined, reject)
+    })
+
     try {
-      const [portrait, frame] = await Promise.all([
+      const [portrait, frame, mana, attack, health] = await Promise.all([
         portraitPromise,
         framePromise,
+        manaIconPromise,
+        attackIconPromise,
+        healthIconPromise,
       ])
       this.portraitTexture = portrait
       this.frameTexture = frame
+      this.manaIconTexture = mana
+      this.attackIconTexture = attack
+      this.healthIconTexture = health
 
-      // Create text textures
       await this.createOverlayElements()
     } catch (error) {
       console.error('Error loading card textures:', error)
@@ -113,6 +131,12 @@ export default class MinionCardView implements Draggable {
 
     const ctx = compositeCanvas.getContext('2d')
     if (!ctx) return
+
+    const positions = {
+      topLeft: { x: canvasWidth * 0.05, y: canvasHeight * 0.05 },
+      bottomLeft: { x: canvasWidth * 0.05, y: canvasHeight * 0.85 },
+      bottomRight: { x: canvasWidth * 0.85, y: canvasHeight * 0.85 },
+    }
 
     // Calculate dimensions and positions for each element
     const portraitHeight = canvasHeight * 0.8 // Portrait takes 80% of card height
@@ -142,12 +166,58 @@ export default class MinionCardView implements Draggable {
       }
     }
 
-    const textDisplaySize =
-      CARD_WIDTH * MinionCardView.TEXT_SIZE_RATIO * MinionCardView.CANVAS_SCALE
-    const positions = {
-      topLeft: { x: canvasWidth * 0.05, y: canvasHeight * 0.05 },
-      bottomLeft: { x: canvasWidth * 0.05, y: canvasHeight * 0.85 },
-      bottomRight: { x: canvasWidth * 0.85, y: canvasHeight * 0.85 },
+    const size =
+      CARD_WIDTH * MinionCardView.ICON_SIZE_RATIO * MinionCardView.CANVAS_SCALE
+
+    if (this.manaIconTexture && this.manaIconTexture.image) {
+      const image = this.manaIconTexture.image
+      if (
+        image instanceof HTMLImageElement ||
+        image instanceof HTMLCanvasElement ||
+        image instanceof ImageBitmap
+      ) {
+        ctx.drawImage(
+          image,
+          positions.topLeft.x,
+          positions.topLeft.y,
+          size,
+          size
+        )
+      }
+    }
+
+    if (this.attackIconTexture && this.attackIconTexture.image) {
+      const image = this.attackIconTexture.image
+      if (
+        image instanceof HTMLImageElement ||
+        image instanceof HTMLCanvasElement ||
+        image instanceof ImageBitmap
+      ) {
+        ctx.drawImage(
+          image,
+          positions.bottomLeft.x,
+          positions.bottomLeft.y,
+          size,
+          size
+        )
+      }
+    }
+
+    if (this.healthIconTexture && this.healthIconTexture.image) {
+      const image = this.healthIconTexture.image
+      if (
+        image instanceof HTMLImageElement ||
+        image instanceof HTMLCanvasElement ||
+        image instanceof ImageBitmap
+      ) {
+        ctx.drawImage(
+          image,
+          positions.bottomRight.x,
+          positions.bottomRight.y,
+          size,
+          size
+        )
+      }
     }
 
     this.drawTextOverlay(
