@@ -40,6 +40,7 @@ class GameRenderer {
     })
 
     this.renderer.setSize(window.innerWidth, window.innerHeight)
+
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
@@ -52,6 +53,7 @@ class GameRenderer {
     this.mouse = new THREE.Vector2()
 
     this.setupCamera()
+    this.updateViewport()
     this.setupEventListeners()
   }
 
@@ -89,28 +91,39 @@ class GameRenderer {
   }
 
   private setupCamera(): void {
-    const aspect = window.innerWidth / window.innerHeight
-
     this.camera = new THREE.OrthographicCamera(
-      -this.ORTHO_SIZE * aspect, // left
-      this.ORTHO_SIZE * aspect, // right
-      this.ORTHO_SIZE, // top
-      -this.ORTHO_SIZE, // bottom
-      0.1, // near
-      1000 // far
+      0, // left - start at 0
+      1920, // right - full width
+      1080, // top - full height
+      0, // bottom - start at 0
+      0.1,
+      100
     )
 
-    this.camera.position.set(0, 0, 100)
-    this.camera.lookAt(0, 0, 0)
+    this.camera.position.set(960, 540, 50) // Center camera
+    this.camera.lookAt(960, 540, 0)
+  }
+
+  private updateViewport(): void {
+    const aspect = 1920 / 1080
+    const windowAspect = window.innerWidth / window.innerHeight
+    
+    if (windowAspect > aspect) {
+      // Letterbox (black bars on sides)
+      const width = window.innerHeight * aspect
+      const x = (window.innerWidth - width) / 2
+      this.renderer.setViewport(x, 0, width, window.innerHeight)
+    } else {
+      // Pillarbox (black bars on top/bottom)
+      const height = window.innerWidth / aspect
+      const y = (window.innerHeight - height) / 2
+      this.renderer.setViewport(0, y, window.innerWidth, height)
+    }
   }
 
   private createLighting(): void {
-    // Ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
-    this.scene.add(ambientLight)
-
     // Directional light with shadows
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.5)
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1)
     dirLight.position.set(-1, -1, 2)
     dirLight.castShadow = true
     dirLight.shadow.mapSize.width = 1024
@@ -124,22 +137,23 @@ class GameRenderer {
     new THREE.TextureLoader().load(
       './media/images/maps/Uldaman_Board.png',
       (texture) => {
-        const imageWidth = texture.image.width
-        const imageHeight = texture.image.height
-        const aspectRatio = imageWidth / imageHeight
+        const geometry = new THREE.PlaneGeometry(
+          texture.image.width,
+          texture.image.height
+        )
 
-        const planeHeight = this.ORTHO_SIZE * 2 // Full camera height
-        const planeWidth = planeHeight * aspectRatio
-        const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight)
-
-        const material = new THREE.MeshLambertMaterial({
+        const material = new THREE.MeshBasicMaterial({
           map: texture,
           transparent: true,
           alphaTest: 0.1,
         })
 
         this.gameplayArea = new THREE.Mesh(geometry, material)
-        this.gameplayArea.position.set(0, 0, Layer.GAMEPLAY_AREA)
+        this.gameplayArea.position.set(
+          texture.image.width,
+          texture.image.height,
+          0
+        )
         this.sceneRoot.add(this.gameplayArea)
       }
     )
@@ -167,13 +181,7 @@ class GameRenderer {
   private setupEventListeners(): void {
     window.addEventListener('resize', () => {
       this.renderer.setSize(window.innerWidth, window.innerHeight)
-
-      setTimeout(() => {
-        const aspect = window.innerWidth / window.innerHeight
-        this.camera.left = -this.ORTHO_SIZE * aspect
-        this.camera.right = this.ORTHO_SIZE * aspect
-        this.camera.updateProjectionMatrix()
-      }, 50)
+      this.updateViewport()
     })
 
     this.canvas.addEventListener('mousedown', (event) => {
