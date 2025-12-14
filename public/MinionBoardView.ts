@@ -1,25 +1,27 @@
 import * as THREE from 'three'
+import AttackIndicator from './AttackIndicator.ts'
+import HealthIndicator from './HealthIndicator.ts'
 import MinionModel from './MinionModel.ts'
 import { MINION_BOARD_HEIGHT, MINION_BOARD_WIDTH } from './gameConstants.ts'
 
-enum Layer {
-  PORTRAIT = 0,
-  FRAME = 0.1,
-  OVERLAY_ICONS = 0.2,
-  OVERLAY_TEXT = 0.3,
-  CLICKABLE_AREA = 0.4,
-}
-
 export default class MinionBoardView {
+  // Logical unit constants
+  private static readonly CANVAS_SCALE = 256 // Pixels per logical unit
+  private static readonly ICON_SIZE_RATIO = 0.25 // Icon size as fraction of board width
+  private static readonly INDICATOR_PADDING = 0.05 // Padding as fraction of board width for indicator overhang
+
   public minion: MinionModel
-  public mesh: THREE.Object3D
+  public mesh: THREE.Mesh
+  public originalPosition: THREE.Vector3
 
   private scene: THREE.Scene
-  private frame: THREE.Mesh
-  private attackCanvas: HTMLCanvasElement
-  private healthCanvas: HTMLCanvasElement
-  private attackTexture: THREE.CanvasTexture
-  private healthTexture: THREE.CanvasTexture
+  private attackIndicator: AttackIndicator
+  private healthIndicator: HealthIndicator
+
+  // For texture loading promises
+  private portraitTexture: THREE.Texture | null = null
+  private frameTexture: THREE.Texture | null = null
+  private texturesLoaded: Promise<void>
 
   constructor(
     scene: THREE.Scene,
@@ -29,155 +31,206 @@ export default class MinionBoardView {
     this.scene = scene
     this.minion = minion
 
-    this.mesh = new THREE.Object3D()
+    // Create indicator components
+    this.attackIndicator = new AttackIndicator()
+    this.healthIndicator = new HealthIndicator()
+
+    // Create temporary invisible mesh until textures are loaded
+    const tempGeometry = new THREE.PlaneGeometry(
+      MINION_BOARD_WIDTH,
+      MINION_BOARD_HEIGHT
+    )
+    const tempMaterial = new THREE.MeshBasicMaterial({
+      transparent: true,
+      opacity: 0,
+    })
+
+    this.mesh = new THREE.Mesh(tempGeometry, tempMaterial)
     this.mesh.name = 'minionBoard'
+    this.mesh.userData = { owner: this }
     scene.add(this.mesh)
 
     if (position) {
       this.mesh.position.copy(position)
     }
 
-    this.createCardMesh()
+    this.originalPosition = this.mesh.position.clone()
+
+    // Start loading textures and compile when ready
+    this.texturesLoaded = this.loadAllTextures()
+    this.texturesLoaded.then(async () => {
+      await this.compileTextures()
+    })
   }
 
-  private createCardMesh(): void {
+  private async loadAllTextures(): Promise<void> {
     const loader = new THREE.TextureLoader()
 
-    // Portrait
-    loader.load(
-      './media/images/cardimages/cairne_bloodhoof.jpg',
-      (texture) => {
-        texture.offset.set(0.2, 0.1)
+    const portraitPromise = new Promise<THREE.Texture>((resolve, reject) => {
+      loader.load(
+        './media/images/cardimages/cairne_bloodhoof.jpg',
+        (texture) => {
+          texture.offset.set(0.0, 0.0)
+          resolve(texture)
+        },
+        undefined,
+        reject
+      )
+    })
 
-        const portraitGeometry = new THREE.PlaneGeometry(
-          MINION_BOARD_WIDTH,
-          MINION_BOARD_HEIGHT * 0.8
-        ) // Portrait area
-        const portraitMaterial = new THREE.MeshBasicMaterial({
-          map: texture,
-          transparent: true,
-          alphaTest: 0.1,
-        })
+    const framePromise = new Promise<THREE.Texture>((resolve, reject) => {
+      loader.load(
+        './media/images/empty_minion_board_frame.png',
+        resolve,
+        undefined,
+        reject
+      )
+    })
 
-        const portrait = new THREE.Mesh(portraitGeometry, portraitMaterial)
-        portrait.name = 'portrait'
-        portrait.position.set(0, 0, Layer.PORTRAIT)
-        this.mesh.add(portrait)
+    try {
+      const [portrait, frame] = await Promise.all([
+        portraitPromise,
+        framePromise,
+      ])
+      this.portraitTexture = portrait
+      this.frameTexture = frame
+    } catch (error) {
+      console.error('Error loading board textures:', error)
+    }
+  }
+
+  private async compileTextures(): Promise<void> {
+    // Create a large canvas to composite everything
+    const compositeCanvas = document.createElement('canvas')
+    const paddingPixels =
+      MINION_BOARD_WIDTH *
+      MinionBoardView.INDICATOR_PADDING *
+      MinionBoardView.CANVAS_SCALE
+    const canvasWidth =
+      MINION_BOARD_WIDTH * MinionBoardView.CANVAS_SCALE + paddingPixels * 2
+    const canvasHeight =
+      MINION_BOARD_HEIGHT * MinionBoardView.CANVAS_SCALE + paddingPixels * 2
+
+    compositeCanvas.width = canvasWidth
+    compositeCanvas.height = canvasHeight
+
+    const ctx = compositeCanvas.getContext('2d')
+    if (!ctx) return
+
+    // Calculate board dimensions (original size) and offset for centering
+    const boardWidth = MINION_BOARD_WIDTH * MinionBoardView.CANVAS_SCALE
+    const boardHeight = MINION_BOARD_HEIGHT * MinionBoardView.CANVAS_SCALE
+    const boardOffsetX = paddingPixels
+    const boardOffsetY = paddingPixels
+
+    // Position indicators relative to the board, allowing for overhang
+    const positions = {
+      bottomLeft: {
+        x: boardOffsetX + boardWidth * 0.0,
+        y: boardOffsetY + boardHeight * 0.7,
       },
-      undefined,
-      (error) => {
-        console.log('Error loading portrait texture:', error)
-      }
-    )
+      bottomRight: {
+        x: boardOffsetX + boardWidth * 0.75,
+        y: boardOffsetY + boardHeight * 0.7,
+      },
+    }
 
-    // Frame
-    loader.load(
-      './media/images/empty_minion_board_frame.png',
-      (texture) => {
-        const frameMaterial = new THREE.MeshBasicMaterial({
-          map: texture,
-          transparent: true,
-          alphaTest: 0.1,
-          side: THREE.DoubleSide,
-        })
-
-        const frameGeometry = new THREE.PlaneGeometry(
-          MINION_BOARD_WIDTH,
-          MINION_BOARD_HEIGHT
-        ) // Full minion size
-        this.frame = new THREE.Mesh(frameGeometry, frameMaterial)
-        this.frame.name = 'frame'
-        this.frame.position.set(0, 0, Layer.FRAME)
-        this.mesh.add(this.frame)
-
-        // Clickable area
-        const clickableGeometry = new THREE.PlaneGeometry(
-          MINION_BOARD_WIDTH * 1.1,
-          MINION_BOARD_HEIGHT * 1.1
-        ) // Slightly larger
-        const clickableMaterial = new THREE.MeshBasicMaterial({
-          transparent: true,
-          opacity: 0,
-        })
-
-        const clickableArea = new THREE.Mesh(
-          clickableGeometry,
-          clickableMaterial
+    // Draw portrait (background layer)
+    if (this.portraitTexture && this.portraitTexture.image) {
+      const image = this.portraitTexture.image
+      if (
+        image instanceof HTMLImageElement ||
+        image instanceof HTMLCanvasElement ||
+        image instanceof ImageBitmap
+      ) {
+        ctx.drawImage(
+          image,
+          boardOffsetX,
+          boardOffsetY + boardHeight * 0.1,
+          boardWidth,
+          boardHeight * 0.8
         )
-        clickableArea.name = 'clickableArea'
-        clickableArea.position.set(0, 0, Layer.CLICKABLE_AREA)
-        clickableArea.userData = { owner: this }
-        this.mesh.add(clickableArea)
-
-        this.createOverlayElements()
-      },
-      undefined,
-      (error) => {
-        console.log('Error loading frame texture:', error)
       }
+    }
+
+    // Draw frame (overlay layer)
+    if (this.frameTexture && this.frameTexture.image) {
+      const image = this.frameTexture.image
+      if (
+        image instanceof HTMLImageElement ||
+        image instanceof HTMLCanvasElement ||
+        image instanceof ImageBitmap
+      ) {
+        ctx.drawImage(
+          image,
+          boardOffsetX,
+          boardOffsetY,
+          boardWidth,
+          boardHeight
+        )
+      }
+    }
+
+    // Draw indicators using the indicator components (no mana for board minions)
+    const attackCanvas = await this.attackIndicator.renderToCanvas(
+      this.minion.attack || 2
     )
-  }
+    const healthCanvas = await this.healthIndicator.renderToCanvas(
+      this.minion.health || 5
+    )
 
-  private createCanvasTexture(
-    width: number = 256,
-    height: number = 256
-  ): { canvas: HTMLCanvasElement; texture: THREE.CanvasTexture } {
-    const canvas = document.createElement('canvas')
-    canvas.width = width
-    canvas.height = height
+    const size =
+      MINION_BOARD_WIDTH *
+      MinionBoardView.ICON_SIZE_RATIO *
+      MinionBoardView.CANVAS_SCALE
 
-    const texture = new THREE.CanvasTexture(canvas)
-    texture.needsUpdate = true
+    // Draw attack indicator
+    ctx.drawImage(
+      attackCanvas,
+      positions.bottomLeft.x,
+      positions.bottomLeft.y,
+      size,
+      size
+    )
 
-    return { canvas, texture }
-  }
+    // Draw health indicator
+    ctx.drawImage(
+      healthCanvas,
+      positions.bottomRight.x,
+      positions.bottomRight.y,
+      size,
+      size
+    )
 
-  private async createOverlayElements(): Promise<void> {
-    // Create text canvases
-    const attackResult = this.createCanvasTexture()
-    this.attackCanvas = attackResult.canvas
-    this.attackTexture = attackResult.texture
+    // Create the final composite texture and mesh
+    const compositeTexture = new THREE.CanvasTexture(compositeCanvas)
+    compositeTexture.needsUpdate = true
 
-    const healthResult = this.createCanvasTexture()
-    this.healthCanvas = healthResult.canvas
-    this.healthTexture = healthResult.texture
-
-    // Create simple stat displays
-    this.setupAttack()
-    this.setupHealth()
-  }
-
-  private createTextPlane(
-    texture: THREE.CanvasTexture,
-    position: THREE.Vector3
-  ): THREE.Mesh {
-    const geometry = new THREE.PlaneGeometry(1, 1)
+    // Scale geometry to match the expanded canvas proportions
+    const paddingAmount =
+      MINION_BOARD_WIDTH * MinionBoardView.INDICATOR_PADDING * 2
+    const geometryWidth = MINION_BOARD_WIDTH + paddingAmount
+    const geometryHeight = MINION_BOARD_HEIGHT + paddingAmount
+    const geometry = new THREE.PlaneGeometry(geometryWidth, geometryHeight)
     const material = new THREE.MeshBasicMaterial({
-      map: texture,
+      map: compositeTexture,
       transparent: true,
     })
 
-    const mesh = new THREE.Mesh(geometry, material)
-    mesh.position.copy(position)
-    this.mesh.add(mesh)
+    // Replace the temporary mesh with the composite one
+    const oldGeometry = this.mesh.geometry
+    const oldMaterial = this.mesh.material
 
-    return mesh
-  }
+    this.mesh.geometry = geometry
+    this.mesh.material = material
 
-  private setupAttack(): void {
-    this.updateAttack(2)
-    this.createTextPlane(
-      this.attackTexture,
-      new THREE.Vector3(-1.5, -1.5, Layer.OVERLAY_TEXT)
-    )
-  }
-
-  private setupHealth(): void {
-    this.updateHealth(5)
-    this.createTextPlane(
-      this.healthTexture,
-      new THREE.Vector3(1.5, -1.5, Layer.OVERLAY_TEXT)
-    )
+    // Clean up old resources
+    oldGeometry.dispose()
+    if (Array.isArray(oldMaterial)) {
+      oldMaterial.forEach((mat) => mat.dispose())
+    } else {
+      oldMaterial.dispose()
+    }
   }
 
   public setCardDepth(depth: number): void {
@@ -188,61 +241,25 @@ export default class MinionBoardView {
     this.mesh.scale.set(1, 1, 1)
   }
 
+  public getBoundingInfo(): { min: THREE.Vector3; max: THREE.Vector3 } {
+    const box = new THREE.Box3().setFromObject(this.mesh)
+    return { min: box.min, max: box.max }
+  }
+
   public updateAttack(newAttack: number): void {
-    if (!this.attackCanvas) return
-
-    const ctx = this.attackCanvas.getContext('2d')
-    if (!ctx) return
-
-    ctx.clearRect(0, 0, this.attackCanvas.width, this.attackCanvas.height)
-    ctx.font = 'bold 120px Arial'
-    ctx.fillStyle = 'white'
-    ctx.strokeStyle = 'black'
-    ctx.lineWidth = 4
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-
-    const text = newAttack.toString()
-    const x = this.attackCanvas.width / 2
-    const y = this.attackCanvas.height / 2
-
-    ctx.strokeText(text, x, y)
-    ctx.fillText(text, x, y)
-
-    this.attackTexture.needsUpdate = true
+    this.minion.attack = newAttack
+    this.compileTextures()
   }
 
   public updateHealth(newHealth: number): void {
-    if (!this.healthCanvas) return
-
-    const ctx = this.healthCanvas.getContext('2d')
-    if (!ctx) return
-
-    ctx.clearRect(0, 0, this.healthCanvas.width, this.healthCanvas.height)
-    ctx.font = 'bold 120px Arial'
-    ctx.fillStyle = 'white'
-    ctx.strokeStyle = 'black'
-    ctx.lineWidth = 4
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-
-    const text = newHealth.toString()
-    const x = this.healthCanvas.width / 2
-    const y = this.healthCanvas.height / 2
-
-    ctx.strokeText(text, x, y)
-    ctx.fillText(text, x, y)
-
-    this.healthTexture.needsUpdate = true
+    this.minion.health = newHealth
+    this.compileTextures()
   }
 
   public dispose(): void {
-    if (this.attackTexture) {
-      this.attackTexture.dispose()
-    }
-    if (this.healthTexture) {
-      this.healthTexture.dispose()
-    }
+    // Dispose indicator components
+    this.attackIndicator.dispose()
+    this.healthIndicator.dispose()
 
     // Dispose Three.js objects
     this.mesh.traverse((object) => {
