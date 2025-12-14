@@ -9,9 +9,8 @@ import MinionModel from './MinionModel.ts'
 export default class MinionCardView implements Draggable {
   // Logical unit constants
   private static readonly CANVAS_SCALE = 256 // Pixels per logical unit
-  private static readonly TEXT_SIZE_RATIO = 0.15 // Text size as fraction of card width
   private static readonly ICON_SIZE_RATIO = 0.25 // Text size as fraction of card width
-  private static readonly TEXT_CANVAS_RATIO = 0.3 // Text canvas size as fraction of card width
+  private static readonly INDICATOR_PADDING = 0.05 // Padding as fraction of card width for indicator overhang
 
   public minion: MinionModel
   public mesh: THREE.Mesh // Now the single composite mesh
@@ -105,8 +104,14 @@ export default class MinionCardView implements Draggable {
   private async compileTextures(): Promise<void> {
     // Create a large canvas to composite everything
     const compositeCanvas = document.createElement('canvas')
-    const canvasWidth = CARD_WIDTH * MinionCardView.CANVAS_SCALE
-    const canvasHeight = CARD_HEIGHT * MinionCardView.CANVAS_SCALE
+    const paddingPixels =
+      CARD_WIDTH *
+      MinionCardView.INDICATOR_PADDING *
+      MinionCardView.CANVAS_SCALE
+    const canvasWidth =
+      CARD_WIDTH * MinionCardView.CANVAS_SCALE + paddingPixels * 2
+    const canvasHeight =
+      CARD_HEIGHT * MinionCardView.CANVAS_SCALE + paddingPixels * 2
 
     compositeCanvas.width = canvasWidth
     compositeCanvas.height = canvasHeight
@@ -114,15 +119,31 @@ export default class MinionCardView implements Draggable {
     const ctx = compositeCanvas.getContext('2d')
     if (!ctx) return
 
+    // Calculate card dimensions (original size) and offset for centering
+    const cardWidth = CARD_WIDTH * MinionCardView.CANVAS_SCALE
+    const cardHeight = CARD_HEIGHT * MinionCardView.CANVAS_SCALE
+    const cardOffsetX = paddingPixels
+    const cardOffsetY = paddingPixels
+
+    // Position indicators relative to the card, allowing for overhang
     const positions = {
-      topLeft: { x: canvasWidth * -0.03, y: canvasHeight * 0.04 },
-      bottomLeft: { x: canvasWidth * -0.03, y: canvasHeight * 0.85 },
-      bottomRight: { x: canvasWidth * 0.82, y: canvasHeight * 0.85 },
+      topLeft: {
+        x: cardOffsetX + cardWidth * -0.03,
+        y: cardOffsetY + cardHeight * 0.04,
+      },
+      bottomLeft: {
+        x: cardOffsetX + cardWidth * -0.03,
+        y: cardOffsetY + cardHeight * 0.85,
+      },
+      bottomRight: {
+        x: cardOffsetX + cardWidth * 0.82,
+        y: cardOffsetY + cardHeight * 0.85,
+      },
     }
 
     // Calculate dimensions and positions for each element
-    const portraitHeight = canvasHeight * 0.8 // Portrait takes 80% of card height
-    const portraitY = canvasHeight * 0.1 // Start 10% from top
+    const portraitHeight = cardHeight * 0.8 // Portrait takes 80% of card height
+    const portraitY = cardOffsetY + cardHeight * 0.1 // Start 10% from top
 
     // Draw portrait (background layer)
     if (this.portraitTexture && this.portraitTexture.image) {
@@ -132,7 +153,7 @@ export default class MinionCardView implements Draggable {
         image instanceof HTMLCanvasElement ||
         image instanceof ImageBitmap
       ) {
-        ctx.drawImage(image, 0, portraitY, canvasWidth, portraitHeight)
+        ctx.drawImage(image, cardOffsetX, portraitY, cardWidth, portraitHeight)
       }
     }
 
@@ -144,10 +165,10 @@ export default class MinionCardView implements Draggable {
         image instanceof HTMLCanvasElement ||
         image instanceof ImageBitmap
       ) {
-        ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight)
+        ctx.drawImage(image, cardOffsetX, cardOffsetY, cardWidth, cardHeight)
       }
     }
- 
+
     const manaCanvas = await this.manaIndicator.renderToCanvas(
       this.minion.mana || 4
     )
@@ -192,7 +213,11 @@ export default class MinionCardView implements Draggable {
     const compositeTexture = new THREE.CanvasTexture(compositeCanvas)
     compositeTexture.needsUpdate = true
 
-    const geometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT)
+    // Scale geometry to match the expanded canvas proportions
+    const paddingAmount = CARD_WIDTH * MinionCardView.INDICATOR_PADDING * 2
+    const geometryWidth = CARD_WIDTH + paddingAmount
+    const geometryHeight = CARD_HEIGHT + paddingAmount
+    const geometry = new THREE.PlaneGeometry(geometryWidth, geometryHeight)
     const material = new THREE.MeshBasicMaterial({
       map: compositeTexture,
       transparent: true,
@@ -250,29 +275,17 @@ export default class MinionCardView implements Draggable {
 
   public updateMana(newMana: number): void {
     this.minion.mana = newMana
-
-    // Recompile if textures are loaded
-    if (this.portraitTexture && this.frameTexture) {
-      this.compileTextures()
-    }
+    this.compileTextures()
   }
 
   public updateAttack(newAttack: number): void {
     this.minion.attack = newAttack
-
-    // Recompile if textures are loaded
-    if (this.portraitTexture && this.frameTexture) {
-      this.compileTextures()
-    }
+    this.compileTextures()
   }
 
   public updateHealth(newHealth: number): void {
     this.minion.health = newHealth
-
-    // Recompile if textures are loaded
-    if (this.portraitTexture && this.frameTexture) {
-      this.compileTextures()
-    }
+    this.compileTextures()
   }
 
   public isDraggable(): boolean {
