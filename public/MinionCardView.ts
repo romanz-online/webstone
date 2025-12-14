@@ -1,7 +1,10 @@
 import * as THREE from 'three'
+import AttackIndicator from './AttackIndicator.ts'
 import { DragEvent, Draggable } from './Draggable.ts'
-import MinionModel from './MinionModel.ts'
 import { CARD_HEIGHT, CARD_WIDTH } from './gameConstants.ts'
+import HealthIndicator from './HealthIndicator.ts'
+import ManaIndicator from './ManaIndicator.ts'
+import MinionModel from './MinionModel.ts'
 
 export default class MinionCardView implements Draggable {
   // Logical unit constants
@@ -15,19 +18,13 @@ export default class MinionCardView implements Draggable {
   public originalPosition: THREE.Vector3
 
   private scene: THREE.Scene
-  private manaCanvas: HTMLCanvasElement
-  private attackCanvas: HTMLCanvasElement
-  private healthCanvas: HTMLCanvasElement
-  private manaTexture: THREE.CanvasTexture
-  private attackTexture: THREE.CanvasTexture
-  private healthTexture: THREE.CanvasTexture
+  private manaIndicator: ManaIndicator
+  private attackIndicator: AttackIndicator
+  private healthIndicator: HealthIndicator
 
   // For texture loading promises
   private portraitTexture: THREE.Texture | null = null
   private frameTexture: THREE.Texture | null = null
-  private manaIconTexture: THREE.Texture | null = null
-  private attackIconTexture: THREE.Texture | null = null
-  private healthIconTexture: THREE.Texture | null = null
   private texturesLoaded: Promise<void>
 
   constructor(
@@ -37,6 +34,11 @@ export default class MinionCardView implements Draggable {
   ) {
     this.scene = scene
     this.minion = minion
+
+    // Create indicator components
+    this.manaIndicator = new ManaIndicator()
+    this.attackIndicator = new AttackIndicator()
+    this.healthIndicator = new HealthIndicator()
 
     // Create temporary invisible mesh until textures are loaded
     const tempGeometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT)
@@ -58,8 +60,8 @@ export default class MinionCardView implements Draggable {
 
     // Start loading textures and compile when ready
     this.texturesLoaded = this.loadAllTextures()
-    this.texturesLoaded.then(() => {
-      this.compileTextures()
+    this.texturesLoaded.then(async () => {
+      await this.compileTextures()
     })
   }
 
@@ -88,39 +90,19 @@ export default class MinionCardView implements Draggable {
       )
     })
 
-    const manaIconPromise = new Promise<THREE.Texture>((resolve, reject) => {
-      loader.load('./media/images/mana.png', resolve, undefined, reject)
-    })
-
-    const attackIconPromise = new Promise<THREE.Texture>((resolve, reject) => {
-      loader.load('./media/images/attack.png', resolve, undefined, reject)
-    })
-
-    const healthIconPromise = new Promise<THREE.Texture>((resolve, reject) => {
-      loader.load('./media/images/health.png', resolve, undefined, reject)
-    })
-
     try {
-      const [portrait, frame, mana, attack, health] = await Promise.all([
+      const [portrait, frame] = await Promise.all([
         portraitPromise,
         framePromise,
-        manaIconPromise,
-        attackIconPromise,
-        healthIconPromise,
       ])
       this.portraitTexture = portrait
       this.frameTexture = frame
-      this.manaIconTexture = mana
-      this.attackIconTexture = attack
-      this.healthIconTexture = health
-
-      await this.createOverlayElements()
     } catch (error) {
       console.error('Error loading card textures:', error)
     }
   }
 
-  private compileTextures(): void {
+  private async compileTextures(): Promise<void> {
     // Create a large canvas to composite everything
     const compositeCanvas = document.createElement('canvas')
     const canvasWidth = CARD_WIDTH * MinionCardView.CANVAS_SCALE
@@ -133,9 +115,9 @@ export default class MinionCardView implements Draggable {
     if (!ctx) return
 
     const positions = {
-      topLeft: { x: canvasWidth * 0.05, y: canvasHeight * 0.05 },
-      bottomLeft: { x: canvasWidth * 0.05, y: canvasHeight * 0.85 },
-      bottomRight: { x: canvasWidth * 0.85, y: canvasHeight * 0.85 },
+      topLeft: { x: canvasWidth * -0.03, y: canvasHeight * 0.04 },
+      bottomLeft: { x: canvasWidth * -0.03, y: canvasHeight * 0.85 },
+      bottomRight: { x: canvasWidth * 0.82, y: canvasHeight * 0.85 },
     }
 
     // Calculate dimensions and positions for each element
@@ -165,80 +147,45 @@ export default class MinionCardView implements Draggable {
         ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight)
       }
     }
+ 
+    const manaCanvas = await this.manaIndicator.renderToCanvas(
+      this.minion.mana || 4
+    )
+    const attackCanvas = await this.attackIndicator.renderToCanvas(
+      this.minion.attack || 2
+    )
+    const healthCanvas = await this.healthIndicator.renderToCanvas(
+      this.minion.health || 5
+    )
 
     const size =
       CARD_WIDTH * MinionCardView.ICON_SIZE_RATIO * MinionCardView.CANVAS_SCALE
 
-    if (this.manaIconTexture && this.manaIconTexture.image) {
-      const image = this.manaIconTexture.image
-      if (
-        image instanceof HTMLImageElement ||
-        image instanceof HTMLCanvasElement ||
-        image instanceof ImageBitmap
-      ) {
-        ctx.drawImage(
-          image,
-          positions.topLeft.x,
-          positions.topLeft.y,
-          size,
-          size
-        )
-      }
-    }
-
-    if (this.attackIconTexture && this.attackIconTexture.image) {
-      const image = this.attackIconTexture.image
-      if (
-        image instanceof HTMLImageElement ||
-        image instanceof HTMLCanvasElement ||
-        image instanceof ImageBitmap
-      ) {
-        ctx.drawImage(
-          image,
-          positions.bottomLeft.x,
-          positions.bottomLeft.y,
-          size,
-          size
-        )
-      }
-    }
-
-    if (this.healthIconTexture && this.healthIconTexture.image) {
-      const image = this.healthIconTexture.image
-      if (
-        image instanceof HTMLImageElement ||
-        image instanceof HTMLCanvasElement ||
-        image instanceof ImageBitmap
-      ) {
-        ctx.drawImage(
-          image,
-          positions.bottomRight.x,
-          positions.bottomRight.y,
-          size,
-          size
-        )
-      }
-    }
-
-    this.drawTextOverlay(
-      ctx,
-      this.manaCanvas,
+    // Draw mana indicator
+    ctx.drawImage(
+      manaCanvas,
       positions.topLeft.x,
-      positions.topLeft.y
+      positions.topLeft.y,
+      size,
+      size
     )
 
-    this.drawTextOverlay(
-      ctx,
-      this.attackCanvas,
+    // Draw attack indicator
+    ctx.drawImage(
+      attackCanvas,
       positions.bottomLeft.x,
-      positions.bottomLeft.y
+      positions.bottomLeft.y,
+      size,
+      size
     )
 
-    this.drawTextOverlay(
-      ctx,
-      this.healthCanvas,
+    // Draw health indicator
+    ctx.drawImage(
+      healthCanvas,
       positions.bottomRight.x,
-      positions.bottomRight.y
+      positions.bottomRight.y,
+      size,
+      size
     )
 
     // Create the final composite texture and mesh
@@ -265,59 +212,6 @@ export default class MinionCardView implements Draggable {
     } else {
       oldMaterial.dispose()
     }
-  }
-
-  private drawTextOverlay(
-    ctx: CanvasRenderingContext2D,
-    textCanvas: HTMLCanvasElement,
-    x: number,
-    y: number
-  ): void {
-    if (textCanvas) {
-      const textDisplaySize =
-        CARD_WIDTH *
-        MinionCardView.TEXT_SIZE_RATIO *
-        MinionCardView.CANVAS_SCALE
-      ctx.drawImage(textCanvas, x, y, textDisplaySize, textDisplaySize)
-    }
-  }
-
-  private createCanvasTexture(
-    width: number = CARD_WIDTH *
-      MinionCardView.TEXT_CANVAS_RATIO *
-      MinionCardView.CANVAS_SCALE,
-    height: number = CARD_WIDTH *
-      MinionCardView.TEXT_CANVAS_RATIO *
-      MinionCardView.CANVAS_SCALE
-  ): { canvas: HTMLCanvasElement; texture: THREE.CanvasTexture } {
-    const canvas = document.createElement('canvas')
-    canvas.width = width
-    canvas.height = height
-
-    const texture = new THREE.CanvasTexture(canvas)
-    texture.needsUpdate = true
-
-    return { canvas, texture }
-  }
-
-  private async createOverlayElements(): Promise<void> {
-    // Create text canvases
-    const manaResult = this.createCanvasTexture()
-    this.manaCanvas = manaResult.canvas
-    this.manaTexture = manaResult.texture
-
-    const attackResult = this.createCanvasTexture()
-    this.attackCanvas = attackResult.canvas
-    this.attackTexture = attackResult.texture
-
-    const healthResult = this.createCanvasTexture()
-    this.healthCanvas = healthResult.canvas
-    this.healthTexture = healthResult.texture
-
-    // Generate text on canvases (doesn't create separate meshes)
-    this.updateMana(4)
-    this.updateAttack(2)
-    this.updateHealth(5)
   }
 
   public transformToHand(): void {
@@ -355,27 +249,7 @@ export default class MinionCardView implements Draggable {
   }
 
   public updateMana(newMana: number): void {
-    if (!this.manaCanvas) return
-
-    const ctx = this.manaCanvas.getContext('2d')
-    if (!ctx) return
-
-    ctx.clearRect(0, 0, this.manaCanvas.width, this.manaCanvas.height)
-    ctx.font = 'bold 140px Belwe'
-    ctx.fillStyle = 'white'
-    ctx.strokeStyle = 'black'
-    ctx.lineWidth = 4
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-
-    const text = newMana.toString()
-    const x = this.manaCanvas.width / 2
-    const y = this.manaCanvas.height / 2
-
-    ctx.strokeText(text, x, y)
-    ctx.fillText(text, x, y)
-
-    this.manaTexture.needsUpdate = true
+    this.minion.mana = newMana
 
     // Recompile if textures are loaded
     if (this.portraitTexture && this.frameTexture) {
@@ -384,27 +258,7 @@ export default class MinionCardView implements Draggable {
   }
 
   public updateAttack(newAttack: number): void {
-    if (!this.attackCanvas) return
-
-    const ctx = this.attackCanvas.getContext('2d')
-    if (!ctx) return
-
-    ctx.clearRect(0, 0, this.attackCanvas.width, this.attackCanvas.height)
-    ctx.font = 'bold 140px Belwe'
-    ctx.fillStyle = 'white'
-    ctx.strokeStyle = 'black'
-    ctx.lineWidth = 4
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-
-    const text = newAttack.toString()
-    const x = this.attackCanvas.width / 2
-    const y = this.attackCanvas.height / 2
-
-    ctx.strokeText(text, x, y)
-    ctx.fillText(text, x, y)
-
-    this.attackTexture.needsUpdate = true
+    this.minion.attack = newAttack
 
     // Recompile if textures are loaded
     if (this.portraitTexture && this.frameTexture) {
@@ -413,27 +267,7 @@ export default class MinionCardView implements Draggable {
   }
 
   public updateHealth(newHealth: number): void {
-    if (!this.healthCanvas) return
-
-    const ctx = this.healthCanvas.getContext('2d')
-    if (!ctx) return
-
-    ctx.clearRect(0, 0, this.healthCanvas.width, this.healthCanvas.height)
-    ctx.font = 'bold 140px Belwe'
-    ctx.fillStyle = 'white'
-    ctx.strokeStyle = 'black'
-    ctx.lineWidth = 4
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-
-    const text = newHealth.toString()
-    const x = this.healthCanvas.width / 2
-    const y = this.healthCanvas.height / 2
-
-    ctx.strokeText(text, x, y)
-    ctx.fillText(text, x, y)
-
-    this.healthTexture.needsUpdate = true
+    this.minion.health = newHealth
 
     // Recompile if textures are loaded
     if (this.portraitTexture && this.frameTexture) {
@@ -468,15 +302,10 @@ export default class MinionCardView implements Draggable {
   }
 
   public dispose(): void {
-    if (this.manaTexture) {
-      this.manaTexture.dispose()
-    }
-    if (this.attackTexture) {
-      this.attackTexture.dispose()
-    }
-    if (this.healthTexture) {
-      this.healthTexture.dispose()
-    }
+    // Dispose indicator components
+    this.manaIndicator.dispose()
+    this.attackIndicator.dispose()
+    this.healthIndicator.dispose()
 
     // Dispose Three.js objects
     this.mesh.traverse((object) => {
