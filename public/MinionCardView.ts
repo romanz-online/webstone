@@ -13,17 +13,15 @@ export default class MinionCardView implements Draggable {
   private static readonly INDICATOR_PADDING = 0.05 // Padding as fraction of card width for indicator overhang
 
   public minion: MinionModel
-  public mesh: THREE.Mesh // Now the single composite mesh
+  public mesh: THREE.Mesh
   public originalPosition: THREE.Vector3
 
   private scene: THREE.Scene
-  private manaIndicator: ManaIndicator
-  private attackIndicator: AttackIndicator
-  private healthIndicator: HealthIndicator
 
   // For texture loading promises
   private portraitTexture: THREE.Texture | null = null
   private frameTexture: THREE.Texture | null = null
+  private nameTexture: THREE.Texture | null = null
   private texturesLoaded: Promise<void>
 
   constructor(
@@ -33,11 +31,6 @@ export default class MinionCardView implements Draggable {
   ) {
     this.scene = scene
     this.minion = minion
-
-    // Create indicator components
-    this.manaIndicator = new ManaIndicator()
-    this.attackIndicator = new AttackIndicator()
-    this.healthIndicator = new HealthIndicator()
 
     // Create temporary invisible mesh until textures are loaded
     const tempGeometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT)
@@ -89,13 +82,24 @@ export default class MinionCardView implements Draggable {
       )
     })
 
+    const namePromise = new Promise<THREE.Texture>((resolve, reject) => {
+      loader.load(
+        './media/images/name-banner-minion.png',
+        resolve,
+        undefined,
+        reject
+      )
+    })
+
     try {
-      const [portrait, frame] = await Promise.all([
+      const [portrait, frame, name] = await Promise.all([
         portraitPromise,
         framePromise,
+        namePromise,
       ])
       this.portraitTexture = portrait
       this.frameTexture = frame
+      this.nameTexture = name
     } catch (error) {
       console.error('Error loading card textures:', error)
     }
@@ -141,10 +145,6 @@ export default class MinionCardView implements Draggable {
       },
     }
 
-    // Calculate dimensions and positions for each element
-    const portraitHeight = cardHeight * 0.8 // Portrait takes 80% of card height
-    const portraitY = cardOffsetY + cardHeight * 0.1 // Start 10% from top
-
     // Draw portrait (background layer)
     if (this.portraitTexture && this.portraitTexture.image) {
       const image = this.portraitTexture.image
@@ -153,7 +153,13 @@ export default class MinionCardView implements Draggable {
         image instanceof HTMLCanvasElement ||
         image instanceof ImageBitmap
       ) {
-        ctx.drawImage(image, cardOffsetX, portraitY, cardWidth, portraitHeight)
+        ctx.drawImage(
+          image,
+          cardOffsetX,
+          cardOffsetY + cardHeight * 0.1,
+          cardWidth,
+          cardHeight * 0.8
+        )
       }
     }
 
@@ -169,13 +175,30 @@ export default class MinionCardView implements Draggable {
       }
     }
 
-    const manaCanvas = await this.manaIndicator.renderToCanvas(
+    if (this.nameTexture && this.nameTexture.image) {
+      const image = this.nameTexture.image
+      if (
+        image instanceof HTMLImageElement ||
+        image instanceof HTMLCanvasElement ||
+        image instanceof ImageBitmap
+      ) {
+        ctx.drawImage(
+          image,
+          cardOffsetX + cardWidth * 0.025,
+          cardOffsetY + cardHeight * 0.49,
+          cardWidth * 0.95,
+          cardHeight * 0.13
+        )
+      }
+    }
+
+    const manaCanvas = await new ManaIndicator().renderToCanvas(
       this.minion.mana || 4
     )
-    const attackCanvas = await this.attackIndicator.renderToCanvas(
+    const attackCanvas = await new AttackIndicator().renderToCanvas(
       this.minion.attack || 2
     )
-    const healthCanvas = await this.healthIndicator.renderToCanvas(
+    const healthCanvas = await new HealthIndicator().renderToCanvas(
       this.minion.health || 5
     )
 
@@ -315,11 +338,6 @@ export default class MinionCardView implements Draggable {
   }
 
   public dispose(): void {
-    // Dispose indicator components
-    this.manaIndicator.dispose()
-    this.attackIndicator.dispose()
-    this.healthIndicator.dispose()
-
     // Dispose Three.js objects
     this.mesh.traverse((object) => {
       if (object instanceof THREE.Mesh) {
