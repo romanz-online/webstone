@@ -13,8 +13,8 @@ export default class BoardView {
   private scene: THREE.Scene
   private droppableArea: THREE.Mesh
   private minions: MinionBoardView[] = []
-  private readonly CARD_SPACING = 1.1
-  private readonly BOARD_Y_POSITION = -0.5
+  private readonly CARD_SPACING = 160
+  private readonly BOARD_Y_POSITION = 1300
 
   constructor(scene: THREE.Scene) {
     this.scene = scene
@@ -65,7 +65,7 @@ export default class BoardView {
    */
   private animateMinionPlayEntry(minion: MinionBoardView): void {
     minion.mesh.position.x =
-      ((this.minions.length - 1) * this.CARD_SPACING) / -2 +
+      1920 - ((this.minions.length - 1) * this.CARD_SPACING) / 2 +
       this.placeholderIndex * this.CARD_SPACING
     minion.mesh.position.y = this.BOARD_Y_POSITION - 0.4
     minion.mesh.scale.set(0.35, 0.35, 1)
@@ -106,7 +106,7 @@ export default class BoardView {
   public updatePlaceholderPosition(hoveredCardX: number): void {
     // Determine the placeholder index based on the hovered card's x position
     const totalWidth = (this.minions.length - 1) * this.CARD_SPACING
-    const startX = -totalWidth / 2
+    const startX = 960 - totalWidth / 2
 
     // Find the index where the card should be inserted
     const newPlaceholderIndex = this.minions.findIndex((minion) => {
@@ -173,7 +173,7 @@ export default class BoardView {
       : this.minions.length
 
     const totalWidth = (actualMinionCount - 1) * this.CARD_SPACING
-    const startX = -totalWidth / 2
+    const startX = 1920 - totalWidth / 2
 
     this.minions.forEach((minion, index) => {
       this.mesh.add(minion.mesh)

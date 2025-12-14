@@ -47,7 +47,7 @@ export default class MinionBoardView {
       texture.offset.set(0.2, 0.1)
       
       const portraitGeometry = new THREE.PlaneGeometry(8, 8 * 0.8) // Approximate ratio
-      const portraitMaterial = new THREE.MeshLambertMaterial({
+      const portraitMaterial = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
         alphaTest: 0.1
@@ -63,7 +63,7 @@ export default class MinionBoardView {
 
     // Frame
     loader.load('./media/images/empty_minion_board_frame.png', (texture) => {
-      const frameMaterial = new THREE.MeshLambertMaterial({
+      const frameMaterial = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
         alphaTest: 0.1,

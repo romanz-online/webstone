@@ -9,10 +9,8 @@ import TargetingArrowSystem from './TargetingArrowSystem.ts'
 
 enum Layer {
   GAMEPLAY_AREA = 0,
-  TRAY = -0.1,
-  MINION = -0.3,
-  HERO = -0.4,
-  MINIONS = -0.5,
+  HERO = 0.1,
+  HAND = 0.2,
 }
 
 class GameRenderer {
@@ -28,8 +26,6 @@ class GameRenderer {
   private raycaster: THREE.Raycaster
   private mouse: THREE.Vector2
 
-  private readonly ORTHO_SIZE = 4
-
   constructor(canvasId: string) {
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement
 
@@ -44,7 +40,6 @@ class GameRenderer {
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
     this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace
-    
 
     this.scene = new THREE.Scene()
     this.sceneRoot = new THREE.Object3D()
@@ -68,7 +63,7 @@ class GameRenderer {
     this.targetingSystem = new TargetingArrowSystem(this.scene)
 
     this.hand = new HandView(this.scene)
-    this.hand.mesh.position.z = Layer.MINIONS
+    this.hand.mesh.position.z = Layer.HAND
     this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
     this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
     this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
@@ -76,7 +71,7 @@ class GameRenderer {
     this.hand.addCard(new MinionCardView(this.scene, new MinionModel({})))
 
     this.playerBoard = new BoardView(this.scene)
-    this.playerBoard.mesh.position.z = Layer.MINIONS
+    this.playerBoard.mesh.position.z = Layer.HAND
     this.playerBoard.addMinion(
       new MinionBoardView(this.scene, new MinionModel({}))
     )
@@ -86,6 +81,22 @@ class GameRenderer {
     this.playerBoard.addMinion(
       new MinionBoardView(this.scene, new MinionModel({}))
     )
+
+    // Debug: Scale board minions for pixel coordinate system
+    // this.playerBoard.mesh.children.forEach((child) => {
+    //   if (child.name !== 'clickableArea') {
+    //     child.scale.set(30, 30, 1)
+    //   }
+    // })
+
+    // Debug Test 4: Force first hand card to center screen for visibility test
+    setTimeout(() => {
+      if (this.hand.mesh.children.length > 0) {
+        const firstCard = this.hand.mesh.children[0]
+        firstCard.position.set(1920, 1080, 2) // Center screen (corrected coordinates)
+        console.log('Debug: Positioned test card at center screen', firstCard)
+      }
+    }, 1000)
     // this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
     // this.board.addMinion(new MinionBoardView(this.scene, new MinionModel({})))
 
@@ -109,7 +120,7 @@ class GameRenderer {
   private updateViewport(): void {
     const aspect = 1920 / 1080
     const windowAspect = window.innerWidth / window.innerHeight
-    
+
     if (windowAspect > aspect) {
       // Letterbox (black bars on sides)
       const width = window.innerHeight * aspect
@@ -124,6 +135,10 @@ class GameRenderer {
   }
 
   private createLighting(): void {
+    // Ambient light for basic illumination
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8)
+    this.scene.add(ambientLight)
+
     // Directional light with shadows
     const dirLight = new THREE.DirectionalLight(0xffffff, 1)
     dirLight.position.set(-1, -1, 2)
