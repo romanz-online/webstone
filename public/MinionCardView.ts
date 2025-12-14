@@ -134,7 +134,7 @@ export default class MinionCardView implements Draggable {
 
     // Draw frame (overlay layer)
     if (this.frameTexture && this.frameTexture.image) {
-      const image = this.portraitTexture.image
+      const image = this.frameTexture.image
       if (
         image instanceof HTMLImageElement ||
         image instanceof HTMLCanvasElement ||
@@ -144,15 +144,32 @@ export default class MinionCardView implements Draggable {
       }
     }
 
-    // Draw text overlays
-    this.drawTextOverlay(ctx, this.manaCanvas, 32, 32) // Top-left
-    this.drawTextOverlay(ctx, this.attackCanvas, 32, canvasHeight - 96) // Bottom-left
+    const positions = {
+      topLeft: { x: canvasWidth * 0.1, y: canvasHeight * 0.1 },
+      bottomLeft: { x: canvasWidth * 0.1, y: canvasHeight * 0.9 },
+      bottomRight: { x: canvasWidth * 0.9, y: canvasHeight * 0.9 },
+    }
+
+    this.drawTextOverlay(
+      ctx,
+      this.manaCanvas,
+      positions.topLeft.x,
+      positions.topLeft.y
+    )
+
+    this.drawTextOverlay(
+      ctx,
+      this.attackCanvas,
+      positions.bottomLeft.x,
+      positions.bottomLeft.y
+    )
+
     this.drawTextOverlay(
       ctx,
       this.healthCanvas,
-      canvasWidth - 96,
-      canvasHeight - 96
-    ) // Bottom-right
+      positions.bottomRight.x,
+      positions.bottomRight.y
+    )
 
     // Create the final composite texture and mesh
     const compositeTexture = new THREE.CanvasTexture(compositeCanvas)
@@ -223,10 +240,6 @@ export default class MinionCardView implements Draggable {
     this.updateMana(4)
     this.updateAttack(2)
     this.updateHealth(5)
-  }
-
-  public setCardDepth(depth: number): void {
-    this.mesh.position.z = depth
   }
 
   public transformToHand(): void {
