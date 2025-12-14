@@ -4,15 +4,11 @@ import MinionCardView from './MinionCardView.ts'
 export default class HandView {
   public mesh: THREE.Object3D
 
-  private scene: THREE.Scene
   private cards: MinionCardView[] = []
   private readonly CARD_SPACING = 1.5
   private readonly HAND_Y_POSITION = -3.5
-  private readonly HAND_Z_POSITION = -1
 
   constructor(scene: THREE.Scene) {
-    this.scene = scene
-
     this.mesh = new THREE.Object3D()
     this.mesh.name = 'hand'
     scene.add(this.mesh)

@@ -13,8 +13,7 @@ enum Layer {
 
 export default class MinionCardView implements Draggable {
   public minion: MinionModel
-  public mesh: THREE.Mesh  // Now points to clickableArea
-  public frame: THREE.Mesh
+  public mesh: THREE.Mesh // Now the single composite mesh
   public originalPosition: THREE.Vector3
 
   private scene: THREE.Scene
@@ -25,6 +24,11 @@ export default class MinionCardView implements Draggable {
   private attackTexture: THREE.CanvasTexture
   private healthTexture: THREE.CanvasTexture
 
+  // For texture loading promises
+  private portraitTexture: THREE.Texture | null = null
+  private frameTexture: THREE.Texture | null = null
+  private texturesLoaded: Promise<void>
+
   constructor(
     scene: THREE.Scene,
     minion: MinionModel,
@@ -33,14 +37,14 @@ export default class MinionCardView implements Draggable {
     this.scene = scene
     this.minion = minion
 
-    // Create clickable area as the main mesh container
-    const frameGeometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT)
-    const clickableMaterial = new THREE.MeshBasicMaterial({
+    // Create temporary invisible mesh until textures are loaded
+    const tempGeometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT)
+    const tempMaterial = new THREE.MeshBasicMaterial({
       transparent: true,
       opacity: 0,
     })
 
-    this.mesh = new THREE.Mesh(frameGeometry, clickableMaterial)
+    this.mesh = new THREE.Mesh(tempGeometry, tempMaterial)
     this.mesh.name = 'minionCard'
     this.mesh.userData = { owner: this }
     scene.add(this.mesh)
@@ -51,64 +55,140 @@ export default class MinionCardView implements Draggable {
 
     this.originalPosition = this.mesh.position.clone()
 
-    this.createCardMesh()
+    // Start loading textures and compile when ready
+    this.texturesLoaded = this.loadAllTextures()
+    this.texturesLoaded.then(() => {
+      this.compileTextures()
+    })
   }
 
-
-  private createCardMesh(): void {
+  private async loadAllTextures(): Promise<void> {
     const loader = new THREE.TextureLoader()
 
-    // Portrait
-    loader.load(
-      './media/images/cardimages/cairne_bloodhoof.jpg',
-      (texture) => {
-        texture.offset.set(0.2, 0.1)
+    // Load portrait texture
+    const portraitPromise = new Promise<THREE.Texture>((resolve, reject) => {
+      loader.load(
+        './media/images/cardimages/cairne_bloodhoof.jpg',
+        (texture) => {
+          texture.offset.set(0.2, 0.1)
+          resolve(texture)
+        },
+        undefined,
+        reject
+      )
+    })
 
-        const portraitGeometry = new THREE.PlaneGeometry(
-          CARD_WIDTH,
-          CARD_HEIGHT * 0.8
-        ) // Portrait area
-        const portraitMaterial = new THREE.MeshBasicMaterial({
-          map: texture,
-          transparent: true,
-          alphaTest: 0.1,
-        })
+    // Load frame texture
+    const framePromise = new Promise<THREE.Texture>((resolve, reject) => {
+      loader.load(
+        './media/images/card_inhand_minion_priest_frame.png',
+        resolve,
+        undefined,
+        reject
+      )
+    })
 
-        const portrait = new THREE.Mesh(portraitGeometry, portraitMaterial)
-        portrait.name = 'portrait'
-        portrait.position.set(0, 1.15, -Layer.PORTRAIT)  // Negative to be behind clickable area
-        this.mesh.add(portrait)
-      },
-      undefined,
-      (error) => {
-        console.log('Error loading portrait texture:', error)
+    // Wait for both textures to load
+    try {
+      const [portrait, frame] = await Promise.all([
+        portraitPromise,
+        framePromise,
+      ])
+      this.portraitTexture = portrait
+      this.frameTexture = frame
+
+      // Create text textures
+      await this.createOverlayElements()
+    } catch (error) {
+      console.error('Error loading card textures:', error)
+    }
+  }
+
+  private compileTextures(): void {
+    // Create a large canvas to composite everything
+    const compositeCanvas = document.createElement('canvas')
+    const canvasWidth = 512
+    const canvasHeight = Math.floor(canvasWidth * (CARD_HEIGHT / CARD_WIDTH)) // Maintain aspect ratio
+
+    compositeCanvas.width = canvasWidth
+    compositeCanvas.height = canvasHeight
+
+    const ctx = compositeCanvas.getContext('2d')
+    if (!ctx) return
+
+    // Calculate dimensions and positions for each element
+    const portraitHeight = canvasHeight * 0.8 // Portrait takes 80% of card height
+    const portraitY = canvasHeight * 0.1 // Start 10% from top
+
+    // Draw portrait (background layer)
+    if (this.portraitTexture && this.portraitTexture.image) {
+      const image = this.portraitTexture.image
+      if (
+        image instanceof HTMLImageElement ||
+        image instanceof HTMLCanvasElement ||
+        image instanceof ImageBitmap
+      ) {
+        ctx.drawImage(image, 0, portraitY, canvasWidth, portraitHeight)
       }
-    )
+    }
 
-    // Frame
-    loader.load(
-      './media/images/card_inhand_minion_priest_frame.png',
-      (texture) => {
-        const frameMaterial = new THREE.MeshBasicMaterial({
-          map: texture,
-          transparent: true,
-          alphaTest: 0.1,
-          side: THREE.DoubleSide,
-        })
-
-        const frameGeometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT) // Full card size
-        this.frame = new THREE.Mesh(frameGeometry, frameMaterial)
-        this.frame.name = 'frame'
-        this.frame.position.set(0, 0, -Layer.FRAME)  // Negative to be behind clickable area
-        this.mesh.add(this.frame)
-
-        this.createOverlayElements()
-      },
-      undefined,
-      (error) => {
-        console.log('Error loading frame texture:', error)
+    // Draw frame (overlay layer)
+    if (this.frameTexture && this.frameTexture.image) {
+      const image = this.portraitTexture.image
+      if (
+        image instanceof HTMLImageElement ||
+        image instanceof HTMLCanvasElement ||
+        image instanceof ImageBitmap
+      ) {
+        ctx.drawImage(image, 0, 0, canvasWidth, canvasHeight)
       }
-    )
+    }
+
+    // Draw text overlays
+    this.drawTextOverlay(ctx, this.manaCanvas, 32, 32) // Top-left
+    this.drawTextOverlay(ctx, this.attackCanvas, 32, canvasHeight - 96) // Bottom-left
+    this.drawTextOverlay(
+      ctx,
+      this.healthCanvas,
+      canvasWidth - 96,
+      canvasHeight - 96
+    ) // Bottom-right
+
+    // Create the final composite texture and mesh
+    const compositeTexture = new THREE.CanvasTexture(compositeCanvas)
+    compositeTexture.needsUpdate = true
+
+    const geometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT)
+    const material = new THREE.MeshBasicMaterial({
+      map: compositeTexture,
+      transparent: true,
+    })
+
+    // Replace the temporary mesh with the composite one
+    const oldGeometry = this.mesh.geometry
+    const oldMaterial = this.mesh.material
+
+    this.mesh.geometry = geometry
+    this.mesh.material = material
+
+    // Clean up old resources
+    oldGeometry.dispose()
+    if (Array.isArray(oldMaterial)) {
+      oldMaterial.forEach((mat) => mat.dispose())
+    } else {
+      oldMaterial.dispose()
+    }
+  }
+
+  private drawTextOverlay(
+    ctx: CanvasRenderingContext2D,
+    textCanvas: HTMLCanvasElement,
+    x: number,
+    y: number
+  ): void {
+    if (textCanvas) {
+      ctx.drawImage(textCanvas, x, y, 64, 64)
+    }
   }
 
   private createCanvasTexture(
@@ -139,56 +219,11 @@ export default class MinionCardView implements Draggable {
     this.healthCanvas = healthResult.canvas
     this.healthTexture = healthResult.texture
 
-    // Create simple stat displays
-    this.setupMana()
-    this.setupAttack()
-    this.setupHealth()
-  }
-
-  private createTextPlane(
-    texture: THREE.CanvasTexture,
-    position: THREE.Vector3
-  ): THREE.Mesh {
-    const geometry = new THREE.PlaneGeometry(0.8, 0.8)
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-      transparent: true,
-    })
-
-    const mesh = new THREE.Mesh(geometry, material)
-    mesh.position.copy(position)
-    this.mesh.add(mesh)
-
-    return mesh
-  }
-
-  // Simplified - no name banner for now
-
-  private setupMana(): void {
+    // Generate text on canvases (but don't create separate meshes)
     this.updateMana(4)
-    this.createTextPlane(
-      this.manaTexture,
-      new THREE.Vector3(-1.5, 2.5, Layer.OVERLAY_TEXT)  // Positive to be in front of clickable area
-    )
-  }
-
-  private setupAttack(): void {
     this.updateAttack(2)
-    this.createTextPlane(
-      this.attackTexture,
-      new THREE.Vector3(-1.5, -2.5, Layer.OVERLAY_TEXT)  // Positive to be in front of clickable area
-    )
-  }
-
-  private setupHealth(): void {
     this.updateHealth(5)
-    this.createTextPlane(
-      this.healthTexture,
-      new THREE.Vector3(1.5, -2.5, Layer.OVERLAY_TEXT)  // Positive to be in front of clickable area
-    )
   }
-
-  // Name banner removed for simplicity
 
   public setCardDepth(depth: number): void {
     this.mesh.position.z = depth
@@ -199,7 +234,7 @@ export default class MinionCardView implements Draggable {
   }
 
   public getBoundingInfo(): { min: THREE.Vector3; max: THREE.Vector3 } {
-    const box = new THREE.Box3().setFromObject(this.frame)
+    const box = new THREE.Box3().setFromObject(this.mesh)
     return { min: box.min, max: box.max }
   }
 
@@ -250,6 +285,11 @@ export default class MinionCardView implements Draggable {
     ctx.fillText(text, x, y)
 
     this.manaTexture.needsUpdate = true
+
+    // Recompile if textures are loaded
+    if (this.portraitTexture && this.frameTexture) {
+      this.compileTextures()
+    }
   }
 
   public updateAttack(newAttack: number): void {
@@ -274,6 +314,11 @@ export default class MinionCardView implements Draggable {
     ctx.fillText(text, x, y)
 
     this.attackTexture.needsUpdate = true
+
+    // Recompile if textures are loaded
+    if (this.portraitTexture && this.frameTexture) {
+      this.compileTextures()
+    }
   }
 
   public updateHealth(newHealth: number): void {
@@ -298,6 +343,11 @@ export default class MinionCardView implements Draggable {
     ctx.fillText(text, x, y)
 
     this.healthTexture.needsUpdate = true
+
+    // Recompile if textures are loaded
+    if (this.portraitTexture && this.frameTexture) {
+      this.compileTextures()
+    }
   }
 
   public isDraggable(): boolean {
