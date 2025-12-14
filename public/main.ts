@@ -10,24 +10,15 @@ import TargetingArrowSystem from './TargetingArrowSystem.ts'
 enum Layer {
   GAMEPLAY_AREA = 0,
   TRAY = -0.1,
-  CORNER = -0.2,
   MINION = -0.3,
   HERO = -0.4,
   MINIONS = -0.5,
-}
-
-interface CornerConfig {
-  name: string
-  texturePath: string
-  anchorX: number
-  anchorZ: number
 }
 
 class GameRenderer {
   private canvas: HTMLCanvasElement
   private renderer: THREE.WebGLRenderer
   private scene: THREE.Scene
-  private shadowGenerator: THREE.DirectionalLight
   private camera: THREE.OrthographicCamera
   private sceneRoot: THREE.Object3D
   private gameplayArea: THREE.Mesh
@@ -38,17 +29,16 @@ class GameRenderer {
   private mouse: THREE.Vector2
 
   private readonly ORTHO_SIZE = 4
-  private readonly CORNER_SIZE = 3
 
   constructor(canvasId: string) {
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement
-    
-    this.renderer = new THREE.WebGLRenderer({ 
+
+    this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       antialias: true,
-      preserveDrawingBuffer: true 
+      preserveDrawingBuffer: true,
     })
-    
+
     this.renderer.setSize(window.innerWidth, window.innerHeight)
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -57,7 +47,7 @@ class GameRenderer {
     this.sceneRoot = new THREE.Object3D()
     this.sceneRoot.name = 'sceneRoot'
     this.scene.add(this.sceneRoot)
-    
+
     this.raycaster = new THREE.Raycaster()
     this.mouse = new THREE.Vector2()
 
@@ -100,16 +90,16 @@ class GameRenderer {
 
   private setupCamera(): void {
     const aspect = window.innerWidth / window.innerHeight
-    
+
     this.camera = new THREE.OrthographicCamera(
       -this.ORTHO_SIZE * aspect, // left
-      this.ORTHO_SIZE * aspect,  // right
-      this.ORTHO_SIZE,           // top
-      -this.ORTHO_SIZE,          // bottom
-      0.1,                       // near
-      1000                       // far
+      this.ORTHO_SIZE * aspect, // right
+      this.ORTHO_SIZE, // top
+      -this.ORTHO_SIZE, // bottom
+      0.1, // near
+      1000 // far
     )
-    
+
     this.camera.position.set(0, 0, 100)
     this.camera.lookAt(0, 0, 0)
   }
@@ -118,7 +108,7 @@ class GameRenderer {
     // Ambient light
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
     this.scene.add(ambientLight)
-    
+
     // Directional light with shadows
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.5)
     dirLight.position.set(-1, -1, 2)
@@ -128,109 +118,31 @@ class GameRenderer {
     dirLight.shadow.camera.near = 0.1
     dirLight.shadow.camera.far = 500
     this.scene.add(dirLight)
-    
-    this.shadowGenerator = dirLight
   }
 
   private createGameplayArea(): void {
-    const loader = new THREE.TextureLoader()
-    loader.load('./media/images/maps/Default/GameplayArea_transparent.png', (texture) => {
-      const screenHeight = this.ORTHO_SIZE * 2
-      const geometry = new THREE.PlaneGeometry(screenHeight, screenHeight / 2)
-      
-      const material = new THREE.MeshLambertMaterial({
-        map: texture,
-        transparent: true,
-        alphaTest: 0.1
-      })
-      
-      this.gameplayArea = new THREE.Mesh(geometry, material)
-      this.gameplayArea.position.set(0, 0, Layer.GAMEPLAY_AREA)
-      this.sceneRoot.add(this.gameplayArea)
-      
-      this.createHeroTrays()
-    })
-  }
+    new THREE.TextureLoader().load(
+      './media/images/maps/Uldaman_Board.png',
+      (texture) => {
+        const imageWidth = texture.image.width
+        const imageHeight = texture.image.height
+        const aspectRatio = imageWidth / imageHeight
 
-  private createCorners(): void {
-    const cornerConfigs: CornerConfig[] = [
-      {
-        name: 'corner1',
-        texturePath: './media/images/maps/Default/TL_transparent.png',
-        anchorX: -1,
-        anchorZ: 1,
-      },
-      {
-        name: 'corner2',
-        texturePath: './media/images/maps/Default/TR_transparent.png',
-        anchorX: 1,
-        anchorZ: 1,
-      },
-      {
-        name: 'corner3',
-        texturePath: './media/images/maps/Default/BL_transparent.png',
-        anchorX: -1,
-        anchorZ: -1,
-      },
-      {
-        name: 'corner4',
-        texturePath: './media/images/maps/Default/BR_transparent.png',
-        anchorX: 1,
-        anchorZ: -1,
-      },
-    ]
+        const planeHeight = this.ORTHO_SIZE * 2 // Full camera height
+        const planeWidth = planeHeight * aspectRatio
+        const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight)
 
-    cornerConfigs.forEach((config) => this.createCorner(config))
-  }
+        const material = new THREE.MeshLambertMaterial({
+          map: texture,
+          transparent: true,
+          alphaTest: 0.1,
+        })
 
-  private createCorner(config: CornerConfig): void {
-    // Corner creation removed for simplicity
-  }
- 
-
-  private createHeroTrays(): void {
-    const loader = new THREE.TextureLoader()
-    
-    // Top tray
-    loader.load('./media/images/maps/Default/HeroTrays_transparent.png', (texture) => {
-      const topTexture = texture.clone()
-      topTexture.wrapS = THREE.ClampToEdgeWrapping
-      topTexture.wrapT = THREE.ClampToEdgeWrapping
-      topTexture.repeat.y = 0.5
-      topTexture.offset.y = 0.5
-      
-      const geometry = new THREE.PlaneGeometry(5, 2.5)
-      const material = new THREE.MeshLambertMaterial({
-        map: topTexture,
-        transparent: true,
-        alphaTest: 0.1
-      })
-      
-      const topTray = new THREE.Mesh(geometry, material)
-      topTray.position.set(0, 2.3, Layer.TRAY)
-      this.sceneRoot.add(topTray)
-    })
-    
-    // Bottom tray
-    loader.load('./media/images/maps/Default/HeroTrays_transparent.png', (texture) => {
-      const bottomTexture = texture.clone()
-      bottomTexture.wrapS = THREE.ClampToEdgeWrapping
-      bottomTexture.wrapT = THREE.ClampToEdgeWrapping
-      bottomTexture.repeat.y = 0.5
-      bottomTexture.offset.y = 0
-      
-      const geometry = new THREE.PlaneGeometry(5, 2.5)
-      const material = new THREE.MeshLambertMaterial({
-        map: bottomTexture,
-        transparent: true,
-        alphaTest: 0.1
-      })
-      
-      const bottomTray = new THREE.Mesh(geometry, material)
-      bottomTray.position.set(0, -2.3, Layer.TRAY)
-      this.sceneRoot.add(bottomTray)
-    })
-
+        this.gameplayArea = new THREE.Mesh(geometry, material)
+        this.gameplayArea.position.set(0, 0, Layer.GAMEPLAY_AREA)
+        this.sceneRoot.add(this.gameplayArea)
+      }
+    )
   }
 
   private updateMousePosition(event: MouseEvent): void {
@@ -238,12 +150,12 @@ class GameRenderer {
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
   }
-  
+
   private raycastFromMouse(): THREE.Intersection[] {
     this.raycaster.setFromCamera(this.mouse, this.camera)
     return this.raycaster.intersectObjects(this.scene.children, true)
   }
-  
+
   private getWorldPositionOnPlane(z: number = -3): THREE.Vector3 | null {
     this.raycaster.setFromCamera(this.mouse, this.camera)
     const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), z)
@@ -255,7 +167,7 @@ class GameRenderer {
   private setupEventListeners(): void {
     window.addEventListener('resize', () => {
       this.renderer.setSize(window.innerWidth, window.innerHeight)
-      
+
       setTimeout(() => {
         const aspect = window.innerWidth / window.innerHeight
         this.camera.left = -this.ORTHO_SIZE * aspect
@@ -267,7 +179,7 @@ class GameRenderer {
     this.canvas.addEventListener('mousedown', (event) => {
       this.updateMousePosition(event)
       const intersects = this.raycastFromMouse()
-      
+
       if (intersects.length > 0) {
         const mesh = intersects[0].object as THREE.Mesh
         if (mesh.userData && mesh.userData.owner) {
@@ -287,11 +199,13 @@ class GameRenderer {
 
     this.canvas.addEventListener('mousemove', (event) => {
       this.updateMousePosition(event)
-      
+
       if (MinionCardView.draggedCard) {
         const worldPos = this.getWorldPositionOnPlane()
         if (worldPos) {
-          const targetPos = worldPos.clone().add(MinionCardView.draggedCard.dragOffset)
+          const targetPos = worldPos
+            .clone()
+            .add(MinionCardView.draggedCard.dragOffset)
           MinionCardView.draggedCard.mesh.position.lerp(targetPos, 0.7)
 
           if (
@@ -300,7 +214,9 @@ class GameRenderer {
               this.playerBoard.getBoundingInfo()
             )
           ) {
-            this.playerBoard.updatePlaceholderPosition(MinionCardView.draggedCard.mesh.position.x)
+            this.playerBoard.updatePlaceholderPosition(
+              MinionCardView.draggedCard.mesh.position.x
+            )
           } else {
             this.playerBoard.removePlaceholder()
           }
@@ -315,7 +231,7 @@ class GameRenderer {
 
     this.canvas.addEventListener('mouseup', (event) => {
       this.updateMousePosition(event)
-      
+
       if (MinionCardView.draggedCard) {
         if (
           this.isIntersecting(
@@ -339,7 +255,7 @@ class GameRenderer {
         MinionCardView.draggedCard = null
       } else if (this.targetingSystem.isActive) {
         const intersects = this.raycastFromMouse()
-        
+
         if (intersects.length > 0) {
           const mesh = intersects[0].object as THREE.Mesh
           if (mesh.userData && mesh.userData.owner instanceof MinionBoardView) {
@@ -360,8 +276,8 @@ class GameRenderer {
   }
 
   private isIntersecting(
-    item1: { min: THREE.Vector3, max: THREE.Vector3 },
-    item2: { min: THREE.Vector3, max: THREE.Vector3 }
+    item1: { min: THREE.Vector3; max: THREE.Vector3 },
+    item2: { min: THREE.Vector3; max: THREE.Vector3 }
   ): boolean {
     return (
       item1.min.x < item2.max.x &&
