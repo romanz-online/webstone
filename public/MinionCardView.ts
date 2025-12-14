@@ -18,7 +18,6 @@ export default class MinionCardView {
   public frame: THREE.Mesh
   public originalPosition: THREE.Vector3
   public dragOffset: THREE.Vector3 | null = null
-  // public isEnlarged: boolean = false
 
   private scene: THREE.Scene
   private manaCanvas: HTMLCanvasElement

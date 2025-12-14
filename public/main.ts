@@ -174,9 +174,10 @@ class GameRenderer {
 
   private getWorldPositionOnPlane(z: number = -3): THREE.Vector3 | null {
     this.raycaster.setFromCamera(this.mouse, this.camera)
-    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), z)
-    const target = new THREE.Vector3()
-    return this.raycaster.ray.intersectPlane(plane, target)
+    return this.raycaster.ray.intersectPlane(
+      new THREE.Plane(new THREE.Vector3(0, 0, 1), z),
+      new THREE.Vector3()
+    )
   }
 
   private setupEventListeners(): void {
