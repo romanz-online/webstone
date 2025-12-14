@@ -244,7 +244,7 @@ export default class MinionCardView implements Draggable {
     this.healthCanvas = healthResult.canvas
     this.healthTexture = healthResult.texture
 
-    // Generate text on canvases (but don't create separate meshes)
+    // Generate text on canvases (doesn't create separate meshes)
     this.updateMana(4)
     this.updateAttack(2)
     this.updateHealth(5)
@@ -291,7 +291,7 @@ export default class MinionCardView implements Draggable {
     if (!ctx) return
 
     ctx.clearRect(0, 0, this.manaCanvas.width, this.manaCanvas.height)
-    ctx.font = 'bold 120px Belwe'
+    ctx.font = 'bold 140px Belwe'
     ctx.fillStyle = 'white'
     ctx.strokeStyle = 'black'
     ctx.lineWidth = 4
@@ -320,7 +320,7 @@ export default class MinionCardView implements Draggable {
     if (!ctx) return
 
     ctx.clearRect(0, 0, this.attackCanvas.width, this.attackCanvas.height)
-    ctx.font = 'bold 120px Belwe'
+    ctx.font = 'bold 140px Belwe'
     ctx.fillStyle = 'white'
     ctx.strokeStyle = 'black'
     ctx.lineWidth = 4
@@ -349,7 +349,7 @@ export default class MinionCardView implements Draggable {
     if (!ctx) return
 
     ctx.clearRect(0, 0, this.healthCanvas.width, this.healthCanvas.height)
-    ctx.font = 'bold 120px Belwe'
+    ctx.font = 'bold 140px Belwe'
     ctx.fillStyle = 'white'
     ctx.strokeStyle = 'black'
     ctx.lineWidth = 4
