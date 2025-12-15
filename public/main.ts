@@ -1,12 +1,13 @@
 import FontFaceObserver from 'fontfaceobserver'
 import * as THREE from 'three'
-import PlayerBoard from './PlayerBoard.ts'
+import { EventType } from './constants.ts'
 import { Layer } from './gameConstants.ts'
 import InteractionManager from './InteractionManager.ts'
 import MinionBoard from './MinionBoard.ts'
 import MinionCard from './MinionCard.ts'
 import MinionModel from './MinionModel.ts'
 import OpponentPortrait from './OpponentPortrait.ts'
+import PlayerBoard from './PlayerBoard.ts'
 import PlayerHand from './PlayerHand.ts'
 import PlayerPortrait from './PlayerPortrait.ts'
 import TargetingArrowSystem from './TargetingArrowSystem.ts'
@@ -321,15 +322,15 @@ class GameRenderer {
   await gameRenderer.initialize()
 })()
 
-// const triggerWsEvent = (event: EventType, data: any = {}): void => {
-//   if (ws) {
-//     ws.send(JSON.stringify({ event: event, data: data }))
-//   } else {
-//     console.error('! WebSocket not defined')
-//   }
-// }
+let ws: WebSocket
 
-// let ws: WebSocket
+export const triggerWsEvent = (event: EventType, data: any = {}): void => {
+  if (ws) {
+    ws.send(JSON.stringify({ event: event, data: data }))
+  } else {
+    console.error('! WebSocket not defined')
+  }
+}
 
 //   console.log('Connecting WebSocket...')
 //   ws = new WebSocket('ws://localhost:5500')

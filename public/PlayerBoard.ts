@@ -2,7 +2,9 @@ import * as THREE from 'three'
 import { DragEvent, Draggable, DropZone } from './Draggable.ts'
 import MinionBoard from './MinionBoard.ts'
 import MinionCard from './MinionCard.ts'
+import { EventType, PlayerID } from './constants.ts'
 import { Layer } from './gameConstants.ts'
+import { triggerWsEvent } from './main.ts'
 
 export default class PlayerBoard implements DropZone {
   public mesh: THREE.Object3D
@@ -220,14 +222,17 @@ export default class PlayerBoard implements DropZone {
     if (draggable instanceof MinionCard) {
       console.log('Card was dropped on board in place', this.placeholderIndex)
 
+      triggerWsEvent(EventType.TryPlayCard, {
+        boardIndex: this.placeholderIndex,
+        minionID: draggable.minion.id,
+        playerID: PlayerID.Player1,
+      })
+
       // Create a new minion for the board
-      const newMinion = new MinionBoard(this.scene, draggable.minion)
+      // const newMinion = new MinionBoard(this.scene, draggable.minion)
 
       // Summon the minion at the placeholder position
-      this.summonMinion(newMinion)
-
-      // Remove the card from its original location (this would be handled by the hand)
-      // The hand should listen for the dragend event and remove the card
+      // this.summonMinion(newMinion)
     }
   }
 
