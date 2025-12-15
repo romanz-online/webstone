@@ -14,7 +14,7 @@ export default class PlayerPortrait {
   public originalPosition: THREE.Vector3
 
   private scene: THREE.Scene
-  private static readonly PLAYER_Y_POSITION = -3
+  private static readonly PLAYER_Y_POSITION = -2.3
 
   constructor(
     scene: THREE.Scene,

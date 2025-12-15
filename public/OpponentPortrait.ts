@@ -14,7 +14,7 @@ export default class OpponentPortrait {
   public originalPosition: THREE.Vector3
 
   private scene: THREE.Scene
-  private static readonly OPPONENT_Y_POSITION = 3
+  private static readonly OPPONENT_Y_POSITION = 2.8
 
   constructor(
     scene: THREE.Scene,
