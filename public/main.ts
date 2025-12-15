@@ -6,7 +6,7 @@ import InteractionManager from './InteractionManager.ts'
 import MinionBoardView from './MinionBoardView.ts'
 import MinionCardView from './MinionCardView.ts'
 import MinionModel from './MinionModel.ts'
-import { CARD_WIDTH, CARD_HEIGHT, MINION_BOARD_WIDTH, MINION_BOARD_HEIGHT, Layer } from './gameConstants.ts'
+import { Layer } from './gameConstants.ts'
 
 // Logical game dimensions (16:9 ratio)
 const GAME_WIDTH = 16
@@ -81,15 +81,11 @@ class GameRenderer {
 
     this.playerBoard = new BoardView(this.scene)
     this.playerBoard.mesh.position.z = Layer.HAND
-    this.playerBoard.addMinion(
-      new MinionBoardView(this.scene, new MinionModel({}))
-    )
-    this.playerBoard.addMinion(
-      new MinionBoardView(this.scene, new MinionModel({}))
-    )
-    this.playerBoard.addMinion(
-      new MinionBoardView(this.scene, new MinionModel({}))
-    )
+    this.playerBoard.setBoardData([
+      new MinionBoardView(this.scene, new MinionModel({})),
+      new MinionBoardView(this.scene, new MinionModel({})),
+      new MinionBoardView(this.scene, new MinionModel({})),
+    ])
 
     // Register the board as a drop zone
     this.interactionManager.addDropZone(this.playerBoard)
@@ -194,7 +190,10 @@ class GameRenderer {
         draggable instanceof MinionCardView &&
         dropZone === this.playerBoard
       ) {
-        this.playerBoard.updatePlaceholderPosition(worldPosition.x, worldPosition.y)
+        this.playerBoard.updatePlaceholderPosition(
+          worldPosition.x,
+          worldPosition.y
+        )
       }
     })
 

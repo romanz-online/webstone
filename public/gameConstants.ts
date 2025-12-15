@@ -6,7 +6,8 @@ export const MINION_BOARD_HEIGHT = 1.5
 
 // Game layers
 export enum Layer {
-  GAMEPLAY_AREA = 0,
   HERO = 0.1,
-  HAND = 0.2,
+  BOARD = 0.2,
+  BOARD_MINION = 0.3,
+  HAND = 0.4,
 }

@@ -2,11 +2,7 @@ import * as THREE from 'three'
 import { DragEvent, Draggable, DropZone } from './Draggable.ts'
 import MinionBoardView from './MinionBoardView.ts'
 import MinionCardView from './MinionCardView.ts'
-
-enum Layer {
-  DROPPABLE_AREA = 0,
-  MINION = -0.1,
-}
+import { Layer } from './gameConstants.ts'
 
 export default class BoardView implements DropZone {
   public mesh: THREE.Object3D
@@ -34,7 +30,7 @@ export default class BoardView implements DropZone {
 
     this.droppableArea = new THREE.Mesh(geometry, material)
     this.droppableArea.name = 'clickableArea'
-    this.droppableArea.position.set(0, -0.5, Layer.DROPPABLE_AREA)
+    this.droppableArea.position.set(0, -0.5, Layer.BOARD)
     this.mesh.add(this.droppableArea)
   }
 
@@ -43,12 +39,7 @@ export default class BoardView implements DropZone {
     return { min: box.min, max: box.max }
   }
 
-  /**
-   * Play a minion onto the board with a Hearthstone-like entry animation
-   * @param minion MinionBoardView to play
-   * @param targetX Target x position for the minion
-   */
-  public summonMinion(minion: MinionBoardView, targetX: number): void {
+  public summonMinion(minion: MinionBoardView): void {
     // Add the minion to the board
     this.minions.splice(this.placeholderIndex, 0, minion)
 
@@ -61,10 +52,6 @@ export default class BoardView implements DropZone {
     this.removePlaceholder()
   }
 
-  /**
-   * Animate a minion being played onto the board
-   * @param minion Minion to animate
-   */
   private animateMinionPlayEntry(minion: MinionBoardView): void {
     minion.mesh.position.x =
       -((this.minions.length - 1) * this.CARD_SPACING) / 2 +
@@ -101,11 +88,6 @@ export default class BoardView implements DropZone {
     animate()
   }
 
-  /**
-   * Update board layout with a placeholder for a potential new minion
-   * @param worldX World X coordinate of the hovered card
-   * @param worldY World Y coordinate of the hovered card
-   */
   public updatePlaceholderPosition(worldX: number, worldY: number): void {
     // Convert world coordinates to board-relative coordinates
     const worldPosition = new THREE.Vector3(worldX, worldY, 0)
@@ -135,18 +117,11 @@ export default class BoardView implements DropZone {
     }
   }
 
-  /**
-   * Remove the placeholder and reset minion positions
-   */
   public removePlaceholder(): void {
     this.placeholderIndex = -1
     this.arrangeMinions()
   }
 
-  /**
-   * Set the entire hand data at once, replacing any existing cards
-   * @param minions Array of MinionBoardView instances to set in the hand
-   */
   public setBoardData(minions: MinionBoardView[]): void {
     this.minions.forEach((minion) => minion.dispose())
 
@@ -154,19 +129,11 @@ export default class BoardView implements DropZone {
     this.arrangeMinions()
   }
 
-  /**
-   * Add a single card to the hand
-   * @param minion MinionBoardView to add to the hand
-   */
   public addMinion(minion: MinionBoardView): void {
     this.minions.push(minion)
     this.arrangeMinions()
   }
 
-  /**
-   * Remove a specific card from the hand
-   * @param minion MinionBoardView to remove
-   */
   public removeMinion(minion: MinionBoardView): void {
     const index = this.minions.indexOf(minion)
     if (index !== -1) {
@@ -176,10 +143,6 @@ export default class BoardView implements DropZone {
     }
   }
 
-  /**
-   * Arrange cards in a horizontal line with even spacing
-   * @param withPlaceholder Whether to include a placeholder space
-   */
   private arrangeMinions(withPlaceholder: boolean = false): void {
     const actualMinionCount = withPlaceholder
       ? this.minions.length + 1
@@ -195,8 +158,7 @@ export default class BoardView implements DropZone {
       }
 
       minion.mesh.position.y = this.BOARD_Y_POSITION
-      minion.mesh.position.z = Layer.MINION
-      minion.transformToBoard()
+      minion.mesh.position.z = Layer.BOARD_MINION
 
       // Adjust x position if placeholder is active and valid
       let adjustedIndex = index
@@ -215,11 +177,6 @@ export default class BoardView implements DropZone {
     })
   }
 
-  /**
-   * Animate a minion to a new position
-   * @param minion Minion to animate
-   * @param targetX Target x position
-   */
   private animateMinionPosition(
     minion: MinionBoardView,
     targetX: number
@@ -258,13 +215,6 @@ export default class BoardView implements DropZone {
     ;(minion as any).animationId = requestAnimationFrame(animate)
   }
 
-  /**
-   * Get the number of cards currently in the hand
-   */
-  public get minionCount(): number {
-    return this.minions.length
-  }
-
   public canAcceptDrop(draggable: Draggable): boolean {
     return draggable instanceof MinionCardView
   }
@@ -277,16 +227,13 @@ export default class BoardView implements DropZone {
       const newMinion = new MinionBoardView(this.scene, draggable.minion)
 
       // Summon the minion at the placeholder position
-      this.summonMinion(newMinion, this.placeholderIndex)
+      this.summonMinion(newMinion)
 
       // Remove the card from its original location (this would be handled by the hand)
       // The hand should listen for the dragend event and remove the card
     }
   }
 
-  /**
-   * Dispose of all cards and clear the hand
-   */
   public clear(): void {
     this.minions.forEach((minion) => {
       // Cancel any ongoing animations

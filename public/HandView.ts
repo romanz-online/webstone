@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import MinionCardView from './MinionCardView.ts'
+import { Layer } from './gameConstants.ts'
 
 export default class HandView {
   public mesh: THREE.Object3D
@@ -52,7 +53,7 @@ export default class HandView {
    */
   private arrangeCards(): void {
     // Remove all existing cards from mesh to prevent parent-child conflicts
-    this.cards.forEach(card => {
+    this.cards.forEach((card) => {
       this.mesh.remove(card.mesh)
     })
 
@@ -62,12 +63,15 @@ export default class HandView {
     // Re-add all cards in proper order
     this.cards.forEach((card, index) => {
       this.mesh.add(card.mesh)
-      card.transformToHand()
 
       const xPosition = startX + index * this.CARD_SPACING
 
       // Use small z-offset to prevent z-fighting
-      card.mesh.position.set(xPosition, this.HAND_Y_POSITION, index * 0.01)
+      card.mesh.position.set(
+        xPosition,
+        this.HAND_Y_POSITION,
+        Layer.HAND + index * 0.01
+      )
       card.originalPosition = card.mesh.position.clone()
     })
   }

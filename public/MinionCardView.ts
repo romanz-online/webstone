@@ -262,10 +262,6 @@ export default class MinionCardView implements Draggable {
     }
   }
 
-  public transformToHand(): void {
-    this.mesh.scale.set(1, 1, 1)
-  }
-
   public getBoundingInfo(): { min: THREE.Vector3; max: THREE.Vector3 } {
     const box = new THREE.Box3().setFromObject(this.mesh)
     return { min: box.min, max: box.max }
