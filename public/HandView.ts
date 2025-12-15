@@ -51,16 +51,23 @@ export default class HandView {
    * Arrange cards in a horizontal line with even spacing
    */
   private arrangeCards(): void {
+    // Remove all existing cards from mesh to prevent parent-child conflicts
+    this.cards.forEach(card => {
+      this.mesh.remove(card.mesh)
+    })
+
     const totalWidth = (this.cards.length - 1) * this.CARD_SPACING
     const startX = -totalWidth / 2
 
+    // Re-add all cards in proper order
     this.cards.forEach((card, index) => {
       this.mesh.add(card.mesh)
       card.transformToHand()
 
       const xPosition = startX + index * this.CARD_SPACING
 
-      card.mesh.position.set(xPosition, this.HAND_Y_POSITION, index)
+      // Use small z-offset to prevent z-fighting
+      card.mesh.position.set(xPosition, this.HAND_Y_POSITION, index * 0.01)
       card.originalPosition = card.mesh.position.clone()
     })
   }

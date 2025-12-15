@@ -188,13 +188,13 @@ class GameRenderer {
   private setupInteractionEventListeners(): void {
     // Listen for hover over drop zones
     this.interactionManager.addEventListener('hoverdropzone', (event: any) => {
-      const { dropZone, draggable } = event.detail
+      const { dropZone, draggable, worldPosition } = event.detail
 
       if (
         draggable instanceof MinionCardView &&
         dropZone === this.playerBoard
       ) {
-        this.playerBoard.updatePlaceholderPosition(draggable.mesh.position.x)
+        this.playerBoard.updatePlaceholderPosition(worldPosition.x, worldPosition.y)
       }
     })
 

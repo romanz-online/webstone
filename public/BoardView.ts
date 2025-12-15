@@ -10,7 +10,7 @@ enum Layer {
 
 export default class BoardView implements DropZone {
   public mesh: THREE.Object3D
-  public placeholderIndex: number = 0
+  public placeholderIndex: number = -1
 
   private scene: THREE.Scene
   private droppableArea: THREE.Mesh
@@ -53,7 +53,7 @@ export default class BoardView implements DropZone {
     this.minions.splice(this.placeholderIndex, 0, minion)
 
     // Arrange minions to set up the correct positioning
-    this.arrangeMinions()
+    this.arrangeMinions(false)
 
     // Perform the play animation
     this.animateMinionPlayEntry(minion)
@@ -103,9 +103,17 @@ export default class BoardView implements DropZone {
 
   /**
    * Update board layout with a placeholder for a potential new minion
-   * @param hoveredCardWidth Width of the card being hovered
+   * @param worldX World X coordinate of the hovered card
+   * @param worldY World Y coordinate of the hovered card
    */
-  public updatePlaceholderPosition(hoveredCardX: number): void {
+  public updatePlaceholderPosition(worldX: number, worldY: number): void {
+    // Convert world coordinates to board-relative coordinates
+    const worldPosition = new THREE.Vector3(worldX, worldY, 0)
+    const localPosition = this.mesh.worldToLocal(worldPosition)
+
+    // Use the local X position for determining placement
+    const hoveredCardX = localPosition.x
+
     // Determine the placeholder index based on the hovered card's x position
     const totalWidth = (this.minions.length - 1) * this.CARD_SPACING
     const startX = -totalWidth / 2
@@ -117,11 +125,14 @@ export default class BoardView implements DropZone {
     })
 
     // Set the placeholder index (or last position if not found)
-    this.placeholderIndex =
+    const calculatedIndex =
       newPlaceholderIndex === -1 ? this.minions.length : newPlaceholderIndex
 
-    // Animate minions to make space
-    this.arrangeMinions(true)
+    // Only update if placeholder position actually changed to avoid unnecessary animations
+    if (this.placeholderIndex !== calculatedIndex) {
+      this.placeholderIndex = calculatedIndex
+      this.arrangeMinions(true)
+    }
   }
 
   /**
@@ -178,14 +189,22 @@ export default class BoardView implements DropZone {
     const startX = -totalWidth / 2
 
     this.minions.forEach((minion, index) => {
-      this.mesh.add(minion.mesh)
+      // Only add to mesh if not already a child to prevent re-parenting
+      if (minion.mesh.parent !== this.mesh) {
+        this.mesh.add(minion.mesh)
+      }
+
       minion.mesh.position.y = this.BOARD_Y_POSITION
       minion.mesh.position.z = Layer.MINION
       minion.transformToBoard()
 
-      // Adjust x position if placeholder is active
+      // Adjust x position if placeholder is active and valid
       let adjustedIndex = index
-      if (withPlaceholder && index >= this.placeholderIndex) {
+      if (
+        withPlaceholder &&
+        this.placeholderIndex >= 0 &&
+        index >= this.placeholderIndex
+      ) {
         adjustedIndex++
       }
 
@@ -205,9 +224,19 @@ export default class BoardView implements DropZone {
     minion: MinionBoardView,
     targetX: number
   ): void {
+    // Skip animation if already at target position
+    if (Math.abs(minion.mesh.position.x - targetX) < 0.01) {
+      return
+    }
+
     const startX = minion.mesh.position.x
-    const duration = 250 // ms
+    const duration = 200 // ms - slightly faster for more responsive feel
     const startTime = Date.now()
+
+    // Cancel any existing animation for this minion
+    if ((minion as any).animationId) {
+      cancelAnimationFrame((minion as any).animationId)
+    }
 
     const animate = () => {
       const elapsed = Date.now() - startTime
@@ -220,11 +249,13 @@ export default class BoardView implements DropZone {
       minion.mesh.position.x = currentX
 
       if (progress < 1) {
-        requestAnimationFrame(animate)
+        ;(minion as any).animationId = requestAnimationFrame(animate)
+      } else {
+        delete (minion as any).animationId
       }
     }
 
-    animate()
+    ;(minion as any).animationId = requestAnimationFrame(animate)
   }
 
   /**
@@ -257,7 +288,14 @@ export default class BoardView implements DropZone {
    * Dispose of all cards and clear the hand
    */
   public clear(): void {
-    this.minions.forEach((card) => card.dispose())
+    this.minions.forEach((minion) => {
+      // Cancel any ongoing animations
+      if ((minion as any).animationId) {
+        cancelAnimationFrame((minion as any).animationId)
+        delete (minion as any).animationId
+      }
+      minion.dispose()
+    })
     this.minions = []
   }
 }

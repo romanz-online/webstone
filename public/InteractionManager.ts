@@ -13,6 +13,7 @@ export default class InteractionManager extends EventTarget {
   private draggedObject: Draggable | null = null
   private dragControls: DragControls
   private dropZones: DropZone[] = []
+  private lastHoveredDropZone: DropZone | null = null
 
   constructor(camera: THREE.Camera, renderer: THREE.WebGLRenderer) {
     super()
@@ -98,7 +99,9 @@ export default class InteractionManager extends EventTarget {
 
         this.dispatchEvent(new CustomEvent('dragend', { detail: dragEvent }))
 
+        // Clean up state
         this.draggedObject = null
+        this.lastHoveredDropZone = null
         this.setState(InteractionState.IDLE)
       }
     })
@@ -126,24 +129,67 @@ export default class InteractionManager extends EventTarget {
   private updateDropZoneFeedback(dragEvent: DragEvent): void {
     if (!this.draggedObject) return
 
+    // Get world position of dragged object for accurate positioning
+    const worldPosition = new THREE.Vector3()
+    dragEvent.object.getWorldPosition(worldPosition)
+
+    let currentHoveredDropZone: DropZone | null = null
+
+    // Find the currently hovered drop zone
     for (const dropZone of this.dropZones) {
       if (dropZone.canAcceptDrop(this.draggedObject)) {
-        if (this.isObjectInDropZone(dragEvent.object, dropZone)) {
-          // Visual feedback for valid drop zone
-          this.dispatchEvent(
-            new CustomEvent('hoverdropzone', {
-              detail: { dropZone, dragEvent, draggable: this.draggedObject },
-            })
-          )
-        } else {
-          // Clear feedback when no longer hovering
-          this.dispatchEvent(
-            new CustomEvent('leavedropzone', {
-              detail: { dropZone, dragEvent, draggable: this.draggedObject },
-            })
-          )
+        const isInDropZone = this.isObjectInDropZone(dragEvent.object, dropZone)
+        
+        if (isInDropZone) {
+          currentHoveredDropZone = dropZone
+          break
         }
       }
+    }
+
+    // Only dispatch events if the hovered drop zone has actually changed
+    if (currentHoveredDropZone !== this.lastHoveredDropZone) {
+      // Dispatch leave event for previously hovered drop zone
+      if (this.lastHoveredDropZone) {
+        this.dispatchEvent(
+          new CustomEvent('leavedropzone', {
+            detail: { 
+              dropZone: this.lastHoveredDropZone, 
+              dragEvent, 
+              draggable: this.draggedObject,
+              worldPosition: worldPosition.clone()
+            },
+          })
+        )
+      }
+
+      // Dispatch hover event for newly hovered drop zone
+      if (currentHoveredDropZone) {
+        this.dispatchEvent(
+          new CustomEvent('hoverdropzone', {
+            detail: { 
+              dropZone: currentHoveredDropZone, 
+              dragEvent, 
+              draggable: this.draggedObject,
+              worldPosition: worldPosition.clone()
+            },
+          })
+        )
+      }
+
+      this.lastHoveredDropZone = currentHoveredDropZone
+    } else if (currentHoveredDropZone) {
+      // Still hovering the same drop zone, send continuous position updates
+      this.dispatchEvent(
+        new CustomEvent('hoverdropzone', {
+          detail: { 
+            dropZone: currentHoveredDropZone, 
+            dragEvent, 
+            draggable: this.draggedObject,
+            worldPosition: worldPosition.clone()
+          },
+        })
+      )
     }
   }
 

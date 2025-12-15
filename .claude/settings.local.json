@@ -14,7 +14,8 @@
       "Bash(nvm install:*)",
       "Bash(nvm use:*)",
       "Bash(rm:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []
