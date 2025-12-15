@@ -70,12 +70,50 @@ export enum EventType {
   Load,
   Target,
 
+  /**
+   * TryAttack Event
+   *
+   * Data required: { attackerID: number, targetID: number }
+   */
   TryAttack,
+  /**
+   * TryPlayCard Event
+   *
+   * Data required depends on card type:
+   * - Minions: { boardIndex: number, minionID: number, playerID: PlayerID }
+   * - Spells: { cardID: number, playerID: PlayerID }
+   * - Weapons: { cardID: number, playerID: PlayerID }
+   */
   TryPlayCard,
+  /**
+   * TryEndTurn Event
+   *
+   * Data required: None
+   */
   TryEndTurn,
+  /**
+   * TryHeroPower Event
+   *
+   * Data required: None (NOT IMPLEMENTED YET)
+   */
   TryHeroPower,
+  /**
+   * TryCancel Event
+   *
+   * Data required: None
+   */
   TryCancel,
+  /**
+   * TryLoad Event
+   *
+   * Data required: None
+   */
   TryLoad,
+  /**
+   * TryTarget Event
+   *
+   * Data required: { targetID: number }
+   */
   TryTarget,
 }
 

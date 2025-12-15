@@ -2,6 +2,13 @@ import { EventType } from './constants.ts'
 
 const eventHandlers: any = {}
 
+const getEventTypeName = (event: EventType): string => {
+  return (
+    Object.keys(EventType)[Object.values(EventType).indexOf(event)] ||
+    `Unknown(${event})`
+  )
+}
+
 const wsEventHandler = ({
   socket,
   event,
@@ -29,7 +36,7 @@ const wsEventHandler = ({
     if (!eventHandlers[eventType]) return
 
     eventHandlers[eventType].forEach((handler: any) => {
-      console.log(success ? 'SUCCESS' : 'FAIL', eventType)
+      console.log(success ? 'SUCCESS' : 'FAIL', getEventTypeName(eventType))
 
       if (success) {
         handler.onSuccess(data)

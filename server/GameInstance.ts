@@ -22,6 +22,7 @@ import MinionID from '@minionID' with { type: 'json' }
 import PlayerData from '@playerData'
 import TryEndTurnEvent from '@tryEvents/TryEndTurnEvent.ts'
 import TryPlayCardEvent from '@tryEvents/TryPlayCard.ts'
+import { TryPlayMinionData, TryPlaySpellData } from '@eventInterfaces'
 import { notifyClient } from '@ws'
 
 const deck1: number[] = [
@@ -67,6 +68,7 @@ export class GameInstance {
       }
     })
 
+    // EventType.TryEndTurn - No data required
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryEndTurn,
@@ -76,6 +78,7 @@ export class GameInstance {
       }
     )
 
+    // EventType.TryCancel - No data required  
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryCancel,
@@ -85,6 +88,7 @@ export class GameInstance {
       }
     )
 
+    // EventType.TryTarget - Data required: { targetID: number }
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryTarget,
@@ -94,6 +98,7 @@ export class GameInstance {
       }
     )
 
+    // EventType.TryLoad - No data required
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryLoad,
@@ -103,6 +108,10 @@ export class GameInstance {
       }
     )
 
+    // EventType.TryPlayCard - Data required:
+    // For Minions: { boardIndex: number, minionID: number, playerID: PlayerID }
+    // For Spells: { cardID: number, playerID: PlayerID }  
+    // For Weapons: { cardID: number, playerID: PlayerID }
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryPlayCard,
@@ -112,6 +121,7 @@ export class GameInstance {
       }
     )
 
+    // EventType.TryAttack - Data required: { attackerID: number, targetID: number }
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryAttack,
@@ -121,6 +131,7 @@ export class GameInstance {
       }
     )
 
+    // EventType.TryHeroPower - No data required (NOT IMPLEMENTED YET)
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryHeroPower,
@@ -198,9 +209,17 @@ export class GameInstance {
   }
 
   tryPlayMinion(event: TryPlayCardEvent): void {
-    const boardIndex: number = event.data.boardIndex,
-      cardID: number = event.data.minionID,
-      playerData: PlayerData = this.getPlayerData(event.data.playerID)
+    // Type guard to ensure we have minion data
+    if (event.data.cardType !== CardType.Minion) {
+      notifyClient(EventType.PlayCard, false, this.toJSON())
+      console.error('Invalid card type for tryPlayMinion')
+      return
+    }
+
+    const minionData = event.data as TryPlayMinionData
+    const boardIndex: number = minionData.boardIndex,
+      cardID: number = minionData.minionID,
+      playerData: PlayerData = this.getPlayerData(minionData.playerID)
 
     const minion: Minion | null = this.getHandMinion(cardID)
     if (!minion) {
@@ -229,8 +248,16 @@ export class GameInstance {
   }
 
   tryPlaySpell(event: TryPlayCardEvent): void {
-    const cardID: number = event.data.cardID,
-      playerData: PlayerData = this.getPlayerData(event.data.playerID)
+    // Type guard to ensure we have spell data
+    if (event.data.cardType !== CardType.Spell) {
+      notifyClient(EventType.PlayCard, false, this.toJSON())
+      console.error('Invalid card type for tryPlaySpell')
+      return
+    }
+
+    const spellData = event.data as TryPlaySpellData
+    const cardID: number = spellData.cardID,
+      playerData: PlayerData = this.getPlayerData(spellData.playerID)
 
     const spell: Effect | null = this.getHandSpell(cardID)
     if (!spell) {

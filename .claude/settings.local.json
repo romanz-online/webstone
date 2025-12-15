@@ -17,7 +17,8 @@
       "Bash(npm run build:*)",
       "WebSearch",
       "Bash(npm run dev:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

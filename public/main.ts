@@ -11,6 +11,7 @@ import PlayerBoard from './PlayerBoard.ts'
 import PlayerHand from './PlayerHand.ts'
 import PlayerPortrait from './PlayerPortrait.ts'
 import TargetingArrowSystem from './TargetingArrowSystem.ts'
+import wsEventHandler from './wsEventHandler.ts'
 
 // Logical game dimensions (16:9 ratio)
 const GAME_WIDTH = 16
@@ -332,54 +333,53 @@ export const triggerWsEvent = (event: EventType, data: any = {}): void => {
   }
 }
 
-//   console.log('Connecting WebSocket...')
-//   ws = new WebSocket('ws://localhost:5500')
-//   ws.onopen = () => {
-//     console.log('Connected to WebSocket server')
+console.log('Connecting WebSocket...')
+ws = new WebSocket('ws://localhost:5500')
+ws.onopen = () => {
+  console.log('Connected to WebSocket server')
 
-//     console.log('Setting up WebSocket listeners...')
-//     wsEventHandler({
-//       socket: ws,
-//       event: EventType.Load,
-//       onSuccess: (data: any) => {
-//         data.player1.hand.forEach((card) => {
-//           const model = new MinionModel(card),
-//             cardView = new MinionCardView(model),
-//             boardView = new MinionBoardView(model)
-//           minionModels.push(model)
-//           minionCardViews.push(cardView)
-//           minionBoardViews.push(boardView)
-//         })
-//         hand.setHandData(minionCardViews)
-//         board.setBoardData(minionBoardViews)
-//       },
-//       onFailure: (data: any) => {
-//         setTimeout(() => {
-//           triggerWsEvent(EventType.TryLoad) // retry
-//         }, 5 * 1000)
-//       },
-//     })
+  console.log('Setting up WebSocket listeners...')
+  wsEventHandler({
+    socket: ws,
+    event: EventType.Load,
+    onSuccess: (data: any) => {
+      data.player1.hand.forEach((card) => {
+        //   const model = new MinionModel(card),
+        //     cardView = new MinionCardView(model),
+        //     boardView = new MinionBoardView(model)
+        //   minionModels.push(model)
+        //   minionCardViews.push(cardView)
+        //   minionBoardViews.push(boardView)
+      })
+      // hand.setHandData(minionCardViews)
+      // board.setBoardData(minionBoardViews)
+    },
+    onFailure: (data: any) => {
+      setTimeout(() => {
+        triggerWsEvent(EventType.TryLoad) // retry
+      }, 5 * 1000)
+    },
+  })
 
-//     wsEventHandler({
-//       socket: ws,
-//       event: EventType.PlayCard,
-//       onSuccess: (data: any) => {
-//         hand.playCard(data.cardID)
-//       },
-//     })
+  wsEventHandler({
+    socket: ws,
+    event: EventType.PlayCard,
+    onSuccess: (data: any) => {
+      // hand.playCard(data.cardID)
+    },
+  })
 
-//     wsEventHandler({
-//       socket: ws,
-//       event: EventType.SummonMinion,
-//       onSuccess: (data: any) => {
-//         // board.summonMinion(data.minionID, data.boardIndex)
-//       },
-//     })
+  wsEventHandler({
+    socket: ws,
+    event: EventType.SummonMinion,
+    onSuccess: (data: any) => {
+      // board.summonMinion(data.minionID, data.boardIndex)
+    },
+  })
 
-//     console.log('Loading game state...')
-//     triggerWsEvent(EventType.TryLoad)
-//   }
-//   ws.onclose = () => {
-//     console.log('Disconnected from WebSocket server')
-//   }
-// })()
+  console.log('Loading game state...')
+  triggerWsEvent(EventType.TryLoad)
+}
+ws.onclose = () => {
+  console.log('Disconnected from WebSocket server')
+}

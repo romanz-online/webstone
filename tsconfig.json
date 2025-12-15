@@ -17,6 +17,7 @@
       "@ws": ["ws.ts"],
       "@event": ["eventData/Event.ts"],
       "@tryEvent": ["eventData/TryEvent.ts"],
+      "@eventInterfaces": ["eventData/EventInterfaces.ts"],
       "@eventStack": ["EventStack.ts"],
       "@gameInstance": ["GameInstance.ts"],
       "@constants": ["constants.ts"],

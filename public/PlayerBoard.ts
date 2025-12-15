@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { DragEvent, Draggable, DropZone } from './Draggable.ts'
 import MinionBoard from './MinionBoard.ts'
 import MinionCard from './MinionCard.ts'
-import { EventType, PlayerID } from './constants.ts'
+import { CardType, EventType, PlayerID } from './constants.ts'
 import { Layer } from './gameConstants.ts'
 import { triggerWsEvent } from './main.ts'
 
@@ -223,6 +223,7 @@ export default class PlayerBoard implements DropZone {
       console.log('Card was dropped on board in place', this.placeholderIndex)
 
       triggerWsEvent(EventType.TryPlayCard, {
+        cardType: CardType.Minion,
         boardIndex: this.placeholderIndex,
         minionID: draggable.minion.id,
         playerID: PlayerID.Player1,
