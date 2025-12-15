@@ -79,31 +79,8 @@ class GameRenderer {
     this.playerHand = new PlayerHand(this.scene)
     this.playerHand.mesh.position.z = Layer.HAND
 
-    // Create cards and register them for dragging
-    const cards = [
-      new MinionCard(this.scene, new MinionModel({})),
-      new MinionCard(this.scene, new MinionModel({})),
-      new MinionCard(this.scene, new MinionModel({})),
-      new MinionCard(this.scene, new MinionModel({})),
-      new MinionCard(this.scene, new MinionModel({})),
-    ]
-
-    cards.forEach((card) => {
-      this.playerHand.addCard(card)
-      this.interactionManager.addDraggableObject(card.mesh)
-    })
-
     this.playerBoard = new PlayerBoard(this.scene)
     this.playerBoard.mesh.position.z = Layer.HAND
-
-    // Create board minions (not draggable - they stay in place)
-    const boardMinions = [
-      new MinionBoard(this.scene, new MinionModel({})),
-      new MinionBoard(this.scene, new MinionModel({})),
-      new MinionBoard(this.scene, new MinionModel({})),
-    ]
-
-    this.playerBoard.setBoardData(boardMinions)
 
     // Register the board as a drop zone
     this.interactionManager.addDropZone(this.playerBoard)
@@ -321,18 +298,18 @@ class GameRenderer {
     const minionCardViews: MinionCard[] = []
     const minionBoardViews: MinionBoard[] = []
 
-    // Handle hand cards
     data.player1.hand.forEach((card) => {
       const model = new MinionModel(card)
       const cardView = new MinionCard(this.scene, model)
       minionCardViews.push(cardView)
+      this.interactionManager.addDraggableObject(cardView.mesh)
     })
 
-    // Handle board minions
     data.player1.board.forEach((minionData) => {
       const model = new MinionModel(minionData)
       const boardView = new MinionBoard(this.scene, model)
       minionBoardViews.push(boardView)
+      this.interactionManager.addDraggableObject(boardView.mesh)
     })
 
     this.playerHand.setHandData(minionCardViews)
