@@ -129,7 +129,7 @@ export default class BoardView implements DropZone {
    */
   public removePlaceholder(): void {
     this.placeholderIndex = -1
-    // this.arrangeMinions()
+    this.arrangeMinions()
   }
 
   /**
