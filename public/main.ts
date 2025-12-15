@@ -309,7 +309,6 @@ class GameRenderer {
       const model = new MinionModel(minionData)
       const boardView = new MinionBoard(this.scene, model)
       minionBoardViews.push(boardView)
-      this.interactionManager.addDraggableObject(boardView.mesh)
     })
 
     this.playerHand.setHandData(minionCardViews)
