@@ -221,7 +221,7 @@ export default class BoardView implements DropZone {
 
   public onDrop(draggable: Draggable, event: DragEvent): void {
     if (draggable instanceof MinionCardView) {
-      console.log('Card was dropped on board')
+      console.log('Card was dropped on board in place', this.placeholderIndex)
 
       // Create a new minion for the board
       const newMinion = new MinionBoardView(this.scene, draggable.minion)
