@@ -1,6 +1,6 @@
 import FontFaceObserver from 'fontfaceobserver'
 import * as THREE from 'three'
-import Board from './Board.ts'
+import PlayerBoard from './PlayerBoard.ts'
 import { Layer } from './gameConstants.ts'
 import InteractionManager from './InteractionManager.ts'
 import MinionBoard from './MinionBoard.ts'
@@ -22,7 +22,7 @@ class GameRenderer {
   private camera: THREE.OrthographicCamera
   private sceneRoot: THREE.Object3D
   private gameplayArea: THREE.Mesh
-  private playerBoard: Board
+  private playerBoard: PlayerBoard
   private playerPortrait: PlayerPortrait
   private opponentPortrait: OpponentPortrait
   private playerHand: PlayerHand
@@ -91,7 +91,7 @@ class GameRenderer {
       this.interactionManager.addDraggableObject(card.mesh)
     })
 
-    this.playerBoard = new Board(this.scene)
+    this.playerBoard = new PlayerBoard(this.scene)
     this.playerBoard.mesh.position.z = Layer.HAND
 
     // Create board minions (not draggable - they stay in place)

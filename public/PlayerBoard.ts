@@ -4,7 +4,7 @@ import MinionBoard from './MinionBoard.ts'
 import MinionCard from './MinionCard.ts'
 import { Layer } from './gameConstants.ts'
 
-export default class Board implements DropZone {
+export default class PlayerBoard implements DropZone {
   public mesh: THREE.Object3D
   public placeholderIndex: number = -1
 
@@ -61,7 +61,7 @@ export default class Board implements DropZone {
 
     // Animate using simple lerp in render loop
     const startScale = 0.35
-    const endScale = 0.25
+    const endScale = 1.0
     const startY = minion.mesh.position.y
     const endY = this.BOARD_Y_POSITION
     const duration = 150 // ms
