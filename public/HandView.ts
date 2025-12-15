@@ -60,7 +60,7 @@ export default class HandView {
 
       const xPosition = startX + index * this.CARD_SPACING
 
-      card.mesh.position.set(xPosition, this.HAND_Y_POSITION, -index)
+      card.mesh.position.set(xPosition, this.HAND_Y_POSITION, index)
       card.originalPosition = card.mesh.position.clone()
     })
   }
