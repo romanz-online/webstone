@@ -75,7 +75,7 @@ export default class TargetingArrowSystem {
 
     const totalRectangles = 15
     for (let i = 0; i < totalRectangles; i++) {
-      const rectangleGeometry = new THREE.BoxGeometry(0.3, 0.1, 0.1)
+      const rectangleGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.3)
       const rectangle = new THREE.Mesh(rectangleGeometry, this.arrowMaterial.clone())
 
       rectangle.name = `arrowRectangle_${i}`
