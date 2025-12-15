@@ -1,6 +1,6 @@
 import * as THREE from 'three'
+import { DragEvent, Draggable, DropZone } from './Draggable.ts'
 import MinionBoardView from './MinionBoardView.ts'
-import { DropZone, Draggable, DragEvent } from './Draggable.ts'
 import MinionCardView from './MinionCardView.ts'
 
 enum Layer {
@@ -15,8 +15,8 @@ export default class BoardView implements DropZone {
   private scene: THREE.Scene
   private droppableArea: THREE.Mesh
   private minions: MinionBoardView[] = []
-  private readonly CARD_SPACING = 1.6
-  private readonly BOARD_Y_POSITION = 0
+  private readonly CARD_SPACING = 1.5
+  private readonly BOARD_Y_POSITION = -0.5
 
   constructor(scene: THREE.Scene) {
     this.scene = scene
@@ -29,16 +29,16 @@ export default class BoardView implements DropZone {
     const material = new THREE.MeshBasicMaterial({
       color: 0xff0000,
       transparent: true,
-      opacity: 0
+      opacity: 0,
     })
-    
+
     this.droppableArea = new THREE.Mesh(geometry, material)
     this.droppableArea.name = 'clickableArea'
     this.droppableArea.position.set(0, -0.5, Layer.DROPPABLE_AREA)
     this.mesh.add(this.droppableArea)
   }
 
-  public getBoundingInfo(): { min: THREE.Vector3, max: THREE.Vector3 } {
+  public getBoundingInfo(): { min: THREE.Vector3; max: THREE.Vector3 } {
     const box = new THREE.Box3().setFromObject(this.droppableArea)
     return { min: box.min, max: box.max }
   }
@@ -83,21 +83,21 @@ export default class BoardView implements DropZone {
     const animate = () => {
       const elapsed = Date.now() - startTime
       const progress = Math.min(elapsed / duration, 1)
-      
+
       // Ease out function
       const easeProgress = 1 - Math.pow(1 - progress, 3)
-      
+
       const currentScale = startScale + (endScale - startScale) * easeProgress
       const currentY = startY + (endY - startY) * easeProgress
-      
+
       minion.mesh.scale.set(currentScale, currentScale, 1)
       minion.mesh.position.y = currentY
-      
+
       if (progress < 1) {
         requestAnimationFrame(animate)
       }
     }
-    
+
     animate()
   }
 
@@ -212,18 +212,18 @@ export default class BoardView implements DropZone {
     const animate = () => {
       const elapsed = Date.now() - startTime
       const progress = Math.min(elapsed / duration, 1)
-      
+
       // Ease out function
       const easeProgress = 1 - Math.pow(1 - progress, 3)
-      
+
       const currentX = startX + (targetX - startX) * easeProgress
       minion.mesh.position.x = currentX
-      
+
       if (progress < 1) {
         requestAnimationFrame(animate)
       }
     }
-    
+
     animate()
   }
 
@@ -241,13 +241,13 @@ export default class BoardView implements DropZone {
   public onDrop(draggable: Draggable, event: DragEvent): void {
     if (draggable instanceof MinionCardView) {
       console.log('Card was dropped on board')
-      
+
       // Create a new minion for the board
       const newMinion = new MinionBoardView(this.scene, draggable.minion)
-      
+
       // Summon the minion at the placeholder position
       this.summonMinion(newMinion, this.placeholderIndex)
-      
+
       // Remove the card from its original location (this would be handled by the hand)
       // The hand should listen for the dragend event and remove the card
     }
