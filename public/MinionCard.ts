@@ -1,26 +1,27 @@
 import * as THREE from 'three'
 import AttackIndicator from './AttackIndicator.ts'
+import { DragEvent, Draggable } from './Draggable.ts'
+import { CARD_HEIGHT, CARD_WIDTH } from './gameConstants.ts'
 import HealthIndicator from './HealthIndicator.ts'
+import ManaIndicator from './ManaIndicator.ts'
 import MinionModel from './MinionModel.ts'
-import { MINION_BOARD_HEIGHT, MINION_BOARD_WIDTH } from './gameConstants.ts'
 
-export default class MinionBoardView {
+export default class MinionCard implements Draggable {
   // Logical unit constants
   private static readonly CANVAS_SCALE = 256 // Pixels per logical unit
-  private static readonly ICON_SIZE_RATIO = 0.25 // Icon size as fraction of board width
-  private static readonly INDICATOR_PADDING = 0.05 // Padding as fraction of board width for indicator overhang
+  private static readonly ICON_SIZE_RATIO = 0.25 // Text size as fraction of card width
+  private static readonly INDICATOR_PADDING = 0.05 // Padding as fraction of card width for indicator overhang
 
   public minion: MinionModel
   public mesh: THREE.Mesh
   public originalPosition: THREE.Vector3
 
   private scene: THREE.Scene
-  private attackIndicator: AttackIndicator
-  private healthIndicator: HealthIndicator
 
   // For texture loading promises
   private portraitTexture: THREE.Texture | null = null
   private frameTexture: THREE.Texture | null = null
+  private nameTexture: THREE.Texture | null = null
   private texturesLoaded: Promise<void>
 
   constructor(
@@ -31,22 +32,15 @@ export default class MinionBoardView {
     this.scene = scene
     this.minion = minion
 
-    // Create indicator components
-    this.attackIndicator = new AttackIndicator()
-    this.healthIndicator = new HealthIndicator()
-
     // Create temporary invisible mesh until textures are loaded
-    const tempGeometry = new THREE.PlaneGeometry(
-      MINION_BOARD_WIDTH,
-      MINION_BOARD_HEIGHT
-    )
+    const tempGeometry = new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT)
     const tempMaterial = new THREE.MeshBasicMaterial({
       transparent: true,
       opacity: 0,
     })
 
     this.mesh = new THREE.Mesh(tempGeometry, tempMaterial)
-    this.mesh.name = 'minionBoard'
+    this.mesh.name = 'minionCard'
     this.mesh.userData = { owner: this }
     scene.add(this.mesh)
 
@@ -69,6 +63,7 @@ export default class MinionBoardView {
     const portraitPromise = new Promise<THREE.Texture>((resolve, reject) => {
       loader.load(
         './media/images/cardimages/cairne_bloodhoof.jpg',
+
         (texture) => {
           texture.offset.set(0.0, 0.0)
           resolve(texture)
@@ -80,7 +75,16 @@ export default class MinionBoardView {
 
     const framePromise = new Promise<THREE.Texture>((resolve, reject) => {
       loader.load(
-        './media/images/empty_minion_board_frame.png',
+        './media/images/card_inhand_minion_priest_frame.png',
+        resolve,
+        undefined,
+        reject
+      )
+    })
+
+    const namePromise = new Promise<THREE.Texture>((resolve, reject) => {
+      loader.load(
+        './media/images/name-banner-minion.png',
         resolve,
         undefined,
         reject
@@ -88,14 +92,16 @@ export default class MinionBoardView {
     })
 
     try {
-      const [portrait, frame] = await Promise.all([
+      const [portrait, frame, name] = await Promise.all([
         portraitPromise,
         framePromise,
+        namePromise,
       ])
       this.portraitTexture = portrait
       this.frameTexture = frame
+      this.nameTexture = name
     } catch (error) {
-      console.error('Error loading board textures:', error)
+      console.error('Error loading card textures:', error)
     }
   }
 
@@ -103,13 +109,10 @@ export default class MinionBoardView {
     // Create a large canvas to composite everything
     const compositeCanvas = document.createElement('canvas')
     const paddingPixels =
-      MINION_BOARD_WIDTH *
-      MinionBoardView.INDICATOR_PADDING *
-      MinionBoardView.CANVAS_SCALE
-    const canvasWidth =
-      MINION_BOARD_WIDTH * MinionBoardView.CANVAS_SCALE + paddingPixels * 2
+      CARD_WIDTH * MinionCard.INDICATOR_PADDING * MinionCard.CANVAS_SCALE
+    const canvasWidth = CARD_WIDTH * MinionCard.CANVAS_SCALE + paddingPixels * 2
     const canvasHeight =
-      MINION_BOARD_HEIGHT * MinionBoardView.CANVAS_SCALE + paddingPixels * 2
+      CARD_HEIGHT * MinionCard.CANVAS_SCALE + paddingPixels * 2
 
     compositeCanvas.width = canvasWidth
     compositeCanvas.height = canvasHeight
@@ -117,21 +120,25 @@ export default class MinionBoardView {
     const ctx = compositeCanvas.getContext('2d')
     if (!ctx) return
 
-    // Calculate board dimensions (original size) and offset for centering
-    const boardWidth = MINION_BOARD_WIDTH * MinionBoardView.CANVAS_SCALE
-    const boardHeight = MINION_BOARD_HEIGHT * MinionBoardView.CANVAS_SCALE
-    const boardOffsetX = paddingPixels
-    const boardOffsetY = paddingPixels
+    // Calculate card dimensions (original size) and offset for centering
+    const cardWidth = CARD_WIDTH * MinionCard.CANVAS_SCALE
+    const cardHeight = CARD_HEIGHT * MinionCard.CANVAS_SCALE
+    const cardOffsetX = paddingPixels
+    const cardOffsetY = paddingPixels
 
-    // Position indicators relative to the board, allowing for overhang
+    // Position indicators relative to the card, allowing for overhang
     const positions = {
+      topLeft: {
+        x: cardOffsetX + cardWidth * -0.03,
+        y: cardOffsetY + cardHeight * 0.04,
+      },
       bottomLeft: {
-        x: boardOffsetX + boardWidth * 0.0,
-        y: boardOffsetY + boardHeight * 0.7,
+        x: cardOffsetX + cardWidth * -0.03,
+        y: cardOffsetY + cardHeight * 0.85,
       },
       bottomRight: {
-        x: boardOffsetX + boardWidth * 0.75,
-        y: boardOffsetY + boardHeight * 0.7,
+        x: cardOffsetX + cardWidth * 0.82,
+        y: cardOffsetY + cardHeight * 0.85,
       },
     }
 
@@ -145,10 +152,10 @@ export default class MinionBoardView {
       ) {
         ctx.drawImage(
           image,
-          boardOffsetX,
-          boardOffsetY + boardHeight * 0.1,
-          boardWidth,
-          boardHeight * 0.8
+          cardOffsetX,
+          cardOffsetY + cardHeight * 0.1,
+          cardWidth,
+          cardHeight * 0.8
         )
       }
     }
@@ -161,28 +168,48 @@ export default class MinionBoardView {
         image instanceof HTMLCanvasElement ||
         image instanceof ImageBitmap
       ) {
+        ctx.drawImage(image, cardOffsetX, cardOffsetY, cardWidth, cardHeight)
+      }
+    }
+
+    if (this.nameTexture && this.nameTexture.image) {
+      const image = this.nameTexture.image
+      if (
+        image instanceof HTMLImageElement ||
+        image instanceof HTMLCanvasElement ||
+        image instanceof ImageBitmap
+      ) {
         ctx.drawImage(
           image,
-          boardOffsetX,
-          boardOffsetY,
-          boardWidth,
-          boardHeight
+          cardOffsetX + cardWidth * 0.025,
+          cardOffsetY + cardHeight * 0.49,
+          cardWidth * 0.95,
+          cardHeight * 0.13
         )
       }
     }
 
-    // Draw indicators using the indicator components (no mana for board minions)
-    const attackCanvas = await this.attackIndicator.renderToCanvas(
+    const manaCanvas = await new ManaIndicator().renderToCanvas(
+      this.minion.mana || 4
+    )
+    const attackCanvas = await new AttackIndicator().renderToCanvas(
       this.minion.attack || 2
     )
-    const healthCanvas = await this.healthIndicator.renderToCanvas(
+    const healthCanvas = await new HealthIndicator().renderToCanvas(
       this.minion.health || 5
     )
 
     const size =
-      MINION_BOARD_WIDTH *
-      MinionBoardView.ICON_SIZE_RATIO *
-      MinionBoardView.CANVAS_SCALE
+      CARD_WIDTH * MinionCard.ICON_SIZE_RATIO * MinionCard.CANVAS_SCALE
+
+    // Draw mana indicator
+    ctx.drawImage(
+      manaCanvas,
+      positions.topLeft.x,
+      positions.topLeft.y,
+      size,
+      size
+    )
 
     // Draw attack indicator
     ctx.drawImage(
@@ -207,10 +234,9 @@ export default class MinionBoardView {
     compositeTexture.needsUpdate = true
 
     // Scale geometry to match the expanded canvas proportions
-    const paddingAmount =
-      MINION_BOARD_WIDTH * MinionBoardView.INDICATOR_PADDING * 2
-    const geometryWidth = MINION_BOARD_WIDTH + paddingAmount
-    const geometryHeight = MINION_BOARD_HEIGHT + paddingAmount
+    const paddingAmount = CARD_WIDTH * MinionCard.INDICATOR_PADDING * 2
+    const geometryWidth = CARD_WIDTH + paddingAmount
+    const geometryHeight = CARD_HEIGHT + paddingAmount
     const geometry = new THREE.PlaneGeometry(geometryWidth, geometryHeight)
     const material = new THREE.MeshBasicMaterial({
       map: compositeTexture,
@@ -233,13 +259,39 @@ export default class MinionBoardView {
     }
   }
 
-  public setCardDepth(depth: number): void {
-    this.mesh.position.z = depth
-  }
-
   public getBoundingInfo(): { min: THREE.Vector3; max: THREE.Vector3 } {
     const box = new THREE.Box3().setFromObject(this.mesh)
     return { min: box.min, max: box.max }
+  }
+
+  public revert(): void {
+    setTimeout(() => {
+      const startPos = this.mesh.position.clone()
+      const startTime = Date.now()
+      const duration = 100 // ms
+
+      const animate = () => {
+        const elapsed = Date.now() - startTime
+        const progress = Math.min(elapsed / duration, 1)
+
+        this.mesh.position.lerpVectors(
+          startPos,
+          this.originalPosition,
+          progress
+        )
+
+        if (progress < 1) {
+          requestAnimationFrame(animate)
+        }
+      }
+
+      animate()
+    }, 40)
+  }
+
+  public updateMana(newMana: number): void {
+    this.minion.mana = newMana
+    this.compileTextures()
   }
 
   public updateAttack(newAttack: number): void {
@@ -252,11 +304,33 @@ export default class MinionBoardView {
     this.compileTextures()
   }
 
-  public dispose(): void {
-    // Dispose indicator components
-    this.attackIndicator.dispose()
-    this.healthIndicator.dispose()
+  public isDraggable(): boolean {
+    return true
+  }
 
+  public onDragStart(event: DragEvent): void {
+    // Store original position for potential revert
+    this.originalPosition = this.mesh.position.clone()
+
+    // Raise card slightly to show it's being dragged
+    this.mesh.position.z += 0.1
+
+    // Optional: Scale up slightly for visual feedback
+    this.mesh.scale.setScalar(1.05)
+  }
+
+  public onDrag(event: DragEvent): void {
+    // The DragControls will handle position updates
+    // We can add any additional visual feedback here
+  }
+
+  public onDragEnd(event: DragEvent): void {
+    // Reset visual state
+    this.mesh.scale.setScalar(1.0)
+    this.mesh.position.z -= 0.1
+  }
+
+  public dispose(): void {
     // Dispose Three.js objects
     this.mesh.traverse((object) => {
       if (object instanceof THREE.Mesh) {

@@ -1,10 +1,10 @@
 import FontFaceObserver from 'fontfaceobserver'
 import * as THREE from 'three'
-import BoardView from './BoardView.ts'
+import Board from './Board.ts'
 import HandView from './HandView.ts'
 import InteractionManager from './InteractionManager.ts'
-import MinionBoardView from './MinionBoardView.ts'
-import MinionCardView from './MinionCardView.ts'
+import MinionBoard from './MinionBoard.ts'
+import MinionCard from './MinionCard.ts'
 import MinionModel from './MinionModel.ts'
 import TargetingArrowSystem from './TargetingArrowSystem.ts'
 import { Layer } from './gameConstants.ts'
@@ -20,14 +20,14 @@ class GameRenderer {
   private camera: THREE.OrthographicCamera
   private sceneRoot: THREE.Object3D
   private gameplayArea: THREE.Mesh
-  private playerBoard: BoardView
+  private playerBoard: Board
   private hand: HandView
   private interactionManager: InteractionManager
   private targetingArrowSystem: TargetingArrowSystem
   private raycaster: THREE.Raycaster
   private mouse: THREE.Vector2
   private isTargeting: boolean = false
-  private targetingMinion: MinionBoardView | null = null
+  private targetingMinion: MinionBoard | null = null
 
   constructor(canvasId: string) {
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement
@@ -72,11 +72,11 @@ class GameRenderer {
 
     // Create cards and register them for dragging
     const cards = [
-      new MinionCardView(this.scene, new MinionModel({})),
-      new MinionCardView(this.scene, new MinionModel({})),
-      new MinionCardView(this.scene, new MinionModel({})),
-      new MinionCardView(this.scene, new MinionModel({})),
-      new MinionCardView(this.scene, new MinionModel({})),
+      new MinionCard(this.scene, new MinionModel({})),
+      new MinionCard(this.scene, new MinionModel({})),
+      new MinionCard(this.scene, new MinionModel({})),
+      new MinionCard(this.scene, new MinionModel({})),
+      new MinionCard(this.scene, new MinionModel({})),
     ]
 
     cards.forEach((card) => {
@@ -84,16 +84,16 @@ class GameRenderer {
       this.interactionManager.addDraggableObject(card.mesh)
     })
 
-    this.playerBoard = new BoardView(this.scene)
+    this.playerBoard = new Board(this.scene)
     this.playerBoard.mesh.position.z = Layer.HAND
-    
+
     // Create board minions (not draggable - they stay in place)
     const boardMinions = [
-      new MinionBoardView(this.scene, new MinionModel({})),
-      new MinionBoardView(this.scene, new MinionModel({})),
-      new MinionBoardView(this.scene, new MinionModel({})),
+      new MinionBoard(this.scene, new MinionModel({})),
+      new MinionBoard(this.scene, new MinionModel({})),
+      new MinionBoard(this.scene, new MinionModel({})),
     ]
-    
+
     this.playerBoard.setBoardData(boardMinions)
 
     // Register the board as a drop zone
@@ -196,10 +196,7 @@ class GameRenderer {
     this.interactionManager.addEventListener('hoverdropzone', (event: any) => {
       const { dropZone, draggable, worldPosition } = event.detail
 
-      if (
-        draggable instanceof MinionCardView &&
-        dropZone === this.playerBoard
-      ) {
+      if (draggable instanceof MinionCard && dropZone === this.playerBoard) {
         this.playerBoard.updatePlaceholderPosition(
           worldPosition.x,
           worldPosition.y
@@ -211,20 +208,17 @@ class GameRenderer {
     this.interactionManager.addEventListener('leavedropzone', (event: any) => {
       const { dropZone, draggable } = event.detail
 
-      if (
-        draggable instanceof MinionCardView &&
-        dropZone === this.playerBoard
-      ) {
+      if (draggable instanceof MinionCard && dropZone === this.playerBoard) {
         this.playerBoard.removePlaceholder()
       }
     })
 
-    // Listen for successful drops to remove cards from hand  
+    // Listen for successful drops to remove cards from hand
     this.interactionManager.addEventListener('dragend', (event: any) => {
       const dragEvent = event.detail
       const draggable = dragEvent.object.userData.owner
 
-      if (draggable instanceof MinionCardView) {
+      if (draggable instanceof MinionCard) {
         // Check if the card was successfully dropped on board
         if (
           this.isIntersecting(
@@ -254,12 +248,12 @@ class GameRenderer {
   private setupMouseEventListeners(): void {
     this.canvas.addEventListener('mousedown', (event) => {
       this.updateMousePosition(event)
-      
+
       // Check if clicking on a board minion
       const intersections = this.raycastFromMouse()
       for (const intersection of intersections) {
         const object = intersection.object
-        if (object.userData?.owner instanceof MinionBoardView) {
+        if (object.userData?.owner instanceof MinionBoard) {
           // Start targeting from this minion
           this.isTargeting = true
           this.targetingMinion = object.userData.owner
@@ -271,7 +265,7 @@ class GameRenderer {
 
     this.canvas.addEventListener('mousemove', (event) => {
       this.updateMousePosition(event)
-      
+
       // Update targeting arrow position if active
       if (this.isTargeting && this.targetingArrowSystem.isActive) {
         const cursorPosition = this.getWorldPositionOnPlane(0)

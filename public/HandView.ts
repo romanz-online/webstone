@@ -1,11 +1,11 @@
 import * as THREE from 'three'
-import MinionCardView from './MinionCardView.ts'
+import MinionCard from './MinionCard.ts'
 import { Layer } from './gameConstants.ts'
 
 export default class HandView {
   public mesh: THREE.Object3D
 
-  private cards: MinionCardView[] = []
+  private cards: MinionCard[] = []
   private readonly CARD_SPACING = 1.5
   private readonly HAND_Y_POSITION = -3.5
 
@@ -19,7 +19,7 @@ export default class HandView {
    * Set the entire hand data at once, replacing any existing cards
    * @param cards Array of MinionCardView instances to set in the hand
    */
-  public setHandData(cards: MinionCardView[]): void {
+  public setHandData(cards: MinionCard[]): void {
     this.cards.forEach((card) => card.dispose())
 
     this.cards = cards
@@ -30,7 +30,7 @@ export default class HandView {
    * Add a single card to the hand
    * @param card MinionCardView to add to the hand
    */
-  public addCard(card: MinionCardView): void {
+  public addCard(card: MinionCard): void {
     this.cards.push(card)
     this.arrangeCards()
   }
@@ -39,7 +39,7 @@ export default class HandView {
    * Remove a specific card from the hand
    * @param card MinionCardView to remove
    */
-  public removeCard(card: MinionCardView): void {
+  public removeCard(card: MinionCard): void {
     const index = this.cards.indexOf(card)
     if (index !== -1) {
       this.cards.splice(index, 1)

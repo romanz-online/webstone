@@ -1,10 +1,10 @@
 import * as THREE from 'three'
-import MinionBoardView from './MinionBoardView.ts'
+import MinionBoard from './MinionBoard.ts'
 import { Layer } from './gameConstants.ts'
 
 export default class TargetingArrowSystem {
   public isActive: boolean = false
-  public sourceMinion: MinionBoardView = null
+  public sourceMinion: MinionBoard = null
 
   private scene: THREE.Scene
   private arrowMaterial: THREE.MeshBasicMaterial
@@ -35,7 +35,7 @@ export default class TargetingArrowSystem {
     animate()
   }
 
-  public startTargeting(sourceMinion: MinionBoardView): void {
+  public startTargeting(sourceMinion: MinionBoard): void {
     this.sourceMinion = sourceMinion
     this.isActive = true
     this.createCursorMesh()
@@ -76,7 +76,10 @@ export default class TargetingArrowSystem {
     const totalRectangles = 15
     for (let i = 0; i < totalRectangles; i++) {
       const rectangleGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.3)
-      const rectangle = new THREE.Mesh(rectangleGeometry, this.arrowMaterial.clone())
+      const rectangle = new THREE.Mesh(
+        rectangleGeometry,
+        this.arrowMaterial.clone()
+      )
 
       rectangle.name = `arrowRectangle_${i}`
       rectangle.visible = false

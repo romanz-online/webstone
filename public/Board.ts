@@ -1,16 +1,16 @@
 import * as THREE from 'three'
 import { DragEvent, Draggable, DropZone } from './Draggable.ts'
-import MinionBoardView from './MinionBoardView.ts'
-import MinionCardView from './MinionCardView.ts'
+import MinionBoard from './MinionBoard.ts'
+import MinionCard from './MinionCard.ts'
 import { Layer } from './gameConstants.ts'
 
-export default class BoardView implements DropZone {
+export default class Board implements DropZone {
   public mesh: THREE.Object3D
   public placeholderIndex: number = -1
 
   private scene: THREE.Scene
   private droppableArea: THREE.Mesh
-  private minions: MinionBoardView[] = []
+  private minions: MinionBoard[] = []
   private readonly CARD_SPACING = 1.5
   private readonly BOARD_Y_POSITION = -0.5
 
@@ -39,7 +39,7 @@ export default class BoardView implements DropZone {
     return { min: box.min, max: box.max }
   }
 
-  public summonMinion(minion: MinionBoardView): void {
+  public summonMinion(minion: MinionBoard): void {
     // Add the minion to the board
     this.minions.splice(this.placeholderIndex, 0, minion)
 
@@ -52,7 +52,7 @@ export default class BoardView implements DropZone {
     this.removePlaceholder()
   }
 
-  private animateMinionPlayEntry(minion: MinionBoardView): void {
+  private animateMinionPlayEntry(minion: MinionBoard): void {
     minion.mesh.position.x =
       -((this.minions.length - 1) * this.CARD_SPACING) / 2 +
       this.placeholderIndex * this.CARD_SPACING
@@ -122,19 +122,19 @@ export default class BoardView implements DropZone {
     this.arrangeMinions()
   }
 
-  public setBoardData(minions: MinionBoardView[]): void {
+  public setBoardData(minions: MinionBoard[]): void {
     this.minions.forEach((minion) => minion.dispose())
 
     this.minions = minions
     this.arrangeMinions()
   }
 
-  public addMinion(minion: MinionBoardView): void {
+  public addMinion(minion: MinionBoard): void {
     this.minions.push(minion)
     this.arrangeMinions()
   }
 
-  public removeMinion(minion: MinionBoardView): void {
+  public removeMinion(minion: MinionBoard): void {
     const index = this.minions.indexOf(minion)
     if (index !== -1) {
       this.minions.splice(index, 1)
@@ -177,10 +177,7 @@ export default class BoardView implements DropZone {
     })
   }
 
-  private animateMinionPosition(
-    minion: MinionBoardView,
-    targetX: number
-  ): void {
+  private animateMinionPosition(minion: MinionBoard, targetX: number): void {
     // Skip animation if already at target position
     if (Math.abs(minion.mesh.position.x - targetX) < 0.01) {
       return
@@ -216,15 +213,15 @@ export default class BoardView implements DropZone {
   }
 
   public canAcceptDrop(draggable: Draggable): boolean {
-    return draggable instanceof MinionCardView
+    return draggable instanceof MinionCard
   }
 
   public onDrop(draggable: Draggable, event: DragEvent): void {
-    if (draggable instanceof MinionCardView) {
+    if (draggable instanceof MinionCard) {
       console.log('Card was dropped on board in place', this.placeholderIndex)
 
       // Create a new minion for the board
-      const newMinion = new MinionBoardView(this.scene, draggable.minion)
+      const newMinion = new MinionBoard(this.scene, draggable.minion)
 
       // Summon the minion at the placeholder position
       this.summonMinion(newMinion)
