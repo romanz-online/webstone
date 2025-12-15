@@ -1,5 +1,7 @@
 import { EventType } from './constants.ts'
 
+let ws: WebSocket | null = null
+
 const eventHandlers: any = {}
 
 const getEventTypeName = (event: EventType): string => {
@@ -9,7 +11,7 @@ const getEventTypeName = (event: EventType): string => {
   )
 }
 
-const wsEventHandler = ({
+export const wsEventHandler = ({
   socket,
   event,
   onSuccess,
@@ -47,4 +49,14 @@ const wsEventHandler = ({
   })
 }
 
-export default wsEventHandler
+export const setWebSocket = (socket: WebSocket): void => {
+  ws = socket
+}
+
+export const triggerWsEvent = (event: EventType, data: any = {}): void => {
+  if (ws) {
+    ws.send(JSON.stringify({ event: event, data: data }))
+  } else {
+    console.error('! WebSocket not defined')
+  }
+}

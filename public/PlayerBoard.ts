@@ -4,7 +4,7 @@ import MinionBoard from './MinionBoard.ts'
 import MinionCard from './MinionCard.ts'
 import { CardType, EventType, PlayerID } from './constants.ts'
 import { Layer } from './gameConstants.ts'
-import { triggerWsEvent } from './main.ts'
+import { triggerWsEvent } from './ws.ts'
 
 export default class PlayerBoard implements DropZone {
   public mesh: THREE.Object3D

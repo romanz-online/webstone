@@ -62,7 +62,7 @@ export default class MinionCard implements Draggable {
 
     const portraitPromise = new Promise<THREE.Texture>((resolve, reject) => {
       loader.load(
-        './media/images/cardimages/cairne_bloodhoof.jpg',
+        `./media/images/cardimages/${this.minion.fileName ?? 'mana_wyrm'}.jpg`,
 
         (texture) => {
           texture.offset.set(0.0, 0.0)

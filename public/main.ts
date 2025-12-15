@@ -11,7 +11,7 @@ import PlayerBoard from './PlayerBoard.ts'
 import PlayerHand from './PlayerHand.ts'
 import PlayerPortrait from './PlayerPortrait.ts'
 import TargetingArrowSystem from './TargetingArrowSystem.ts'
-import wsEventHandler from './wsEventHandler.ts'
+import { setWebSocket, triggerWsEvent, wsEventHandler } from './ws.ts'
 
 // Logical game dimensions (16:9 ratio)
 const GAME_WIDTH = 16
@@ -316,25 +316,40 @@ class GameRenderer {
     }
     animate()
   }
-}
 
-;(async () => {
-  const gameRenderer = new GameRenderer('main')
-  await gameRenderer.initialize()
-})()
+  loadServerGameState(data: any): void {
+    const minionCardViews: MinionCard[] = []
+    const minionBoardViews: MinionBoard[] = []
 
-let ws: WebSocket
+    // Handle hand cards
+    data.player1.hand.forEach((card) => {
+      const model = new MinionModel(card)
+      const cardView = new MinionCard(this.scene, model)
+      minionCardViews.push(cardView)
+    })
 
-export const triggerWsEvent = (event: EventType, data: any = {}): void => {
-  if (ws) {
-    ws.send(JSON.stringify({ event: event, data: data }))
-  } else {
-    console.error('! WebSocket not defined')
+    // Handle board minions
+    data.player1.board.forEach((minionData) => {
+      const model = new MinionModel(minionData)
+      const boardView = new MinionBoard(this.scene, model)
+      minionBoardViews.push(boardView)
+    })
+
+    this.playerHand.setHandData(minionCardViews)
+    this.playerBoard.setBoardData(minionBoardViews)
   }
 }
 
+let gameRenderer: GameRenderer | null = null
+
+;(async () => {
+  gameRenderer = new GameRenderer('main')
+  await gameRenderer.initialize()
+})()
+
 console.log('Connecting WebSocket...')
-ws = new WebSocket('ws://localhost:5500')
+const ws = new WebSocket('ws://localhost:5500')
+setWebSocket(ws)
 ws.onopen = () => {
   console.log('Connected to WebSocket server')
 
@@ -343,16 +358,9 @@ ws.onopen = () => {
     socket: ws,
     event: EventType.Load,
     onSuccess: (data: any) => {
-      data.player1.hand.forEach((card) => {
-        //   const model = new MinionModel(card),
-        //     cardView = new MinionCardView(model),
-        //     boardView = new MinionBoardView(model)
-        //   minionModels.push(model)
-        //   minionCardViews.push(cardView)
-        //   minionBoardViews.push(boardView)
-      })
-      // hand.setHandData(minionCardViews)
-      // board.setBoardData(minionBoardViews)
+      if (gameRenderer) {
+        gameRenderer.loadServerGameState(data)
+      }
     },
     onFailure: (data: any) => {
       setTimeout(() => {
