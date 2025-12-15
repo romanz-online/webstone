@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import MinionCard from './MinionCard.ts'
 import { Layer } from './gameConstants.ts'
 
-export default class HandView {
+export default class PlayerHand {
   public mesh: THREE.Object3D
 
   private cards: MinionCard[] = []

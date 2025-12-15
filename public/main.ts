@@ -2,14 +2,13 @@ import FontFaceObserver from 'fontfaceobserver'
 import * as THREE from 'three'
 import Board from './Board.ts'
 import { Layer } from './gameConstants.ts'
-import HandView from './HandView.ts'
-import Hero from './Hero.ts'
-import PlayerPortrait from './PlayerPortrait.ts'
-import OpponentPortrait from './OpponentPortrait.ts'
 import InteractionManager from './InteractionManager.ts'
 import MinionBoard from './MinionBoard.ts'
 import MinionCard from './MinionCard.ts'
 import MinionModel from './MinionModel.ts'
+import OpponentPortrait from './OpponentPortrait.ts'
+import PlayerHand from './PlayerHand.ts'
+import PlayerPortrait from './PlayerPortrait.ts'
 import TargetingArrowSystem from './TargetingArrowSystem.ts'
 
 // Logical game dimensions (16:9 ratio)
@@ -26,7 +25,7 @@ class GameRenderer {
   private playerBoard: Board
   private playerPortrait: PlayerPortrait
   private opponentPortrait: OpponentPortrait
-  private hand: HandView
+  private playerHand: PlayerHand
   private interactionManager: InteractionManager
   private targetingArrowSystem: TargetingArrowSystem
   private raycaster: THREE.Raycaster
@@ -75,8 +74,8 @@ class GameRenderer {
     this.playerPortrait = new PlayerPortrait(this.scene)
     this.opponentPortrait = new OpponentPortrait(this.scene)
 
-    this.hand = new HandView(this.scene)
-    this.hand.mesh.position.z = Layer.HAND
+    this.playerHand = new PlayerHand(this.scene)
+    this.playerHand.mesh.position.z = Layer.HAND
 
     // Create cards and register them for dragging
     const cards = [
@@ -88,7 +87,7 @@ class GameRenderer {
     ]
 
     cards.forEach((card) => {
-      this.hand.addCard(card)
+      this.playerHand.addCard(card)
       this.interactionManager.addDraggableObject(card.mesh)
     })
 
@@ -236,7 +235,7 @@ class GameRenderer {
         ) {
           // Remove card from interaction manager and hand after successful drop
           this.interactionManager.removeDraggableObject(draggable.mesh)
-          this.hand.removeCard(draggable)
+          this.playerHand.removeCard(draggable)
         } else {
           // Revert card position if not dropped on valid zone
           draggable.revert()
@@ -261,7 +260,10 @@ class GameRenderer {
       const intersections = this.raycastFromMouse()
       for (const intersection of intersections) {
         const object = intersection.object
-        if (object.userData?.owner instanceof MinionBoard || object.userData?.owner instanceof PlayerPortrait) {
+        if (
+          object.userData?.owner instanceof MinionBoard ||
+          object.userData?.owner instanceof PlayerPortrait
+        ) {
           // Start targeting from this minion or player portrait
           this.isTargeting = true
           this.targetingSource = object.userData.owner
