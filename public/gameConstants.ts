@@ -10,4 +10,5 @@ export enum Layer {
   BOARD = 0.2,
   BOARD_MINION = 0.3,
   HAND = 0.4,
+  TARGETING_SYSTEM = 0.999,
 }
