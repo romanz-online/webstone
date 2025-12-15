@@ -331,6 +331,11 @@ export default class MinionCard implements Draggable {
   }
 
   public dispose(): void {
+    // Remove from current parent (whether scene or hand)
+    if (this.mesh.parent) {
+      this.mesh.parent.remove(this.mesh)
+    }
+
     // Dispose Three.js objects
     this.mesh.traverse((object) => {
       if (object instanceof THREE.Mesh) {
@@ -346,7 +351,5 @@ export default class MinionCard implements Draggable {
         }
       }
     })
-
-    this.scene.remove(this.mesh)
   }
 }
