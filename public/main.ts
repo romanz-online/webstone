@@ -1,13 +1,14 @@
 import FontFaceObserver from 'fontfaceobserver'
 import * as THREE from 'three'
 import Board from './Board.ts'
+import { Layer } from './gameConstants.ts'
 import HandView from './HandView.ts'
+import Hero from './Hero.ts'
 import InteractionManager from './InteractionManager.ts'
 import MinionBoard from './MinionBoard.ts'
 import MinionCard from './MinionCard.ts'
 import MinionModel from './MinionModel.ts'
 import TargetingArrowSystem from './TargetingArrowSystem.ts'
-import { Layer } from './gameConstants.ts'
 
 // Logical game dimensions (16:9 ratio)
 const GAME_WIDTH = 16
@@ -21,6 +22,7 @@ class GameRenderer {
   private sceneRoot: THREE.Object3D
   private gameplayArea: THREE.Mesh
   private playerBoard: Board
+  private playerHero: Hero
   private hand: HandView
   private interactionManager: InteractionManager
   private targetingArrowSystem: TargetingArrowSystem
@@ -66,6 +68,9 @@ class GameRenderer {
     // Initialize interaction manager and targeting system
     this.interactionManager = new InteractionManager(this.camera, this.renderer)
     this.targetingArrowSystem = new TargetingArrowSystem(this.scene)
+
+    this.playerHero = new Hero(this.scene)
+    this.playerHero.mesh.position.z = Layer.HERO
 
     this.hand = new HandView(this.scene)
     this.hand.mesh.position.z = Layer.HAND
