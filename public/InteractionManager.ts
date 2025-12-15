@@ -139,7 +139,7 @@ export default class InteractionManager extends EventTarget {
     for (const dropZone of this.dropZones) {
       if (dropZone.canAcceptDrop(this.draggedObject)) {
         const isInDropZone = this.isObjectInDropZone(dragEvent.object, dropZone)
-        
+
         if (isInDropZone) {
           currentHoveredDropZone = dropZone
           break
@@ -153,11 +153,11 @@ export default class InteractionManager extends EventTarget {
       if (this.lastHoveredDropZone) {
         this.dispatchEvent(
           new CustomEvent('leavedropzone', {
-            detail: { 
-              dropZone: this.lastHoveredDropZone, 
-              dragEvent, 
+            detail: {
+              dropZone: this.lastHoveredDropZone,
+              dragEvent,
               draggable: this.draggedObject,
-              worldPosition: worldPosition.clone()
+              worldPosition: worldPosition.clone(),
             },
           })
         )
@@ -167,11 +167,11 @@ export default class InteractionManager extends EventTarget {
       if (currentHoveredDropZone) {
         this.dispatchEvent(
           new CustomEvent('hoverdropzone', {
-            detail: { 
-              dropZone: currentHoveredDropZone, 
-              dragEvent, 
+            detail: {
+              dropZone: currentHoveredDropZone,
+              dragEvent,
               draggable: this.draggedObject,
-              worldPosition: worldPosition.clone()
+              worldPosition: worldPosition.clone(),
             },
           })
         )
@@ -182,11 +182,11 @@ export default class InteractionManager extends EventTarget {
       // Still hovering the same drop zone, send continuous position updates
       this.dispatchEvent(
         new CustomEvent('hoverdropzone', {
-          detail: { 
-            dropZone: currentHoveredDropZone, 
-            dragEvent, 
+          detail: {
+            dropZone: currentHoveredDropZone,
+            dragEvent,
             draggable: this.draggedObject,
-            worldPosition: worldPosition.clone()
+            worldPosition: worldPosition.clone(),
           },
         })
       )
@@ -215,8 +215,11 @@ export default class InteractionManager extends EventTarget {
     const objectBounds = new THREE.Box3().setFromObject(object)
     const dropZoneBounds = dropZone.getBoundingInfo()
 
-    return objectBounds.intersectsBox(
-      new THREE.Box3(dropZoneBounds.min, dropZoneBounds.max)
+    return (
+      objectBounds.min.x < dropZoneBounds.max.x &&
+      objectBounds.max.x > dropZoneBounds.min.x &&
+      objectBounds.min.y < dropZoneBounds.max.y &&
+      objectBounds.max.y > dropZoneBounds.min.y
     )
   }
 
