@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import MinionBoardView from './MinionBoardView.ts'
+import { Layer } from './gameConstants.ts'
 
 export default class TargetingArrowSystem {
   public isActive: boolean = false
@@ -12,7 +13,7 @@ export default class TargetingArrowSystem {
   private cursorMesh: THREE.Object3D = null
   private arrowParticles: THREE.Mesh[] = []
   private animationTime: number = 0
-  private arcHeight: number = 0.35
+  private arcHeight: number = Layer.TARGETING_SYSTEM
 
   constructor(scene: THREE.Scene) {
     this.scene = scene
@@ -72,16 +73,15 @@ export default class TargetingArrowSystem {
   private createArrowDashes(): void {
     this.arrowParticles = []
 
-    const totalDashes = 20
-    for (let i = 0; i < totalDashes; i++) {
-      const dashGeometry = new THREE.BoxGeometry(0.4, 0.15, this.dashLength)
-      const dash = new THREE.Mesh(dashGeometry, this.arrowMaterial.clone())
+    const totalRectangles = 15
+    for (let i = 0; i < totalRectangles; i++) {
+      const rectangleGeometry = new THREE.BoxGeometry(0.3, 0.1, 0.1)
+      const rectangle = new THREE.Mesh(rectangleGeometry, this.arrowMaterial.clone())
 
-      dash.name = `arrowDash_${i}`
-      dash.visible = false
-      dash.castShadow = true
-      this.scene.add(dash)
-      this.arrowParticles.push(dash)
+      rectangle.name = `arrowRectangle_${i}`
+      rectangle.visible = false
+      this.scene.add(rectangle)
+      this.arrowParticles.push(rectangle)
     }
   }
 
@@ -97,7 +97,7 @@ export default class TargetingArrowSystem {
     const currentPos = new THREE.Vector3(
       start.x + direction.x * t,
       start.y + direction.y * t,
-      start.z - height // Subtracting height because higher arc is negative z
+      start.z + height // Adding height to move towards camera (positive z)
     )
 
     const delta = 0.01
@@ -110,13 +110,13 @@ export default class TargetingArrowSystem {
     const prevPos = new THREE.Vector3(
       start.x + direction.x * prevT,
       start.y + direction.y * prevT,
-      start.z - prevHeight
+      start.z + prevHeight
     )
 
     const nextPos = new THREE.Vector3(
       start.x + direction.x * nextT,
       start.y + direction.y * nextT,
-      start.z - nextHeight
+      start.z + nextHeight
     )
 
     const forward = nextPos.clone().sub(prevPos).normalize()
@@ -165,26 +165,12 @@ export default class TargetingArrowSystem {
 
         dash.position.copy(arcData.position)
 
-        // Create rotation matrix for dash orientation
-        const matrix = new THREE.Matrix4()
-        const zAxis = arcData.forward
-        const rotatedUpVector = new THREE.Vector3(
-          arcData.up.x +
-            Math.sin(horizontalAngle) * rotationFactor * rotationDirection,
-          arcData.up.y -
-            Math.cos(horizontalAngle) * rotationFactor * rotationDirection,
-          arcData.up.z
-        ).normalize()
-
-        const xAxis = new THREE.Vector3()
-          .crossVectors(rotatedUpVector, zAxis)
-          .normalize()
-        const correctedYAxis = new THREE.Vector3()
-          .crossVectors(zAxis, xAxis)
-          .normalize()
-
-        matrix.makeBasis(xAxis, correctedYAxis, zAxis)
-        dash.setRotationFromMatrix(matrix)
+        // Simple orientation - just face forward direction
+        dash.lookAt(
+          arcData.position.x + arcData.forward.x,
+          arcData.position.y + arcData.forward.y,
+          arcData.position.z + arcData.forward.z
+        )
 
         dash.visible = true
       } else {

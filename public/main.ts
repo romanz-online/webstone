@@ -6,6 +6,7 @@ import InteractionManager from './InteractionManager.ts'
 import MinionBoardView from './MinionBoardView.ts'
 import MinionCardView from './MinionCardView.ts'
 import MinionModel from './MinionModel.ts'
+import TargetingArrowSystem from './TargetingArrowSystem.ts'
 import { Layer } from './gameConstants.ts'
 
 // Logical game dimensions (16:9 ratio)
@@ -22,8 +23,11 @@ class GameRenderer {
   private playerBoard: BoardView
   private hand: HandView
   private interactionManager: InteractionManager
+  private targetingArrowSystem: TargetingArrowSystem
   private raycaster: THREE.Raycaster
   private mouse: THREE.Vector2
+  private isTargeting: boolean = false
+  private targetingMinion: MinionBoardView | null = null
 
   constructor(canvasId: string) {
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement
@@ -59,8 +63,9 @@ class GameRenderer {
     this.createLighting()
     this.createGameplayArea()
 
-    // Initialize interaction manager
+    // Initialize interaction manager and targeting system
     this.interactionManager = new InteractionManager(this.camera, this.renderer)
+    this.targetingArrowSystem = new TargetingArrowSystem(this.scene)
 
     this.hand = new HandView(this.scene)
     this.hand.mesh.position.z = Layer.HAND
@@ -81,17 +86,22 @@ class GameRenderer {
 
     this.playerBoard = new BoardView(this.scene)
     this.playerBoard.mesh.position.z = Layer.HAND
-    this.playerBoard.setBoardData([
+    
+    // Create board minions (not draggable - they stay in place)
+    const boardMinions = [
       new MinionBoardView(this.scene, new MinionModel({})),
       new MinionBoardView(this.scene, new MinionModel({})),
       new MinionBoardView(this.scene, new MinionModel({})),
-    ])
+    ]
+    
+    this.playerBoard.setBoardData(boardMinions)
 
     // Register the board as a drop zone
     this.interactionManager.addDropZone(this.playerBoard)
 
     // Set up interaction event listeners
     this.setupInteractionEventListeners()
+    this.setupMouseEventListeners()
 
     this.startRenderLoop()
   }
@@ -209,7 +219,7 @@ class GameRenderer {
       }
     })
 
-    // Listen for successful drops to remove cards from hand
+    // Listen for successful drops to remove cards from hand  
     this.interactionManager.addEventListener('dragend', (event: any) => {
       const dragEvent = event.detail
       const draggable = dragEvent.object.userData.owner
@@ -238,6 +248,46 @@ class GameRenderer {
     window.addEventListener('resize', () => {
       this.renderer.setSize(window.innerWidth, window.innerHeight)
       this.updateViewport()
+    })
+  }
+
+  private setupMouseEventListeners(): void {
+    this.canvas.addEventListener('mousedown', (event) => {
+      this.updateMousePosition(event)
+      
+      // Check if clicking on a board minion
+      const intersections = this.raycastFromMouse()
+      for (const intersection of intersections) {
+        const object = intersection.object
+        if (object.userData?.owner instanceof MinionBoardView) {
+          // Start targeting from this minion
+          this.isTargeting = true
+          this.targetingMinion = object.userData.owner
+          this.targetingArrowSystem.startTargeting(this.targetingMinion)
+          break
+        }
+      }
+    })
+
+    this.canvas.addEventListener('mousemove', (event) => {
+      this.updateMousePosition(event)
+      
+      // Update targeting arrow position if active
+      if (this.isTargeting && this.targetingArrowSystem.isActive) {
+        const cursorPosition = this.getWorldPositionOnPlane(0)
+        if (cursorPosition) {
+          this.targetingArrowSystem.updateTargetingPosition(cursorPosition)
+        }
+      }
+    })
+
+    this.canvas.addEventListener('mouseup', (event) => {
+      // End targeting if active
+      if (this.isTargeting) {
+        this.targetingArrowSystem.endTargeting()
+        this.isTargeting = false
+        this.targetingMinion = null
+      }
     })
   }
 
