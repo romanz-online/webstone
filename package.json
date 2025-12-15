@@ -6,8 +6,8 @@
   "main": "server.ts",
   "scripts": {
     "start": "concurrently \"npx tsx server/server.ts\" \"npx vite --host\"",
-    "build": "vite build --root frontend",
-    "dev": "vite --root frontend",
+    "build": "vite build",
+    "dev": "vite",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write ."
   },

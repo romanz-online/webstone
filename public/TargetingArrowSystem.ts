@@ -1,10 +1,13 @@
 import * as THREE from 'three'
 import MinionBoard from './MinionBoard.ts'
+import PlayerPortrait from './PlayerPortrait.ts'
 import { Layer } from './gameConstants.ts'
+
+type TargetingSource = MinionBoard | PlayerPortrait
 
 export default class TargetingArrowSystem {
   public isActive: boolean = false
-  public sourceMinion: MinionBoard = null
+  public sourceMinion: TargetingSource = null
 
   private scene: THREE.Scene
   private arrowMaterial: THREE.MeshBasicMaterial
@@ -35,7 +38,7 @@ export default class TargetingArrowSystem {
     animate()
   }
 
-  public startTargeting(sourceMinion: MinionBoard): void {
+  public startTargeting(sourceMinion: TargetingSource): void {
     this.sourceMinion = sourceMinion
     this.isActive = true
     this.createCursorMesh()

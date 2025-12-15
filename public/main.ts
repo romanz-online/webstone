@@ -4,6 +4,8 @@ import Board from './Board.ts'
 import { Layer } from './gameConstants.ts'
 import HandView from './HandView.ts'
 import Hero from './Hero.ts'
+import PlayerPortrait from './PlayerPortrait.ts'
+import OpponentPortrait from './OpponentPortrait.ts'
 import InteractionManager from './InteractionManager.ts'
 import MinionBoard from './MinionBoard.ts'
 import MinionCard from './MinionCard.ts'
@@ -22,14 +24,15 @@ class GameRenderer {
   private sceneRoot: THREE.Object3D
   private gameplayArea: THREE.Mesh
   private playerBoard: Board
-  private playerHero: Hero
+  private playerPortrait: PlayerPortrait
+  private opponentPortrait: OpponentPortrait
   private hand: HandView
   private interactionManager: InteractionManager
   private targetingArrowSystem: TargetingArrowSystem
   private raycaster: THREE.Raycaster
   private mouse: THREE.Vector2
   private isTargeting: boolean = false
-  private targetingMinion: MinionBoard | null = null
+  private targetingSource: MinionBoard | PlayerPortrait | null = null
 
   constructor(canvasId: string) {
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement
@@ -69,8 +72,8 @@ class GameRenderer {
     this.interactionManager = new InteractionManager(this.camera, this.renderer)
     this.targetingArrowSystem = new TargetingArrowSystem(this.scene)
 
-    this.playerHero = new Hero(this.scene)
-    this.playerHero.mesh.position.z = Layer.HERO
+    this.playerPortrait = new PlayerPortrait(this.scene)
+    this.opponentPortrait = new OpponentPortrait(this.scene)
 
     this.hand = new HandView(this.scene)
     this.hand.mesh.position.z = Layer.HAND
@@ -254,15 +257,15 @@ class GameRenderer {
     this.canvas.addEventListener('mousedown', (event) => {
       this.updateMousePosition(event)
 
-      // Check if clicking on a board minion
+      // Check if clicking on a board minion or player portrait
       const intersections = this.raycastFromMouse()
       for (const intersection of intersections) {
         const object = intersection.object
-        if (object.userData?.owner instanceof MinionBoard) {
-          // Start targeting from this minion
+        if (object.userData?.owner instanceof MinionBoard || object.userData?.owner instanceof PlayerPortrait) {
+          // Start targeting from this minion or player portrait
           this.isTargeting = true
-          this.targetingMinion = object.userData.owner
-          this.targetingArrowSystem.startTargeting(this.targetingMinion)
+          this.targetingSource = object.userData.owner
+          this.targetingArrowSystem.startTargeting(this.targetingSource)
           break
         }
       }
@@ -285,7 +288,7 @@ class GameRenderer {
       if (this.isTargeting) {
         this.targetingArrowSystem.endTargeting()
         this.isTargeting = false
-        this.targetingMinion = null
+        this.targetingSource = null
       }
     })
   }
