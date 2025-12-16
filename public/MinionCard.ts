@@ -397,7 +397,7 @@ export default class MinionCard implements Draggable, Hoverable {
     const targetScale = 1.0
     const startZ = this.mesh.position.z
     const targetZ = this.originalPosition.z
-    const duration = 150
+    const duration = 75
     const startTime = Date.now()
 
     const animate = () => {
