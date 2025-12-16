@@ -207,18 +207,15 @@ class GameRenderer {
       if (draggable instanceof MinionCard) {
         // Check if the card was successfully dropped on board
         if (
-          this.isIntersecting(
+          !this.isIntersecting(
             draggable.getBoundingInfo(),
             this.playerBoard.getBoundingInfo()
           )
         ) {
-          // Remove card from interaction manager and hand after successful drop
-          this.interactionManager.removeDraggableObject(draggable.mesh)
-          this.playerHand.removeCard(draggable)
-        } else {
           // Revert card position if not dropped on valid zone
           draggable.revert()
         }
+        // Card removal now handled by WebSocket event handler after server confirmation
         this.playerBoard.removePlaceholder()
       }
     })
@@ -294,7 +291,7 @@ class GameRenderer {
     animate()
   }
 
-  loadServerGameState(data: any): void {
+  loadServerGameState(data: any, success: boolean): void {
     const minionCardViews: MinionCard[] = []
     const minionBoardViews: MinionBoard[] = []
 
@@ -315,10 +312,22 @@ class GameRenderer {
     this.playerBoard.setBoardData(minionBoardViews)
   }
 
-  summonMinion(data: any): void {
+  summonMinion(data: any, success: boolean): void {
     const model = new MinionModel(data.minionData)
     const boardView = new MinionBoard(this.scene, model)
     this.playerBoard.summonMinion(boardView, data.boardIndex)
+  }
+
+  playCard(data: any, success: boolean): void {
+    const card = this.playerHand.cards.find((c) => c.minion.id === data.cardID)
+    if (success) {
+      if (card) {
+        this.interactionManager.removeDraggableObject(card.mesh)
+        this.playerHand.removeCard(card)
+      }
+    } else if (card) {
+      card.revert()
+    }
   }
 }
 
@@ -341,7 +350,7 @@ ws.onopen = () => {
     event: EventType.Load,
     onSuccess: (data: any) => {
       if (gameRenderer) {
-        gameRenderer.loadServerGameState(data)
+        gameRenderer.loadServerGameState(data, true)
       }
     },
     onFailure: (data: any) => {
@@ -355,7 +364,14 @@ ws.onopen = () => {
     socket: ws,
     event: EventType.PlayCard,
     onSuccess: (data: any) => {
-      // hand.playCard(data.cardID)
+      if (gameRenderer) {
+        gameRenderer.playCard(data, true)
+      }
+    },
+    onFailure: (data: any) => {
+      if (gameRenderer) {
+        gameRenderer.playCard(data, false)
+      }
     },
   })
 
@@ -364,7 +380,7 @@ ws.onopen = () => {
     event: EventType.SummonMinion,
     onSuccess: (data: any) => {
       if (gameRenderer) {
-        gameRenderer.summonMinion(data)
+        gameRenderer.summonMinion(data, true)
       }
     },
   })

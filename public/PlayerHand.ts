@@ -5,7 +5,8 @@ import { Layer } from './gameConstants.ts'
 export default class PlayerHand {
   public mesh: THREE.Object3D
 
-  private cards: MinionCard[] = []
+  public cards: MinionCard[] = []
+
   private readonly CARD_SPACING = 1.5
   private readonly HAND_Y_POSITION = -3.5
 
