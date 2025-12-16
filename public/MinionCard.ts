@@ -1,12 +1,17 @@
 import * as THREE from 'three'
 import AttackIndicator from './AttackIndicator.ts'
-import { DragEvent, Draggable } from './Draggable.ts'
+import {
+  DragEvent,
+  Draggable,
+  HoverEvent,
+  Hoverable,
+} from './InteractionInterfaces.ts'
 import { CARD_HEIGHT, CARD_WIDTH } from './gameConstants.ts'
 import HealthIndicator from './HealthIndicator.ts'
 import ManaIndicator from './ManaIndicator.ts'
 import MinionModel from './MinionModel.ts'
 
-export default class MinionCard implements Draggable {
+export default class MinionCard implements Draggable, Hoverable {
   // Logical unit constants
   private static readonly CANVAS_SCALE = 256 // Pixels per logical unit
   private static readonly ICON_SIZE_RATIO = 0.25 // Text size as fraction of card width
@@ -23,6 +28,10 @@ export default class MinionCard implements Draggable {
   private frameTexture: THREE.Texture | null = null
   private nameTexture: THREE.Texture | null = null
   private texturesLoaded: Promise<void>
+
+  // For hover state
+  private isHovered: boolean = false
+  private hoverAnimationId: number | null = null
 
   constructor(
     scene: THREE.Scene,
@@ -309,6 +318,13 @@ export default class MinionCard implements Draggable {
   }
 
   public onDragStart(event: DragEvent): void {
+    // Cancel hover animation if active
+    if (this.hoverAnimationId) {
+      cancelAnimationFrame(this.hoverAnimationId)
+      this.hoverAnimationId = null
+    }
+    this.isHovered = false
+
     // Store original position for potential revert
     this.originalPosition = this.mesh.position.clone()
 
@@ -328,6 +344,84 @@ export default class MinionCard implements Draggable {
     // Reset visual state
     this.mesh.scale.setScalar(1.0)
     this.mesh.position.z -= 0.1
+  }
+
+  public onHoverStart(event: HoverEvent): void {
+    if (this.isHovered) return
+    this.isHovered = true
+
+    // Cancel any existing hover animation
+    if (this.hoverAnimationId) {
+      cancelAnimationFrame(this.hoverAnimationId)
+    }
+
+    // Animate scale from current to 1.08
+    const startScale = this.mesh.scale.x
+    const targetScale = 1.15
+    const startZ = this.mesh.position.z
+    const targetZ = startZ + 0.05
+    const duration = 75
+    const startTime = Date.now()
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+
+      const currentScale = startScale + (targetScale - startScale) * progress
+      const currentZ = startZ + (targetZ - startZ) * progress
+
+      this.mesh.scale.setScalar(currentScale)
+      this.mesh.position.z = currentZ
+
+      if (progress < 1) {
+        this.hoverAnimationId = requestAnimationFrame(animate)
+      } else {
+        this.hoverAnimationId = null
+      }
+    }
+
+    this.hoverAnimationId = requestAnimationFrame(animate)
+  }
+
+  public onHoverEnd(event: HoverEvent): void {
+    if (!this.isHovered) return
+    this.isHovered = false
+
+    // Cancel any existing hover animation
+    if (this.hoverAnimationId) {
+      cancelAnimationFrame(this.hoverAnimationId)
+    }
+
+    // Animate scale back to 1.0
+    const startScale = this.mesh.scale.x
+    const targetScale = 1.0
+    const startZ = this.mesh.position.z
+    const targetZ = this.originalPosition.z
+    const duration = 150
+    const startTime = Date.now()
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime
+      const progress = Math.min(elapsed / duration, 1)
+
+      const currentScale = startScale + (targetScale - startScale) * progress
+      const currentZ = startZ + (targetZ - startZ) * progress
+
+      this.mesh.scale.setScalar(currentScale)
+      this.mesh.position.z = currentZ
+
+      if (progress < 1) {
+        this.hoverAnimationId = requestAnimationFrame(animate)
+      } else {
+        this.hoverAnimationId = null
+      }
+    }
+
+    this.hoverAnimationId = requestAnimationFrame(animate)
+  }
+
+  public isHoverable(): boolean {
+    return true
   }
 
   public dispose(): void {

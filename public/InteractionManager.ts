@@ -1,6 +1,12 @@
 import * as THREE from 'three'
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
-import { DragEvent, Draggable, DropZone } from './Draggable.ts'
+import {
+  DragEvent,
+  Draggable,
+  DropZone,
+  HoverEvent,
+  Hoverable,
+} from './InteractionInterfaces.ts'
 
 export enum InteractionState {
   IDLE,
@@ -14,6 +20,9 @@ export default class InteractionManager extends EventTarget {
   private dragControls: DragControls
   private dropZones: DropZone[] = []
   private lastHoveredDropZone: DropZone | null = null
+  private hoverableObjects: THREE.Object3D[] = []
+  private lastHoveredObject: THREE.Object3D | null = null
+  private hoverable: Hoverable | null = null
 
   constructor(camera: THREE.Camera, renderer: THREE.WebGLRenderer) {
     super()
@@ -43,6 +52,19 @@ export default class InteractionManager extends EventTarget {
     const index = this.dropZones.indexOf(dropZone)
     if (index !== -1) {
       this.dropZones.splice(index, 1)
+    }
+  }
+
+  public addHoverableObject(object: THREE.Object3D): void {
+    if (!this.hoverableObjects.includes(object)) {
+      this.hoverableObjects.push(object)
+    }
+  }
+
+  public removeHoverableObject(object: THREE.Object3D): void {
+    const index = this.hoverableObjects.indexOf(object)
+    if (index !== -1) {
+      this.hoverableObjects.splice(index, 1)
     }
   }
 
@@ -223,9 +245,84 @@ export default class InteractionManager extends EventTarget {
     )
   }
 
+  private checkHoverables(intersections: THREE.Intersection[]): void {
+    let currentHoveredObject: THREE.Object3D | null = null
+
+    // Find the first hoverable object in intersections
+    for (const intersection of intersections) {
+      if (this.hoverableObjects.includes(intersection.object)) {
+        currentHoveredObject = intersection.object
+        break
+      }
+
+      // Also check userData.owner pattern (like MinionCard)
+      if (intersection.object.userData?.owner) {
+        const owner = intersection.object.userData.owner
+        if ('isHoverable' in owner && owner.isHoverable()) {
+          currentHoveredObject = intersection.object
+          break
+        }
+      }
+    }
+
+    // Handle hover state changes
+    if (currentHoveredObject !== this.lastHoveredObject) {
+      // End hover on previously hovered object
+      if (this.lastHoveredObject && this.hoverable) {
+        const hoverEvent: HoverEvent = {
+          object: this.lastHoveredObject,
+          hoverable: this.hoverable,
+        }
+        this.hoverable.onHoverEnd(hoverEvent)
+
+        this.dispatchEvent(
+          new CustomEvent('hoverend', {
+            detail: { hoverable: this.hoverable, object: this.lastHoveredObject },
+          })
+        )
+      }
+
+      // Start hover on newly hovered object
+      if (currentHoveredObject) {
+        const owner = currentHoveredObject.userData?.owner
+        if (owner && 'isHoverable' in owner && owner.isHoverable()) {
+          this.hoverable = owner as Hoverable
+          const hoverEvent: HoverEvent = {
+            object: currentHoveredObject,
+            hoverable: this.hoverable,
+          }
+          this.hoverable.onHoverStart(hoverEvent)
+
+          this.dispatchEvent(
+            new CustomEvent('hoverstart', {
+              detail: {
+                hoverable: this.hoverable,
+                object: currentHoveredObject,
+              },
+            })
+          )
+        }
+      } else {
+        this.hoverable = null
+      }
+
+      this.lastHoveredObject = currentHoveredObject
+    }
+  }
+
+  public updateHoverState(intersections: THREE.Intersection[]): void {
+    // Only check hovers when not dragging
+    if (this.state === InteractionState.IDLE) {
+      this.checkHoverables(intersections)
+    }
+  }
+
   public dispose(): void {
     this.dragControls.dispose()
     this.dropZones = []
     this.draggedObject = null
+    this.hoverableObjects = []
+    this.lastHoveredObject = null
+    this.hoverable = null
   }
 }

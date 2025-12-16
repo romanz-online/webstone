@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { DragEvent, Draggable, DropZone } from './Draggable.ts'
+import { DragEvent, Draggable, DropZone } from './InteractionInterfaces.ts'
 import MinionBoard from './MinionBoard.ts'
 import MinionCard from './MinionCard.ts'
 import { CardType, EventType, PlayerID } from './constants.ts'

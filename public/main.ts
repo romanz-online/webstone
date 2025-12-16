@@ -183,7 +183,6 @@ class GameRenderer {
   }
 
   private setupInteractionEventListeners(): void {
-    // Listen for hover over drop zones
     this.interactionManager.addEventListener('hoverdropzone', (event: any) => {
       const { dropZone, draggable, worldPosition } = event.detail
 
@@ -291,6 +290,11 @@ class GameRenderer {
   private startRenderLoop(): void {
     const animate = () => {
       requestAnimationFrame(animate)
+
+      // Use InteractionManager for hover detection
+      const intersections = this.raycastFromMouse()
+      this.interactionManager.updateHoverState(intersections)
+
       this.renderer.render(this.scene, this.camera)
     }
     animate()
@@ -306,6 +310,7 @@ class GameRenderer {
       const cardView = new MinionCard(this.scene, model)
       minionCardViews.push(cardView)
       this.interactionManager.addDraggableObject(cardView.mesh)
+      this.interactionManager.addHoverableObject(cardView.mesh)
     })
 
     data.player1.board.forEach((minionData) => {
@@ -338,6 +343,7 @@ class GameRenderer {
     if (success) {
       if (card) {
         this.interactionManager.removeDraggableObject(card.mesh)
+        this.interactionManager.removeHoverableObject(card.mesh)
         this.playerHand.removeCard(card)
       }
     } else if (card) {
