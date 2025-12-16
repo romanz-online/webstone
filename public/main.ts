@@ -314,6 +314,12 @@ class GameRenderer {
     this.playerHand.setHandData(minionCardViews)
     this.playerBoard.setBoardData(minionBoardViews)
   }
+
+  summonMinion(data: any): void {
+    const model = new MinionModel(data.minionData)
+    const boardView = new MinionBoard(this.scene, model)
+    this.playerBoard.summonMinion(boardView, data.boardIndex)
+  }
 }
 
 let gameRenderer: GameRenderer | null = null
@@ -341,7 +347,7 @@ ws.onopen = () => {
     onFailure: (data: any) => {
       setTimeout(() => {
         triggerWsEvent(EventType.TryLoad) // retry
-      }, 5 * 1000)
+      }, 2 * 1000)
     },
   })
 
@@ -357,7 +363,9 @@ ws.onopen = () => {
     socket: ws,
     event: EventType.SummonMinion,
     onSuccess: (data: any) => {
-      // board.summonMinion(data.minionID, data.boardIndex)
+      if (gameRenderer) {
+        gameRenderer.summonMinion(data)
+      }
     },
   })
 

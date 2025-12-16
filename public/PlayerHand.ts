@@ -15,10 +15,6 @@ export default class PlayerHand {
     scene.add(this.mesh)
   }
 
-  /**
-   * Set the entire hand data at once, replacing any existing cards
-   * @param cards Array of MinionCardView instances to set in the hand
-   */
   public setHandData(cards: MinionCard[]): void {
     this.cards.forEach((card) => card.dispose())
 
@@ -26,19 +22,11 @@ export default class PlayerHand {
     this.arrangeCards()
   }
 
-  /**
-   * Add a single card to the hand
-   * @param card MinionCardView to add to the hand
-   */
   public addCard(card: MinionCard): void {
     this.cards.push(card)
     this.arrangeCards()
   }
 
-  /**
-   * Remove a specific card from the hand
-   * @param card MinionCardView to remove
-   */
   public removeCard(card: MinionCard): void {
     const index = this.cards.indexOf(card)
     if (index !== -1) {
@@ -48,9 +36,6 @@ export default class PlayerHand {
     }
   }
 
-  /**
-   * Arrange cards in a horizontal line with even spacing
-   */
   private arrangeCards(): void {
     // Remove all existing cards from mesh to prevent parent-child conflicts
     this.cards.forEach((card) => {
@@ -74,20 +59,5 @@ export default class PlayerHand {
       )
       card.originalPosition = card.mesh.position.clone()
     })
-  }
-
-  /**
-   * Get the number of cards currently in the hand
-   */
-  public get cardCount(): number {
-    return this.cards.length
-  }
-
-  /**
-   * Dispose of all cards and clear the hand
-   */
-  public clear(): void {
-    this.cards.forEach((card) => card.dispose())
-    this.cards = []
   }
 }

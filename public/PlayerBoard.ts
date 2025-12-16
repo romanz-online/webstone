@@ -10,15 +10,12 @@ export default class PlayerBoard implements DropZone {
   public mesh: THREE.Object3D
   public placeholderIndex: number = -1
 
-  private scene: THREE.Scene
   private droppableArea: THREE.Mesh
   private minions: MinionBoard[] = []
   private readonly CARD_SPACING = 1.5
   private readonly BOARD_Y_POSITION = -0.5
 
   constructor(scene: THREE.Scene) {
-    this.scene = scene
-
     this.mesh = new THREE.Object3D()
     this.mesh.name = 'board'
     scene.add(this.mesh)
@@ -41,9 +38,9 @@ export default class PlayerBoard implements DropZone {
     return { min: box.min, max: box.max }
   }
 
-  public summonMinion(minion: MinionBoard): void {
+  public summonMinion(minion: MinionBoard, index: number): void {
     // Add the minion to the board
-    this.minions.splice(this.placeholderIndex, 0, minion)
+    this.minions.splice(index, 0, minion)
 
     // Arrange minions to set up the correct positioning
     this.arrangeMinions(false)

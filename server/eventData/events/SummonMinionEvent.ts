@@ -29,7 +29,7 @@ class SummonMinionEvent extends Event {
 
     notifyClient(EventType.SummonMinion, true, {
       playerID: this.playerID,
-      minionID: this.minion.id,
+      minionData: this.minion,
       boardIndex: this.boardIndex,
     })
 
