@@ -6,6 +6,7 @@ import InteractionManager from './InteractionManager.ts'
 import MinionBoard from './MinionBoard.ts'
 import MinionCard from './MinionCard.ts'
 import MinionModel from './MinionModel.ts'
+import OpponentBoard from './OpponentBoard.ts'
 import OpponentPortrait from './OpponentPortrait.ts'
 import PlayerBoard from './PlayerBoard.ts'
 import PlayerHand from './PlayerHand.ts'
@@ -25,6 +26,7 @@ class GameRenderer {
   private sceneRoot: THREE.Object3D
   private gameplayArea: THREE.Mesh
   private playerBoard: PlayerBoard
+  private opponentBoard: OpponentBoard
   private playerPortrait: PlayerPortrait
   private opponentPortrait: OpponentPortrait
   private playerHand: PlayerHand
@@ -81,6 +83,9 @@ class GameRenderer {
 
     this.playerBoard = new PlayerBoard(this.scene)
     this.playerBoard.mesh.position.z = Layer.HAND
+
+    this.opponentBoard = new OpponentBoard(this.scene)
+    this.opponentBoard.mesh.position.z = Layer.HAND
 
     // Register the board as a drop zone
     this.interactionManager.addDropZone(this.playerBoard)
@@ -293,7 +298,8 @@ class GameRenderer {
 
   loadServerGameState(data: any, success: boolean): void {
     const minionCardViews: MinionCard[] = []
-    const minionBoardViews: MinionBoard[] = []
+    const playerBoardViews: MinionBoard[] = []
+    const opponentBoardViews: MinionBoard[] = []
 
     data.player1.hand.forEach((card) => {
       const model = new MinionModel(card)
@@ -305,11 +311,20 @@ class GameRenderer {
     data.player1.board.forEach((minionData) => {
       const model = new MinionModel(minionData)
       const boardView = new MinionBoard(this.scene, model)
-      minionBoardViews.push(boardView)
+      playerBoardViews.push(boardView)
     })
 
+    if (data.player2 && data.player2.board) {
+      data.player2.board.forEach((minionData) => {
+        const model = new MinionModel(minionData)
+        const boardView = new MinionBoard(this.scene, model)
+        opponentBoardViews.push(boardView)
+      })
+    }
+
     this.playerHand.setHandData(minionCardViews)
-    this.playerBoard.setBoardData(minionBoardViews)
+    this.playerBoard.setBoardData(playerBoardViews)
+    this.opponentBoard.setBoardData(opponentBoardViews)
   }
 
   summonMinion(data: any, success: boolean): void {

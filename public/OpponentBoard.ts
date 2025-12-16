@@ -1,41 +1,18 @@
 import * as THREE from 'three'
-import { DragEvent, Draggable, DropZone } from './Draggable.ts'
 import MinionBoard from './MinionBoard.ts'
-import MinionCard from './MinionCard.ts'
-import { CardType, EventType, PlayerID } from './constants.ts'
 import { Layer } from './gameConstants.ts'
-import { triggerWsEvent } from './ws.ts'
 
-export default class PlayerBoard implements DropZone {
+export default class OpponentBoard {
   public mesh: THREE.Object3D
-  public placeholderIndex: number = -1
 
-  private droppableArea: THREE.Mesh
   private minions: MinionBoard[] = []
   private readonly CARD_SPACING = 1.5
-  private readonly BOARD_Y_POSITION = -0.6
+  private readonly BOARD_Y_POSITION = 1.1
 
   constructor(scene: THREE.Scene) {
     this.mesh = new THREE.Object3D()
-    this.mesh.name = 'board'
+    this.mesh.name = 'opponentBoard'
     scene.add(this.mesh)
-
-    const geometry = new THREE.PlaneGeometry(7.5, 1.5)
-    const material = new THREE.MeshBasicMaterial({
-      color: 0xff0000,
-      transparent: true,
-      opacity: 0,
-    })
-
-    this.droppableArea = new THREE.Mesh(geometry, material)
-    this.droppableArea.name = 'clickableArea'
-    this.droppableArea.position.set(0, -0.5, Layer.BOARD)
-    this.mesh.add(this.droppableArea)
-  }
-
-  public getBoundingInfo(): { min: THREE.Vector3; max: THREE.Vector3 } {
-    const box = new THREE.Box3().setFromObject(this.droppableArea)
-    return { min: box.min, max: box.max }
   }
 
   public summonMinion(minion: MinionBoard, index: number): void {
@@ -43,18 +20,16 @@ export default class PlayerBoard implements DropZone {
     this.minions.splice(index, 0, minion)
 
     // Arrange minions to set up the correct positioning
-    this.arrangeMinions(false)
+    this.arrangeMinions()
 
     // Perform the play animation
-    this.animateMinionPlayEntry(minion)
-    // this.arrangeMinions()
-    this.removePlaceholder()
+    this.animateMinionPlayEntry(minion, index)
   }
 
-  private animateMinionPlayEntry(minion: MinionBoard): void {
+  private animateMinionPlayEntry(minion: MinionBoard, index: number): void {
     minion.mesh.position.x =
       -((this.minions.length - 1) * this.CARD_SPACING) / 2 +
-      this.placeholderIndex * this.CARD_SPACING
+      index * this.CARD_SPACING
     minion.mesh.position.y = this.BOARD_Y_POSITION - 0.4
     minion.mesh.scale.set(0.35, 0.35, 1)
 
@@ -87,40 +62,6 @@ export default class PlayerBoard implements DropZone {
     animate()
   }
 
-  public updatePlaceholderPosition(worldX: number, worldY: number): void {
-    // Convert world coordinates to board-relative coordinates
-    const worldPosition = new THREE.Vector3(worldX, worldY, 0)
-    const localPosition = this.mesh.worldToLocal(worldPosition)
-
-    // Use the local X position for determining placement
-    const hoveredCardX = localPosition.x
-
-    // Determine the placeholder index based on the hovered card's x position
-    const totalWidth = (this.minions.length - 1) * this.CARD_SPACING
-    const startX = -totalWidth / 2
-
-    // Find the index where the card should be inserted
-    const newPlaceholderIndex = this.minions.findIndex((minion) => {
-      const minionX = startX + this.minions.indexOf(minion) * this.CARD_SPACING
-      return hoveredCardX < minionX
-    })
-
-    // Set the placeholder index (or last position if not found)
-    const calculatedIndex =
-      newPlaceholderIndex === -1 ? this.minions.length : newPlaceholderIndex
-
-    // Only update if placeholder position actually changed to avoid unnecessary animations
-    if (this.placeholderIndex !== calculatedIndex) {
-      this.placeholderIndex = calculatedIndex
-      this.arrangeMinions(true)
-    }
-  }
-
-  public removePlaceholder(): void {
-    this.placeholderIndex = -1
-    this.arrangeMinions()
-  }
-
   public setBoardData(minions: MinionBoard[]): void {
     this.minions.forEach((minion) => minion.dispose())
 
@@ -142,12 +83,8 @@ export default class PlayerBoard implements DropZone {
     }
   }
 
-  private arrangeMinions(withPlaceholder: boolean = false): void {
-    const actualMinionCount = withPlaceholder
-      ? this.minions.length + 1
-      : this.minions.length
-
-    const totalWidth = (actualMinionCount - 1) * this.CARD_SPACING
+  private arrangeMinions(): void {
+    const totalWidth = (this.minions.length - 1) * this.CARD_SPACING
     const startX = -totalWidth / 2
 
     this.minions.forEach((minion, index) => {
@@ -159,17 +96,7 @@ export default class PlayerBoard implements DropZone {
       minion.mesh.position.y = this.BOARD_Y_POSITION
       minion.mesh.position.z = Layer.BOARD_MINION
 
-      // Adjust x position if placeholder is active and valid
-      let adjustedIndex = index
-      if (
-        withPlaceholder &&
-        this.placeholderIndex >= 0 &&
-        index >= this.placeholderIndex
-      ) {
-        adjustedIndex++
-      }
-
-      const xPosition = startX + adjustedIndex * this.CARD_SPACING
+      const xPosition = startX + index * this.CARD_SPACING
 
       // Animate position change
       this.animateMinionPosition(minion, xPosition)
@@ -209,29 +136,6 @@ export default class PlayerBoard implements DropZone {
     }
 
     ;(minion as any).animationId = requestAnimationFrame(animate)
-  }
-
-  public canAcceptDrop(draggable: Draggable): boolean {
-    return draggable instanceof MinionCard
-  }
-
-  public onDrop(draggable: Draggable, event: DragEvent): void {
-    if (draggable instanceof MinionCard) {
-      console.log('Card was dropped on board in place', this.placeholderIndex)
-
-      triggerWsEvent(EventType.TryPlayCard, {
-        cardType: CardType.Minion,
-        boardIndex: this.placeholderIndex,
-        minionID: draggable.minion.id,
-        playerID: PlayerID.Player1,
-      })
-
-      // Create a new minion for the board
-      // const newMinion = new MinionBoard(this.scene, draggable.minion)
-
-      // Summon the minion at the placeholder position
-      // this.summonMinion(newMinion)
-    }
   }
 
   public clear(): void {

@@ -190,13 +190,13 @@ export default class MinionCard implements Draggable {
     }
 
     const manaCanvas = await new ManaIndicator().renderToCanvas(
-      this.minion.mana || 4
+      this.minion.mana || 0
     )
     const attackCanvas = await new AttackIndicator().renderToCanvas(
-      this.minion.attack || 2
+      this.minion.attack || 0
     )
     const healthCanvas = await new HealthIndicator().renderToCanvas(
-      this.minion.health || 5
+      this.minion.health || 1
     )
 
     const size =

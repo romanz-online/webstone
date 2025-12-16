@@ -173,10 +173,10 @@ export default class MinionBoard {
 
     // Draw indicators using the indicator components (no mana for board minions)
     const attackCanvas = await this.attackIndicator.renderToCanvas(
-      this.minion.attack || 2
+      this.minion.attack || 0
     )
     const healthCanvas = await this.healthIndicator.renderToCanvas(
-      this.minion.health || 5
+      this.minion.health || 1
     )
 
     const size =
