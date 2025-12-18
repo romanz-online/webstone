@@ -78,7 +78,7 @@ export default class TargetingArrowSystem {
 
     const totalRectangles = 15
     for (let i = 0; i < totalRectangles; i++) {
-      const rectangleGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.3)
+      const rectangleGeometry = new THREE.BoxGeometry(0.15, 0.3, 0.45)
       const rectangle = new THREE.Mesh(
         rectangleGeometry,
         this.arrowMaterial.clone()
@@ -171,12 +171,33 @@ export default class TargetingArrowSystem {
 
         dash.position.copy(arcData.position)
 
-        // Simple orientation - just face forward direction
-        dash.lookAt(
-          arcData.position.x + arcData.forward.x,
-          arcData.position.y + arcData.forward.y,
-          arcData.position.z + arcData.forward.z
-        )
+        // Build proper orientation matrix
+        const cameraDir = new THREE.Vector3(0, 0, 1) // Toward camera
+
+        // Calculate thin dimension (local X-axis): project camera onto plane perpendicular to forward
+        const thin = cameraDir.clone()
+          .sub(arcData.forward.clone().multiplyScalar(arcData.forward.dot(cameraDir)))
+
+        // Handle edge case: forward parallel to camera direction
+        if (thin.length() < 0.01) {
+          thin.set(1, 0, 0) // Fallback
+        } else {
+          thin.normalize()
+        }
+
+        // Calculate medium dimension (local Y-axis): perpendicular to forward and thin
+        const medium = new THREE.Vector3()
+          .crossVectors(arcData.forward, thin)
+          .normalize()
+
+        // Build rotation matrix: makeBasis(xAxis, yAxis, zAxis)
+        //   xAxis = thin (0.15 width, toward/away camera)
+        //   yAxis = medium (0.3 height, perpendicular)
+        //   zAxis = forward (0.45 depth, along arc)
+        const rotationMatrix = new THREE.Matrix4().makeBasis(thin, medium, arcData.forward)
+
+        // Apply orientation
+        dash.rotation.setFromRotationMatrix(rotationMatrix)
 
         dash.visible = true
       } else {
