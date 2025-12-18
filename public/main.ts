@@ -249,6 +249,7 @@ class GameRenderer {
           this.isTargeting = true
           this.targetingSource = object.userData.owner
           this.targetingArrowSystem.startTargeting(this.targetingSource)
+          this.canvas.style.cursor = 'none'
           break
         }
       }
@@ -272,6 +273,7 @@ class GameRenderer {
         this.targetingArrowSystem.endTargeting()
         this.isTargeting = false
         this.targetingSource = null
+        this.canvas.style.cursor = ''
       }
     })
   }

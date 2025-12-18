@@ -67,7 +67,6 @@ export default class TargetingArrowSystem {
 
     const ringGeometry = new THREE.TorusGeometry(0.375, 0.045, 8, 32)
     const ring = new THREE.Mesh(ringGeometry, this.arrowMaterial.clone())
-    ring.rotation.x = Math.PI / 2
     ring.name = 'targetingRing'
     this.cursorMesh.add(ring)
   }
