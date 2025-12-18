@@ -1,11 +1,11 @@
 import * as THREE from 'three'
-import MinionBoard from './MinionBoard.ts'
+import OpponentMinionBoard from './OpponentMinionBoard.ts'
 import { Layer } from './gameConstants.ts'
 
 export default class OpponentBoard {
   public mesh: THREE.Object3D
 
-  private minions: MinionBoard[] = []
+  private minions: OpponentMinionBoard[] = []
   private readonly CARD_SPACING = 1.5
   private readonly BOARD_Y_POSITION = 1.1
 
@@ -15,7 +15,7 @@ export default class OpponentBoard {
     scene.add(this.mesh)
   }
 
-  public summonMinion(minion: MinionBoard, index: number): void {
+  public summonMinion(minion: OpponentMinionBoard, index: number): void {
     // Add the minion to the board
     this.minions.splice(index, 0, minion)
 
@@ -26,7 +26,10 @@ export default class OpponentBoard {
     this.animateMinionPlayEntry(minion, index)
   }
 
-  private animateMinionPlayEntry(minion: MinionBoard, index: number): void {
+  private animateMinionPlayEntry(
+    minion: OpponentMinionBoard,
+    index: number
+  ): void {
     minion.mesh.position.x =
       -((this.minions.length - 1) * this.CARD_SPACING) / 2 +
       index * this.CARD_SPACING
@@ -62,19 +65,19 @@ export default class OpponentBoard {
     animate()
   }
 
-  public setBoardData(minions: MinionBoard[]): void {
+  public setBoardData(minions: OpponentMinionBoard[]): void {
     this.minions.forEach((minion) => minion.dispose())
 
     this.minions = minions
     this.arrangeMinions()
   }
 
-  public addMinion(minion: MinionBoard): void {
+  public addMinion(minion: OpponentMinionBoard): void {
     this.minions.push(minion)
     this.arrangeMinions()
   }
 
-  public removeMinion(minion: MinionBoard): void {
+  public removeMinion(minion: OpponentMinionBoard): void {
     const index = this.minions.indexOf(minion)
     if (index !== -1) {
       this.minions.splice(index, 1)
@@ -103,7 +106,10 @@ export default class OpponentBoard {
     })
   }
 
-  private animateMinionPosition(minion: MinionBoard, targetX: number): void {
+  private animateMinionPosition(
+    minion: OpponentMinionBoard,
+    targetX: number
+  ): void {
     // Skip animation if already at target position
     if (Math.abs(minion.mesh.position.x - targetX) < 0.01) {
       return

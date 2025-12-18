@@ -3,13 +3,14 @@ import * as THREE from 'three'
 import { EventType } from './constants.ts'
 import { Layer } from './gameConstants.ts'
 import InteractionManager from './InteractionManager.ts'
-import MinionBoard from './MinionBoard.ts'
 import MinionCard from './MinionCard.ts'
 import MinionModel from './MinionModel.ts'
 import OpponentBoard from './OpponentBoard.ts'
+import OpponentMinionBoard from './OpponentMinionBoard.ts'
 import OpponentPortrait from './OpponentPortrait.ts'
 import PlayerBoard from './PlayerBoard.ts'
 import PlayerHand from './PlayerHand.ts'
+import PlayerMinionBoard from './PlayerMinionBoard.ts'
 import PlayerPortrait from './PlayerPortrait.ts'
 import TargetingArrowSystem from './TargetingArrowSystem.ts'
 import { setWebSocket, triggerWsEvent, wsEventHandler } from './ws.ts'
@@ -35,7 +36,7 @@ class GameRenderer {
   private raycaster: THREE.Raycaster
   private mouse: THREE.Vector2
   private isTargeting: boolean = false
-  private targetingSource: MinionBoard | PlayerPortrait | null = null
+  private targetingSource: PlayerMinionBoard | PlayerPortrait | null = null
 
   constructor(canvasId: string) {
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement
@@ -241,7 +242,7 @@ class GameRenderer {
       for (const intersection of intersections) {
         const object = intersection.object
         if (
-          object.userData?.owner instanceof MinionBoard ||
+          object.userData?.owner instanceof PlayerMinionBoard ||
           object.userData?.owner instanceof PlayerPortrait
         ) {
           // Start targeting from this minion or player portrait
@@ -302,8 +303,8 @@ class GameRenderer {
 
   loadServerGameState(data: any, success: boolean): void {
     const minionCardViews: MinionCard[] = []
-    const playerBoardViews: MinionBoard[] = []
-    const opponentBoardViews: MinionBoard[] = []
+    const playerBoardViews: PlayerMinionBoard[] = []
+    const opponentBoardViews: OpponentMinionBoard[] = []
 
     data.player1.hand.forEach((card) => {
       const model = new MinionModel(card)
@@ -315,14 +316,14 @@ class GameRenderer {
 
     data.player1.board.forEach((minionData) => {
       const model = new MinionModel(minionData)
-      const boardView = new MinionBoard(this.scene, model)
+      const boardView = new PlayerMinionBoard(this.scene, model)
       playerBoardViews.push(boardView)
     })
 
     if (data.player2 && data.player2.board) {
       data.player2.board.forEach((minionData) => {
         const model = new MinionModel(minionData)
-        const boardView = new MinionBoard(this.scene, model)
+        const boardView = new OpponentMinionBoard(this.scene, model)
         opponentBoardViews.push(boardView)
       })
     }
@@ -334,7 +335,7 @@ class GameRenderer {
 
   summonMinion(data: any, success: boolean): void {
     const model = new MinionModel(data.minionData)
-    const boardView = new MinionBoard(this.scene, model)
+    const boardView = new PlayerMinionBoard(this.scene, model)
     this.playerBoard.summonMinion(boardView, data.boardIndex)
   }
 

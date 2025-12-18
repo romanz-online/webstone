@@ -4,7 +4,7 @@ import HealthIndicator from './HealthIndicator.ts'
 import MinionModel from './MinionModel.ts'
 import { MINION_BOARD_HEIGHT, MINION_BOARD_WIDTH } from './gameConstants.ts'
 
-export default class MinionBoard {
+export default class OpponentMinionBoard {
   // Logical unit constants
   private static readonly CANVAS_SCALE = 256 // Pixels per logical unit
   private static readonly ICON_SIZE_RATIO = 0.25 // Icon size as fraction of board width
@@ -104,12 +104,12 @@ export default class MinionBoard {
     const compositeCanvas = document.createElement('canvas')
     const paddingPixels =
       MINION_BOARD_WIDTH *
-      MinionBoard.INDICATOR_PADDING *
-      MinionBoard.CANVAS_SCALE
+      OpponentMinionBoard.INDICATOR_PADDING *
+      OpponentMinionBoard.CANVAS_SCALE
     const canvasWidth =
-      MINION_BOARD_WIDTH * MinionBoard.CANVAS_SCALE + paddingPixels * 2
+      MINION_BOARD_WIDTH * OpponentMinionBoard.CANVAS_SCALE + paddingPixels * 2
     const canvasHeight =
-      MINION_BOARD_HEIGHT * MinionBoard.CANVAS_SCALE + paddingPixels * 2
+      MINION_BOARD_HEIGHT * OpponentMinionBoard.CANVAS_SCALE + paddingPixels * 2
 
     compositeCanvas.width = canvasWidth
     compositeCanvas.height = canvasHeight
@@ -118,8 +118,8 @@ export default class MinionBoard {
     if (!ctx) return
 
     // Calculate board dimensions (original size) and offset for centering
-    const boardWidth = MINION_BOARD_WIDTH * MinionBoard.CANVAS_SCALE
-    const boardHeight = MINION_BOARD_HEIGHT * MinionBoard.CANVAS_SCALE
+    const boardWidth = MINION_BOARD_WIDTH * OpponentMinionBoard.CANVAS_SCALE
+    const boardHeight = MINION_BOARD_HEIGHT * OpponentMinionBoard.CANVAS_SCALE
     const boardOffsetX = paddingPixels
     const boardOffsetY = paddingPixels
 
@@ -181,8 +181,8 @@ export default class MinionBoard {
 
     const size =
       MINION_BOARD_WIDTH *
-      MinionBoard.ICON_SIZE_RATIO *
-      MinionBoard.CANVAS_SCALE
+      OpponentMinionBoard.ICON_SIZE_RATIO *
+      OpponentMinionBoard.CANVAS_SCALE
 
     // Draw attack indicator
     ctx.drawImage(
@@ -207,7 +207,8 @@ export default class MinionBoard {
     compositeTexture.needsUpdate = true
 
     // Scale geometry to match the expanded canvas proportions
-    const paddingAmount = MINION_BOARD_WIDTH * MinionBoard.INDICATOR_PADDING * 2
+    const paddingAmount =
+      MINION_BOARD_WIDTH * OpponentMinionBoard.INDICATOR_PADDING * 2
     const geometryWidth = MINION_BOARD_WIDTH + paddingAmount
     const geometryHeight = MINION_BOARD_HEIGHT + paddingAmount
     const geometry = new THREE.PlaneGeometry(geometryWidth, geometryHeight)

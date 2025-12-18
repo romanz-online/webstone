@@ -1,9 +1,9 @@
 import * as THREE from 'three'
-import MinionBoard from './MinionBoard.ts'
+import PlayerMinionBoard from './PlayerMinionBoard.ts'
 import PlayerPortrait from './PlayerPortrait.ts'
 import { Layer } from './gameConstants.ts'
 
-type TargetingSource = MinionBoard | PlayerPortrait
+type TargetingSource = PlayerMinionBoard | PlayerPortrait
 
 export default class TargetingArrowSystem {
   public isActive: boolean = false

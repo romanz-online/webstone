@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { DragEvent, Draggable, DropZone } from './InteractionInterfaces.ts'
-import MinionBoard from './MinionBoard.ts'
 import MinionCard from './MinionCard.ts'
+import PlayerMinionBoard from './PlayerMinionBoard.ts'
 import { CardType, EventType, PlayerID } from './constants.ts'
 import { Layer } from './gameConstants.ts'
 import { triggerWsEvent } from './ws.ts'
@@ -11,7 +11,7 @@ export default class PlayerBoard implements DropZone {
   public placeholderIndex: number = -1
 
   private droppableArea: THREE.Mesh
-  private minions: MinionBoard[] = []
+  private minions: PlayerMinionBoard[] = []
   private readonly CARD_SPACING = 1.5
   private readonly BOARD_Y_POSITION = -0.6
 
@@ -38,7 +38,7 @@ export default class PlayerBoard implements DropZone {
     return { min: box.min, max: box.max }
   }
 
-  public summonMinion(minion: MinionBoard, index: number): void {
+  public summonMinion(minion: PlayerMinionBoard, index: number): void {
     // Add the minion to the board
     this.minions.splice(index, 0, minion)
 
@@ -51,7 +51,7 @@ export default class PlayerBoard implements DropZone {
     this.removePlaceholder()
   }
 
-  private animateMinionPlayEntry(minion: MinionBoard): void {
+  private animateMinionPlayEntry(minion: PlayerMinionBoard): void {
     minion.mesh.position.x =
       -((this.minions.length - 1) * this.CARD_SPACING) / 2 +
       this.placeholderIndex * this.CARD_SPACING
@@ -121,19 +121,19 @@ export default class PlayerBoard implements DropZone {
     this.arrangeMinions()
   }
 
-  public setBoardData(minions: MinionBoard[]): void {
+  public setBoardData(minions: PlayerMinionBoard[]): void {
     this.minions.forEach((minion) => minion.dispose())
 
     this.minions = minions
     this.arrangeMinions()
   }
 
-  public addMinion(minion: MinionBoard): void {
+  public addMinion(minion: PlayerMinionBoard): void {
     this.minions.push(minion)
     this.arrangeMinions()
   }
 
-  public removeMinion(minion: MinionBoard): void {
+  public removeMinion(minion: PlayerMinionBoard): void {
     const index = this.minions.indexOf(minion)
     if (index !== -1) {
       this.minions.splice(index, 1)
@@ -176,7 +176,10 @@ export default class PlayerBoard implements DropZone {
     })
   }
 
-  private animateMinionPosition(minion: MinionBoard, targetX: number): void {
+  private animateMinionPosition(
+    minion: PlayerMinionBoard,
+    targetX: number
+  ): void {
     // Skip animation if already at target position
     if (Math.abs(minion.mesh.position.x - targetX) < 0.01) {
       return
