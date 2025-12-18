@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import PlayerMinionBoard from './PlayerMinionBoard.ts'
 import PlayerPortrait from './PlayerPortrait.ts'
+import { Layer } from './gameConstants.ts'
 
 type TargetingSource = PlayerMinionBoard | PlayerPortrait
 
@@ -47,7 +48,11 @@ export default class TargetingArrowSystem {
   public updateTargetingPosition(pointerPosition: THREE.Vector3): void {
     if (!this.isActive || !this.sourceMinion) return
 
-    this.cursorMesh.position.copy(pointerPosition)
+    this.cursorMesh.position.set(
+      pointerPosition.x,
+      pointerPosition.y,
+      Layer.TARGETING_SYSTEM
+    )
     this.updateArrowMeshes(
       this.sourceMinion.mesh.position.clone(),
       pointerPosition
@@ -101,7 +106,7 @@ export default class TargetingArrowSystem {
     const currentPos = new THREE.Vector3(
       start.x + direction.x * t,
       start.y + direction.y * t,
-      start.z + height // Adding height to move towards camera (positive z)
+      Layer.TARGETING_SYSTEM + height // Base at high z-level, add parabolic variation
     )
 
     const delta = 0.01
@@ -114,13 +119,13 @@ export default class TargetingArrowSystem {
     const prevPos = new THREE.Vector3(
       start.x + direction.x * prevT,
       start.y + direction.y * prevT,
-      start.z + prevHeight
+      Layer.TARGETING_SYSTEM + prevHeight
     )
 
     const nextPos = new THREE.Vector3(
       start.x + direction.x * nextT,
       start.y + direction.y * nextT,
-      start.z + nextHeight
+      Layer.TARGETING_SYSTEM + nextHeight
     )
 
     const forward = nextPos.clone().sub(prevPos).normalize()
