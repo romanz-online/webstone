@@ -14,3 +14,10 @@ export enum Layer {
   HAND = 0.4,
   TARGETING_SYSTEM = 0.999,
 }
+
+// Cursor constants
+export const Cursor = {
+  DEFAULT: 'url(/media/images/cursor/cursor.png) 10 2, auto',
+  CLICK: 'url(/media/images/cursor/click.png) 10 2, auto',
+  HIDDEN: 'none',
+} as const

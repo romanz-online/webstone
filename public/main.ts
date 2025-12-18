@@ -1,7 +1,7 @@
 import FontFaceObserver from 'fontfaceobserver'
 import * as THREE from 'three'
 import { EventType } from './constants.ts'
-import { Layer } from './gameConstants.ts'
+import { Layer, Cursor } from './gameConstants.ts'
 import InteractionManager from './InteractionManager.ts'
 import MinionCard from './MinionCard.ts'
 import MinionModel from './MinionModel.ts'
@@ -249,7 +249,7 @@ class GameRenderer {
           this.isTargeting = true
           this.targetingSource = object.userData.owner
           this.targetingArrowSystem.startTargeting(this.targetingSource)
-          this.canvas.style.cursor = 'none'
+          this.canvas.style.cursor = Cursor.HIDDEN
           break
         }
       }
@@ -273,7 +273,7 @@ class GameRenderer {
         this.targetingArrowSystem.endTargeting()
         this.isTargeting = false
         this.targetingSource = null
-        this.canvas.style.cursor = ''
+        this.canvas.style.cursor = Cursor.DEFAULT
       }
     })
   }

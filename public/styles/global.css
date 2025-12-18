@@ -3,15 +3,26 @@
   src: url('./Belwe_en.ttf');
 }
 
-body {
-  overflow: hidden;
+/* Set cursor on all relevant elements */
+html,
+body,
+canvas,
+#main {
   cursor:
     url(/media/images/cursor/cursor.png) 10 2,
     auto;
 }
 
-body:active {
+/* Active state for all elements - shows click cursor when clicking */
+html:active,
+body:active,
+canvas:active,
+#main:active {
   cursor:
-    url(../media/images/cursor/click.png) 10 2,
+    url(/media/images/cursor/click.png) 10 2,
     auto;
+}
+
+body {
+  overflow: hidden;
 }
