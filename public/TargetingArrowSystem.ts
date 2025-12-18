@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import PlayerMinionBoard from './PlayerMinionBoard.ts'
 import PlayerPortrait from './PlayerPortrait.ts'
-import { Layer } from './gameConstants.ts'
 
 type TargetingSource = PlayerMinionBoard | PlayerPortrait
 
@@ -16,7 +15,7 @@ export default class TargetingArrowSystem {
   private cursorMesh: THREE.Object3D = null
   private arrowParticles: THREE.Mesh[] = []
   private animationTime: number = 0
-  private arcHeight: number = Layer.TARGETING_SYSTEM
+  private arcHeight: number = 0.25
 
   constructor(scene: THREE.Scene) {
     this.scene = scene
@@ -175,8 +174,13 @@ export default class TargetingArrowSystem {
         const cameraDir = new THREE.Vector3(0, 0, 1) // Toward camera
 
         // Calculate thin dimension (local X-axis): project camera onto plane perpendicular to forward
-        const thin = cameraDir.clone()
-          .sub(arcData.forward.clone().multiplyScalar(arcData.forward.dot(cameraDir)))
+        const thin = cameraDir
+          .clone()
+          .sub(
+            arcData.forward
+              .clone()
+              .multiplyScalar(arcData.forward.dot(cameraDir))
+          )
 
         // Handle edge case: forward parallel to camera direction
         if (thin.length() < 0.01) {
@@ -194,7 +198,11 @@ export default class TargetingArrowSystem {
         //   xAxis = thin (0.15 width, toward/away camera)
         //   yAxis = medium (0.3 height, perpendicular)
         //   zAxis = forward (0.45 depth, along arc)
-        const rotationMatrix = new THREE.Matrix4().makeBasis(thin, medium, arcData.forward)
+        const rotationMatrix = new THREE.Matrix4().makeBasis(
+          thin,
+          medium,
+          arcData.forward
+        )
 
         // Apply orientation
         dash.rotation.setFromRotationMatrix(rotationMatrix)
