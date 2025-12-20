@@ -30,7 +30,10 @@ class AttackEvent extends Event {
       this.attacker.canAttack = false
     }
 
-    notifyClient(EventType.Attack, true, {})
+    notifyClient(EventType.Attack, true, {
+      attackerID: this.attacker.id,
+      targetID: this.target.id,
+    })
 
     if (this.attacker.attack > 0) {
       engine.queueEvent(

@@ -22,6 +22,8 @@ class DamageEvent extends Event {
     }
     // console.log(`Executing ${this}`)
 
+    const damages = []
+
     for (const target of this.targets) {
       const damageTaken = target.takeDamage(this.amount)
 
@@ -29,9 +31,15 @@ class DamageEvent extends Event {
       }
 
       console.log(`${this.source} deals ${damageTaken} damage to ${target}`)
+
+      damages.push({
+        targetID: target.id,
+        amount: damageTaken,
+        currentHealth: target.health,
+      })
     }
 
-    notifyClient(EventType.Damage, true, {})
+    notifyClient(EventType.Damage, true, { damages })
     return true
   }
 }

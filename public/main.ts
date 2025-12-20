@@ -1,6 +1,8 @@
 import FontFaceObserver from 'fontfaceobserver'
 import * as THREE from 'three'
+import AttackAnimationSystem from './AttackAnimationSystem.ts'
 import { EventType } from './constants.ts'
+import FloatingDamageText from './FloatingDamageText.ts'
 import { Layer, Cursor } from './gameConstants.ts'
 import InteractionManager from './InteractionManager.ts'
 import MinionCard from './MinionCard.ts'
@@ -33,6 +35,7 @@ class GameRenderer {
   private playerHand: PlayerHand
   private interactionManager: InteractionManager
   private targetingArrowSystem: TargetingArrowSystem
+  private attackAnimationSystem: AttackAnimationSystem
   private raycaster: THREE.Raycaster
   private mouse: THREE.Vector2
   private isTargeting: boolean = false
@@ -60,6 +63,8 @@ class GameRenderer {
 
     this.raycaster = new THREE.Raycaster()
     this.mouse = new THREE.Vector2()
+
+    this.attackAnimationSystem = new AttackAnimationSystem()
 
     this.setupCamera()
     this.updateViewport()
@@ -270,6 +275,41 @@ class GameRenderer {
     this.canvas.addEventListener('mouseup', (event) => {
       // End targeting if active
       if (this.isTargeting) {
+        // Raycast to find target under cursor
+        const intersections = this.raycastFromMouse()
+        let targetFound = false
+
+        for (const intersection of intersections) {
+          const owner = intersection.object.userData?.owner
+          if (owner instanceof OpponentMinionBoard || owner instanceof OpponentPortrait) {
+            // Extract attacker ID based on source type
+            let attackerID: number
+            if (this.targetingSource instanceof PlayerPortrait) {
+              attackerID = this.targetingSource.hero.id
+            } else if (this.targetingSource instanceof PlayerMinionBoard) {
+              attackerID = this.targetingSource.minion.id
+            } else {
+              break
+            }
+
+            // Extract target ID based on owner type
+            let targetID: number
+            if (owner instanceof OpponentPortrait) {
+              targetID = owner.hero.id
+            } else if (owner instanceof OpponentMinionBoard) {
+              targetID = owner.minion.id
+            } else {
+              break
+            }
+
+            // Trigger attack event
+            triggerWsEvent(EventType.TryAttack, { attackerID, targetID })
+            targetFound = true
+            break
+          }
+        }
+
+        // Cleanup targeting state
         this.targetingArrowSystem.endTargeting()
         this.isTargeting = false
         this.targetingSource = null
@@ -307,6 +347,14 @@ class GameRenderer {
     const minionCardViews: MinionCard[] = []
     const playerBoardViews: PlayerMinionBoard[] = []
     const opponentBoardViews: OpponentMinionBoard[] = []
+
+    // Update hero data from server
+    if (data.player1 && data.player1.hero) {
+      this.playerPortrait.hero.updateFromServerData(data.player1.hero)
+    }
+    if (data.player2 && data.player2.hero) {
+      this.opponentPortrait.hero.updateFromServerData(data.player2.hero)
+    }
 
     data.player1.hand.forEach((card) => {
       const model = new MinionModel(card)
@@ -351,6 +399,99 @@ class GameRenderer {
       }
     } else if (card) {
       card.revert()
+    }
+  }
+
+  private findCharacterMeshByID(id: number): THREE.Mesh | null {
+    // Check player portrait
+    if (this.playerPortrait.hero.id === id) {
+      return this.playerPortrait.mesh
+    }
+    // Check opponent portrait
+    if (this.opponentPortrait.hero.id === id) {
+      return this.opponentPortrait.mesh
+    }
+    // Check player board minions
+    for (const minion of this.playerBoard.minions) {
+      if (minion.minion.id === id) {
+        return minion.mesh
+      }
+    }
+    // Check opponent board minions
+    for (const minion of this.opponentBoard.minions) {
+      if (minion.minion.id === id) {
+        return minion.mesh
+      }
+    }
+    return null
+  }
+
+  async handleAttackEvent(data: { attackerID: number; targetID: number }) {
+    const attackerMesh = this.findCharacterMeshByID(data.attackerID)
+    const targetMesh = this.findCharacterMeshByID(data.targetID)
+
+    if (!attackerMesh) {
+      console.error(`Could not find attacker mesh for ID ${data.attackerID}`)
+      return
+    }
+    if (!targetMesh) {
+      console.error(`Could not find target mesh for ID ${data.targetID}`)
+      return
+    }
+
+    await this.attackAnimationSystem.animateAttack(attackerMesh, targetMesh)
+  }
+
+  handleDamageEvent(data: {
+    damages: Array<{ targetID: number; amount: number; currentHealth: number }>
+  }) {
+    if (!data.damages) {
+      console.error('No damages data received')
+      return
+    }
+
+    for (const damage of data.damages) {
+      const targetMesh = this.findCharacterMeshByID(damage.targetID)
+
+      if (!targetMesh) {
+        console.error(`Could not find target mesh for ID ${damage.targetID}`)
+        continue
+      }
+
+      // Spawn floating damage text
+      new FloatingDamageText(
+        this.scene,
+        targetMesh.position,
+        damage.amount,
+        false
+      )
+
+      // Update health indicators on affected characters
+      // Check if it's a hero portrait
+      if (
+        this.playerPortrait.hero.id === damage.targetID ||
+        this.opponentPortrait.hero.id === damage.targetID
+      ) {
+        const portrait =
+          this.playerPortrait.hero.id === damage.targetID
+            ? this.playerPortrait
+            : this.opponentPortrait
+        portrait.updateHealth(damage.currentHealth)
+      } else {
+        // It's a minion
+        for (const minion of this.playerBoard.minions) {
+          if (minion.minion.id === damage.targetID) {
+            minion.updateHealth(damage.currentHealth)
+            break
+          }
+        }
+        for (const minion of this.opponentBoard.minions) {
+          if (minion.minion.id === damage.targetID) {
+            minion.updateHealth(damage.currentHealth)
+            break
+          }
+        }
+      }
     }
   }
 }
@@ -405,6 +546,26 @@ ws.onopen = () => {
     onSuccess: (data: any) => {
       if (gameRenderer) {
         gameRenderer.summonMinion(data, true)
+      }
+    },
+  })
+
+  wsEventHandler({
+    socket: ws,
+    event: EventType.Attack,
+    onSuccess: (data: any) => {
+      if (gameRenderer) {
+        gameRenderer.handleAttackEvent(data)
+      }
+    },
+  })
+
+  wsEventHandler({
+    socket: ws,
+    event: EventType.Damage,
+    onSuccess: (data: any) => {
+      if (gameRenderer) {
+        gameRenderer.handleDamageEvent(data)
       }
     },
   })

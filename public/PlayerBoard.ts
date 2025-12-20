@@ -9,9 +9,9 @@ import { triggerWsEvent } from './ws.ts'
 export default class PlayerBoard implements DropZone {
   public mesh: THREE.Object3D
   public placeholderIndex: number = -1
+  public minions: PlayerMinionBoard[] = []
 
   private droppableArea: THREE.Mesh
-  private minions: PlayerMinionBoard[] = []
   private readonly CARD_SPACING = 1.5
   private readonly BOARD_Y_POSITION = -0.6
 

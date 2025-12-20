@@ -3,6 +3,7 @@ import Hero from './Hero.ts'
 import { Layer } from './gameConstants.ts'
 
 interface HeroData {
+  id?: number
   attack?: number
   health?: number
   maxHealth?: number

@@ -4,6 +4,7 @@ import HealthIndicator from './HealthIndicator.ts'
 import { HERO_HEIGHT, HERO_WIDTH } from './gameConstants.ts'
 
 interface HeroData {
+  id?: number
   attack?: number
   health?: number
   maxHealth?: number
@@ -15,6 +16,7 @@ export default class Hero {
   private static readonly ICON_SIZE_RATIO = 0.25 // Icon size as fraction of hero width
   private static readonly INDICATOR_PADDING = 0.05 // Padding as fraction of hero width for indicator overhang
 
+  public id: number
   public heroData: HeroData
   public mesh: THREE.Mesh
   public originalPosition: THREE.Vector3
@@ -33,7 +35,9 @@ export default class Hero {
     position?: THREE.Vector3
   ) {
     this.scene = scene
+    this.id = heroData.id || -1
     this.heroData = {
+      id: heroData.id || -1,
       attack: heroData.attack || 0,
       health: heroData.health || 30,
       maxHealth: heroData.maxHealth || 30,
@@ -215,6 +219,21 @@ export default class Hero {
 
   public updateMaxHealth(newMaxHealth: number): void {
     this.heroData.maxHealth = newMaxHealth
+    this.compileTextures()
+  }
+
+  public updateFromServerData(data: any): void {
+    this.id = data.id
+    this.heroData.id = data.id
+    if (data.attack !== undefined) {
+      this.heroData.attack = data.attack
+    }
+    if (data.health !== undefined) {
+      this.heroData.health = data.health
+    }
+    if (data.maxHealth !== undefined) {
+      this.heroData.maxHealth = data.maxHealth
+    }
     this.compileTextures()
   }
 

@@ -4,8 +4,8 @@ import { Layer } from './gameConstants.ts'
 
 export default class OpponentBoard {
   public mesh: THREE.Object3D
+  public minions: OpponentMinionBoard[] = []
 
-  private minions: OpponentMinionBoard[] = []
   private readonly CARD_SPACING = 1.5
   private readonly BOARD_Y_POSITION = 1.1
 

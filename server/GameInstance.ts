@@ -8,6 +8,7 @@ import {
 } from '@constants'
 import Effect from '@effect'
 import { engine } from '@engine'
+import { TryPlayMinionData, TryPlaySpellData } from '@eventInterfaces'
 import AttackEvent from '@events/AttackEvent.ts'
 import DrawCardEvent from '@events/DrawCardEvent.ts'
 import EffectEvent from '@events/EffectEvent.ts'
@@ -22,7 +23,6 @@ import MinionID from '@minionID' with { type: 'json' }
 import PlayerData from '@playerData'
 import TryEndTurnEvent from '@tryEvents/TryEndTurnEvent.ts'
 import TryPlayCardEvent from '@tryEvents/TryPlayCard.ts'
-import { TryPlayMinionData, TryPlaySpellData } from '@eventInterfaces'
 import { notifyClient } from '@ws'
 
 const deck1: number[] = [
@@ -78,7 +78,7 @@ export class GameInstance {
       }
     )
 
-    // EventType.TryCancel - No data required  
+    // EventType.TryCancel - No data required
     engine.addGameElementListener(
       'gameInstance',
       EventType.TryCancel,
@@ -110,7 +110,7 @@ export class GameInstance {
 
     // EventType.TryPlayCard - Data required:
     // For Minions: { boardIndex: number, minionID: number, playerID: PlayerID }
-    // For Spells: { cardID: number, playerID: PlayerID }  
+    // For Spells: { cardID: number, playerID: PlayerID }
     // For Weapons: { cardID: number, playerID: PlayerID }
     engine.addGameElementListener(
       'gameInstance',
