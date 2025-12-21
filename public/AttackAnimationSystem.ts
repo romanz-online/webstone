@@ -49,7 +49,8 @@ export default class AttackAnimationSystem {
         )
 
         if (progress < 1) {
-          ;(attackerMesh as any).animationId = requestAnimationFrame(animateForward)
+          ;(attackerMesh as any).animationId =
+            requestAnimationFrame(animateForward)
         } else {
           // Phase 2: Animate backward
           const backStartTime = Date.now()
@@ -70,9 +71,8 @@ export default class AttackAnimationSystem {
             )
 
             if (backProgress < 1) {
-              ;(attackerMesh as any).animationId = requestAnimationFrame(
-                animateBackward
-              )
+              ;(attackerMesh as any).animationId =
+                requestAnimationFrame(animateBackward)
             } else {
               // Animation complete
               attackerMesh.position.copy(originalPosition)

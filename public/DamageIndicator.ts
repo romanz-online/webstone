@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { Layer } from './gameConstants.ts'
 
-export default class FloatingDamageText {
+export default class DamageIndicator {
   private static readonly ANIMATION_DURATION = 1000 // ms
   private static readonly DRIFT_DISTANCE = 0.5 // units
   private static readonly Y_OFFSET = 1.0 // Initial offset above character
@@ -22,7 +22,7 @@ export default class FloatingDamageText {
     this.scene = scene
     this.startPosition = position
       .clone()
-      .add(new THREE.Vector3(0, FloatingDamageText.Y_OFFSET, 0))
+      .add(new THREE.Vector3(0, DamageIndicator.Y_OFFSET, 0))
     this.startTime = Date.now()
 
     // Create text texture
@@ -51,8 +51,8 @@ export default class FloatingDamageText {
     isHealing: boolean
   ): THREE.CanvasTexture {
     const canvas = document.createElement('canvas')
-    canvas.width = FloatingDamageText.CANVAS_SIZE
-    canvas.height = FloatingDamageText.CANVAS_SIZE
+    canvas.width = DamageIndicator.CANVAS_SIZE
+    canvas.height = DamageIndicator.CANVAS_SIZE
 
     const ctx = canvas.getContext('2d')
     if (!ctx) {
@@ -89,13 +89,10 @@ export default class FloatingDamageText {
 
   private animate(): void {
     const elapsed = Date.now() - this.startTime
-    const progress = Math.min(
-      elapsed / FloatingDamageText.ANIMATION_DURATION,
-      1
-    )
+    const progress = Math.min(elapsed / DamageIndicator.ANIMATION_DURATION, 1)
 
     // Linear interpolation for upward drift
-    const driftY = FloatingDamageText.DRIFT_DISTANCE * progress
+    const driftY = DamageIndicator.DRIFT_DISTANCE * progress
     this.sprite.position.y = this.startPosition.y + driftY
 
     // Linear fade out

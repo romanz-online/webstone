@@ -2,8 +2,8 @@ import FontFaceObserver from 'fontfaceobserver'
 import * as THREE from 'three'
 import AttackAnimationSystem from './AttackAnimationSystem.ts'
 import { EventType } from './constants.ts'
-import FloatingDamageText from './FloatingDamageText.ts'
-import { Layer, Cursor } from './gameConstants.ts'
+import DamageIndicator from './DamageIndicator.ts'
+import { Cursor, Layer } from './gameConstants.ts'
 import InteractionManager from './InteractionManager.ts'
 import MinionCard from './MinionCard.ts'
 import MinionModel from './MinionModel.ts'
@@ -225,8 +225,6 @@ class GameRenderer {
           // Revert card position if not dropped on valid zone
           draggable.revert()
         }
-        // Card removal now handled by WebSocket event handler after server confirmation
-        this.playerBoard.removePlaceholder()
       }
     })
   }
@@ -281,7 +279,10 @@ class GameRenderer {
 
         for (const intersection of intersections) {
           const owner = intersection.object.userData?.owner
-          if (owner instanceof OpponentMinionBoard || owner instanceof OpponentPortrait) {
+          if (
+            owner instanceof OpponentMinionBoard ||
+            owner instanceof OpponentPortrait
+          ) {
             // Extract attacker ID based on source type
             let attackerID: number
             if (this.targetingSource instanceof PlayerPortrait) {
@@ -356,7 +357,7 @@ class GameRenderer {
       this.opponentPortrait.hero.updateFromServerData(data.player2.hero)
     }
 
-    data.player1.hand.forEach((card) => {
+    data.player1.hand.forEach((card: any) => {
       const model = new MinionModel(card)
       const cardView = new MinionCard(this.scene, model)
       minionCardViews.push(cardView)
@@ -364,14 +365,14 @@ class GameRenderer {
       this.interactionManager.addHoverableObject(cardView.mesh)
     })
 
-    data.player1.board.forEach((minionData) => {
+    data.player1.board.forEach((minionData: any) => {
       const model = new MinionModel(minionData)
       const boardView = new PlayerMinionBoard(this.scene, model)
       playerBoardViews.push(boardView)
     })
 
     if (data.player2 && data.player2.board) {
-      data.player2.board.forEach((minionData) => {
+      data.player2.board.forEach((minionData: any) => {
         const model = new MinionModel(minionData)
         const boardView = new OpponentMinionBoard(this.scene, model)
         opponentBoardViews.push(boardView)
@@ -459,12 +460,7 @@ class GameRenderer {
       }
 
       // Spawn floating damage text
-      new FloatingDamageText(
-        this.scene,
-        targetMesh.position,
-        damage.amount,
-        false
-      )
+      new DamageIndicator(this.scene, targetMesh.position, damage.amount, false)
 
       // Update health indicators on affected characters
       // Check if it's a hero portrait
