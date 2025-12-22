@@ -1,4 +1,3 @@
-import FontFaceObserver from 'fontfaceobserver'
 import * as THREE from 'three'
 import { EventType } from './constants.ts'
 import { Cursor } from './gameConstants.ts'
@@ -10,19 +9,11 @@ import OpponentMinionBoard from './OpponentMinionBoard.ts'
 import OpponentPortrait from './OpponentPortrait.ts'
 import PlayerMinionBoard from './PlayerMinionBoard.ts'
 import PlayerPortrait from './PlayerPortrait.ts'
+import SceneManager from './SceneManager.ts'
 import TargetingArrowSystem from './TargetingArrowSystem.ts'
 
-// Logical game dimensions (16:9 ratio)
-const GAME_WIDTH = 16
-const GAME_HEIGHT = 9
-
 class GameRenderer {
-  private canvas: HTMLCanvasElement
-  private renderer: THREE.WebGLRenderer
-  private scene: THREE.Scene
-  private camera: THREE.OrthographicCamera
-  private sceneRoot: THREE.Object3D
-  private gameplayArea: THREE.Mesh
+  private sceneManager: SceneManager
   private gameStateManager: GameStateManager
   private networkManager: NetworkManager
   private interactionManager: InteractionManager
@@ -33,48 +24,28 @@ class GameRenderer {
   private targetingSource: PlayerMinionBoard | PlayerPortrait | null = null
 
   constructor(canvasId: string) {
-    this.canvas = document.getElementById(canvasId) as HTMLCanvasElement
-
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: this.canvas,
-      antialias: true,
-      preserveDrawingBuffer: true,
-    })
-
-    this.renderer.setSize(window.innerWidth, window.innerHeight)
-
-    this.renderer.shadowMap.enabled = true
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
-    this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace
-
-    this.scene = new THREE.Scene()
-    this.sceneRoot = new THREE.Object3D()
-    this.sceneRoot.name = 'sceneRoot'
-    this.scene.add(this.sceneRoot)
-
+    this.sceneManager = new SceneManager(canvasId)
     this.raycaster = new THREE.Raycaster()
     this.mouse = new THREE.Vector2()
-
-    this.setupCamera()
-    this.updateViewport()
-    this.setupEventListeners()
   }
 
   public async initialize(): Promise<void> {
-    await new FontFaceObserver('Belwe').load()
-
-    this.createLighting()
-    this.createGameplayArea()
+    await this.sceneManager.initialize()
 
     // Initialize managers
-    this.gameStateManager = new GameStateManager(this.scene)
+    this.gameStateManager = new GameStateManager(this.sceneManager.getScene())
     this.gameStateManager.initialize()
 
     this.networkManager = new NetworkManager('ws://localhost:5500')
 
     // Initialize interaction manager and targeting system
-    this.interactionManager = new InteractionManager(this.camera, this.renderer)
-    this.targetingArrowSystem = new TargetingArrowSystem(this.scene)
+    this.interactionManager = new InteractionManager(
+      this.sceneManager.getCamera(),
+      this.sceneManager.getRenderer()
+    )
+    this.targetingArrowSystem = new TargetingArrowSystem(
+      this.sceneManager.getScene()
+    )
 
     // Set up event wiring between managers
     this.setupEventWiring()
@@ -85,70 +56,6 @@ class GameRenderer {
 
     // Start render loop
     this.startRenderLoop()
-  }
-
-  private setupCamera(): void {
-    this.camera = new THREE.OrthographicCamera(
-      -GAME_WIDTH / 2, // -8
-      GAME_WIDTH / 2, // 8
-      GAME_HEIGHT / 2, // 4.5
-      -GAME_HEIGHT / 2, // -4.5
-      0.1,
-      100
-    )
-
-    this.camera.position.set(0, 0, 50) // Center camera
-    this.camera.lookAt(0, 0, 0)
-  }
-
-  private updateViewport(): void {
-    const aspect = GAME_WIDTH / GAME_HEIGHT
-    const windowAspect = window.innerWidth / window.innerHeight
-
-    if (windowAspect > aspect) {
-      // Letterbox (black bars on sides)
-      const width = window.innerHeight * aspect
-      const x = (window.innerWidth - width) / 2
-      this.renderer.setViewport(x, 0, width, window.innerHeight)
-    } else {
-      // Pillarbox (black bars on top/bottom)
-      const height = window.innerWidth / aspect
-      const y = (window.innerHeight - height) / 2
-      this.renderer.setViewport(0, y, window.innerWidth, height)
-    }
-  }
-
-  private createLighting(): void {
-    // Ambient light for basic illumination
-    this.scene.add(new THREE.AmbientLight(0xffffff, 0.8))
-
-    // Directional light with shadows
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1)
-    dirLight.position.set(-1, -1, 2)
-    dirLight.castShadow = true
-    dirLight.shadow.mapSize.width = 1024
-    dirLight.shadow.mapSize.height = 1024
-    dirLight.shadow.camera.near = 0.1
-    dirLight.shadow.camera.far = 500
-    this.scene.add(dirLight)
-  }
-
-  private createGameplayArea(): void {
-    new THREE.TextureLoader().load(
-      './media/images/maps/Uldaman_Board.png',
-      (texture) => {
-        this.gameplayArea = new THREE.Mesh(
-          new THREE.PlaneGeometry(GAME_WIDTH, GAME_HEIGHT),
-          new THREE.MeshBasicMaterial({
-            map: texture,
-            transparent: true,
-            alphaTest: 0.1,
-          })
-        )
-        this.gameplayArea.position.set(0, 0, 0)
-        this.sceneRoot.add(this.gameplayArea)
-      }
-    )
   }
 
   private setupEventWiring(): void {
@@ -259,33 +166,31 @@ class GameRenderer {
   }
 
   private updateMousePosition(event: MouseEvent): void {
-    const rect = this.canvas.getBoundingClientRect()
+    const canvas = this.sceneManager.getRenderer().domElement
+    const rect = canvas.getBoundingClientRect()
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
   }
 
   private raycastFromMouse(): THREE.Intersection[] {
-    this.raycaster.setFromCamera(this.mouse, this.camera)
-    return this.raycaster.intersectObjects(this.scene.children, true)
+    this.raycaster.setFromCamera(this.mouse, this.sceneManager.getCamera())
+    return this.raycaster.intersectObjects(
+      this.sceneManager.getScene().children,
+      true
+    )
   }
 
   private getWorldPositionOnPlane(z: number = -3): THREE.Vector3 | null {
-    this.raycaster.setFromCamera(this.mouse, this.camera)
+    this.raycaster.setFromCamera(this.mouse, this.sceneManager.getCamera())
     return this.raycaster.ray.intersectPlane(
       new THREE.Plane(new THREE.Vector3(0, 0, 1), z),
       new THREE.Vector3()
     )
   }
 
-  private setupEventListeners(): void {
-    window.addEventListener('resize', () => {
-      this.renderer.setSize(window.innerWidth, window.innerHeight)
-      this.updateViewport()
-    })
-  }
-
   private setupMouseEventListeners(): void {
-    this.canvas.addEventListener('mousedown', (event) => {
+    const canvas = this.sceneManager.getRenderer().domElement
+    canvas.addEventListener('mousedown', (event) => {
       this.updateMousePosition(event)
 
       // Check if clicking on a board minion or player portrait
@@ -300,13 +205,13 @@ class GameRenderer {
           this.isTargeting = true
           this.targetingSource = object.userData.owner
           this.targetingArrowSystem.startTargeting(this.targetingSource)
-          this.canvas.style.cursor = Cursor.HIDDEN
+          canvas.style.cursor = Cursor.HIDDEN
           break
         }
       }
     })
 
-    this.canvas.addEventListener('mousemove', (event) => {
+    canvas.addEventListener('mousemove', (event) => {
       this.updateMousePosition(event)
 
       // Update targeting arrow position if active
@@ -318,7 +223,7 @@ class GameRenderer {
       }
     })
 
-    this.canvas.addEventListener('mouseup', (event) => {
+    canvas.addEventListener('mouseup', (event) => {
       if (!this.isTargeting) return
 
       for (const intersection of this.raycastFromMouse()) {
@@ -360,7 +265,7 @@ class GameRenderer {
       this.targetingArrowSystem.endTargeting()
       this.isTargeting = false
       this.targetingSource = null
-      this.canvas.style.cursor = Cursor.DEFAULT
+      canvas.style.cursor = Cursor.DEFAULT
     })
   }
 
@@ -383,7 +288,7 @@ class GameRenderer {
       // Use InteractionManager for hover detection
       this.interactionManager.updateHoverState(this.raycastFromMouse())
 
-      this.renderer.render(this.scene, this.camera)
+      this.sceneManager.render()
     }
     animate()
   }

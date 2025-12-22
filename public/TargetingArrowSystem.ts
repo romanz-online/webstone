@@ -16,15 +16,13 @@ export default class TargetingArrowSystem {
   private cursorMesh: THREE.Object3D = null
   private arrowParticles: THREE.Mesh[] = []
   private animationTime: number = 0
-  private arcHeight: number = 0.25
+  private arcHeight: number = 0.35
 
   constructor(scene: THREE.Scene) {
     this.scene = scene
 
     this.arrowMaterial = new THREE.MeshBasicMaterial({
       color: this.arrowColor,
-      transparent: true,
-      opacity: 0.8,
     })
 
     // Use animation loop instead of registerBeforeRender
@@ -155,10 +153,6 @@ export default class TargetingArrowSystem {
     const distance = Math.sqrt(dx * dx + dy * dy) - 1
     const dashPeriod = this.dashLength + 0.2 /* gap */
     const numDashes = Math.floor(distance / dashPeriod)
-
-    const horizontalAngle = Math.atan2(dy, dx)
-    const rotationFactor = 0.05 * distance
-    const rotationDirection = targetPosition.x >= sourcePosition.x ? 1 : -1
 
     for (let i = 0; i < this.arrowParticles.length; i++) {
       const dash = this.arrowParticles[i]
