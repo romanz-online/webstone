@@ -26,12 +26,12 @@ import TryPlayCardEvent from '@tryEvents/TryPlayCard.ts'
 import { notifyClient } from '@ws'
 
 const deck1: number[] = [
-    MinionID.TIRION_FORDRING,
-    MinionID.MANA_WYRM,
-    MinionID.LIGHTWELL,
-    MinionID.GUARDIAN_OF_KINGS,
-    MinionID.FIRE_ELEMENTAL,
-  ],
+  MinionID.TIRION_FORDRING,
+  MinionID.MANA_WYRM,
+  MinionID.LIGHTWELL,
+  MinionID.GUARDIAN_OF_KINGS,
+  MinionID.FIRE_ELEMENTAL,
+],
   deck2: number[] = []
 
 export class GameInstance {
@@ -289,7 +289,7 @@ export class GameInstance {
     }
   }
 
-  tryPlayWeapon(event: TryPlayCardEvent): void {}
+  tryPlayWeapon(event: TryPlayCardEvent): void { }
 
   target(targetID: number): void {
     const target: Character | null = this.getBoardCharacter(targetID),
