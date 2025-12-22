@@ -4,9 +4,8 @@ import MinionCard from './MinionCard.ts'
 import PlayerMinionBoard from './PlayerMinionBoard.ts'
 import { CardType, EventType, PlayerID } from './constants.ts'
 import { Layer } from './gameConstants.ts'
-import { triggerWsEvent } from './ws.ts'
 
-export default class PlayerBoard implements DropZone {
+export default class PlayerBoard extends EventTarget implements DropZone {
   public mesh: THREE.Object3D
   public placeholderIndex: number = -1
   public minions: PlayerMinionBoard[] = []
@@ -16,6 +15,7 @@ export default class PlayerBoard implements DropZone {
   private readonly BOARD_Y_POSITION = -0.6
 
   constructor(scene: THREE.Scene) {
+    super()
     this.mesh = new THREE.Object3D()
     this.mesh.name = 'board'
     scene.add(this.mesh)
@@ -222,12 +222,16 @@ export default class PlayerBoard implements DropZone {
     if (draggable instanceof MinionCard) {
       console.log('Card was dropped on board in place', this.placeholderIndex)
 
-      triggerWsEvent(EventType.TryPlayCard, {
-        cardType: CardType.Minion,
-        boardIndex: this.placeholderIndex,
-        minionID: draggable.minion.id,
-        playerID: PlayerID.Player1,
-      })
+      this.dispatchEvent(
+        new CustomEvent('playcard', {
+          detail: {
+            cardType: CardType.Minion,
+            boardIndex: this.placeholderIndex,
+            minionID: draggable.minion.id,
+            playerID: PlayerID.Player1,
+          },
+        })
+      )
 
       // Create a new minion for the board
       // const newMinion = new MinionBoard(this.scene, draggable.minion)

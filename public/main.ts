@@ -1,21 +1,16 @@
 import FontFaceObserver from 'fontfaceobserver'
 import * as THREE from 'three'
-import AttackAnimationSystem from './AttackAnimationSystem.ts'
 import { EventType } from './constants.ts'
-import DamageIndicator from './DamageIndicator.ts'
-import { Cursor, Layer } from './gameConstants.ts'
+import { Cursor } from './gameConstants.ts'
+import GameStateManager from './GameStateManager.ts'
 import InteractionManager from './InteractionManager.ts'
 import MinionCard from './MinionCard.ts'
-import MinionModel from './MinionModel.ts'
-import OpponentBoard from './OpponentBoard.ts'
+import { NetworkManager, networkConnectedEvent } from './NetworkManager.ts'
 import OpponentMinionBoard from './OpponentMinionBoard.ts'
 import OpponentPortrait from './OpponentPortrait.ts'
-import PlayerBoard from './PlayerBoard.ts'
-import PlayerHand from './PlayerHand.ts'
 import PlayerMinionBoard from './PlayerMinionBoard.ts'
 import PlayerPortrait from './PlayerPortrait.ts'
 import TargetingArrowSystem from './TargetingArrowSystem.ts'
-import { setWebSocket, triggerWsEvent, wsEventHandler } from './ws.ts'
 
 // Logical game dimensions (16:9 ratio)
 const GAME_WIDTH = 16
@@ -28,14 +23,10 @@ class GameRenderer {
   private camera: THREE.OrthographicCamera
   private sceneRoot: THREE.Object3D
   private gameplayArea: THREE.Mesh
-  private playerBoard: PlayerBoard
-  private opponentBoard: OpponentBoard
-  private playerPortrait: PlayerPortrait
-  private opponentPortrait: OpponentPortrait
-  private playerHand: PlayerHand
+  private gameStateManager: GameStateManager
+  private networkManager: NetworkManager
   private interactionManager: InteractionManager
   private targetingArrowSystem: TargetingArrowSystem
-  private attackAnimationSystem: AttackAnimationSystem
   private raycaster: THREE.Raycaster
   private mouse: THREE.Vector2
   private isTargeting: boolean = false
@@ -64,8 +55,6 @@ class GameRenderer {
     this.raycaster = new THREE.Raycaster()
     this.mouse = new THREE.Vector2()
 
-    this.attackAnimationSystem = new AttackAnimationSystem()
-
     this.setupCamera()
     this.updateViewport()
     this.setupEventListeners()
@@ -77,29 +66,24 @@ class GameRenderer {
     this.createLighting()
     this.createGameplayArea()
 
+    // Initialize managers
+    this.gameStateManager = new GameStateManager(this.scene)
+    this.gameStateManager.initialize()
+
+    this.networkManager = new NetworkManager('ws://localhost:5500')
+
     // Initialize interaction manager and targeting system
     this.interactionManager = new InteractionManager(this.camera, this.renderer)
     this.targetingArrowSystem = new TargetingArrowSystem(this.scene)
 
-    this.playerPortrait = new PlayerPortrait(this.scene)
-    this.opponentPortrait = new OpponentPortrait(this.scene)
-
-    this.playerHand = new PlayerHand(this.scene)
-    this.playerHand.mesh.position.z = Layer.HAND
-
-    this.playerBoard = new PlayerBoard(this.scene)
-    this.playerBoard.mesh.position.z = Layer.HAND
-
-    this.opponentBoard = new OpponentBoard(this.scene)
-    this.opponentBoard.mesh.position.z = Layer.HAND
-
-    // Register the board as a drop zone
-    this.interactionManager.addDropZone(this.playerBoard)
-
-    // Set up interaction event listeners
-    this.setupInteractionEventListeners()
+    // Set up event wiring between managers
+    this.setupEventWiring()
     this.setupMouseEventListeners()
 
+    // Connect to server
+    await this.networkManager.connect()
+
+    // Start render loop
     this.startRenderLoop()
   }
 
@@ -136,8 +120,7 @@ class GameRenderer {
 
   private createLighting(): void {
     // Ambient light for basic illumination
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8)
-    this.scene.add(ambientLight)
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.8))
 
     // Directional light with shadows
     const dirLight = new THREE.DirectionalLight(0xffffff, 1)
@@ -154,19 +137,125 @@ class GameRenderer {
     new THREE.TextureLoader().load(
       './media/images/maps/Uldaman_Board.png',
       (texture) => {
-        const geometry = new THREE.PlaneGeometry(GAME_WIDTH, GAME_HEIGHT)
-
-        const material = new THREE.MeshBasicMaterial({
-          map: texture,
-          transparent: true,
-          alphaTest: 0.1,
-        })
-
-        this.gameplayArea = new THREE.Mesh(geometry, material)
+        this.gameplayArea = new THREE.Mesh(
+          new THREE.PlaneGeometry(GAME_WIDTH, GAME_HEIGHT),
+          new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            alphaTest: 0.1,
+          })
+        )
         this.gameplayArea.position.set(0, 0, 0)
         this.sceneRoot.add(this.gameplayArea)
       }
     )
+  }
+
+  private setupEventWiring(): void {
+    // Register player board as drop zone
+    this.interactionManager.addDropZone(this.gameStateManager.getPlayerBoard())
+
+    // Set up interaction event listeners for drop feedback
+    this.interactionManager.addEventListener('hoverdropzone', (event: any) => {
+      const { dropZone, draggable, worldPosition } = event.detail
+
+      if (
+        draggable instanceof MinionCard &&
+        dropZone === this.gameStateManager.getPlayerBoard()
+      ) {
+        this.gameStateManager
+          .getPlayerBoard()
+          .updatePlaceholderPosition(worldPosition.x, worldPosition.y)
+      }
+    })
+
+    this.interactionManager.addEventListener('leavedropzone', (event: any) => {
+      const { dropZone, draggable } = event.detail
+
+      if (
+        draggable instanceof MinionCard &&
+        dropZone === this.gameStateManager.getPlayerBoard()
+      ) {
+        this.gameStateManager.getPlayerBoard().removePlaceholder()
+      }
+    })
+
+    this.interactionManager.addEventListener('dragend', (event: any) => {
+      const dragEvent = event.detail
+      const draggable = dragEvent.object.userData.owner
+
+      if (draggable instanceof MinionCard) {
+        if (
+          !this.isIntersecting(
+            draggable.getBoundingInfo(),
+            this.gameStateManager.getPlayerBoard().getBoundingInfo()
+          )
+        ) {
+          draggable.revert()
+        }
+      }
+    })
+
+    // Network event handlers
+    this.networkManager.addEventListener(networkConnectedEvent, () => {
+      console.log('Loading game state...')
+      this.networkManager.sendEvent(EventType.TryLoad)
+    })
+
+    this.networkManager.registerHandler(
+      EventType.Load,
+      (data: any) => this.gameStateManager.loadServerGameState(data),
+      (data: any) =>
+        setTimeout(() => {
+          this.networkManager.sendEvent(EventType.TryLoad)
+        }, 2000)
+    )
+
+    this.networkManager.registerHandler(
+      EventType.PlayCard,
+      (data: any) => this.gameStateManager.playCard(data, true),
+      (data: any) => this.gameStateManager.playCard(data, false)
+    )
+
+    this.networkManager.registerHandler(EventType.SummonMinion, (data: any) =>
+      this.gameStateManager.summonMinion(data)
+    )
+
+    this.networkManager.registerHandler(EventType.Attack, (data: any) =>
+      this.gameStateManager.handleAttackEvent(data)
+    )
+
+    this.networkManager.registerHandler(EventType.Damage, (data: any) =>
+      this.gameStateManager.handleDamageEvent(data)
+    )
+
+    // GameState events
+    this.gameStateManager.addEventListener('stateloaded', (event: any) => {
+      const { cards } = event.detail
+      cards.forEach((card: MinionCard) => {
+        this.interactionManager.addDraggableObject(card.mesh)
+        this.interactionManager.addHoverableObject(card.mesh)
+      })
+    })
+
+    this.gameStateManager.addEventListener('cardplayed', (event: any) => {
+      const { card } = event.detail
+      this.interactionManager.removeDraggableObject(card.mesh)
+      this.interactionManager.removeHoverableObject(card.mesh)
+    })
+
+    // PlayerBoard → Network
+    this.gameStateManager
+      .getPlayerBoard()
+      .addEventListener('playcard', (event: any) => {
+        const { cardType, boardIndex, minionID, playerID } = event.detail
+        this.networkManager.sendEvent(EventType.TryPlayCard, {
+          cardType,
+          boardIndex,
+          minionID,
+          playerID,
+        })
+      })
   }
 
   private updateMousePosition(event: MouseEvent): void {
@@ -186,47 +275,6 @@ class GameRenderer {
       new THREE.Plane(new THREE.Vector3(0, 0, 1), z),
       new THREE.Vector3()
     )
-  }
-
-  private setupInteractionEventListeners(): void {
-    this.interactionManager.addEventListener('hoverdropzone', (event: any) => {
-      const { dropZone, draggable, worldPosition } = event.detail
-
-      if (draggable instanceof MinionCard && dropZone === this.playerBoard) {
-        this.playerBoard.updatePlaceholderPosition(
-          worldPosition.x,
-          worldPosition.y
-        )
-      }
-    })
-
-    // Listen for leaving drop zones
-    this.interactionManager.addEventListener('leavedropzone', (event: any) => {
-      const { dropZone, draggable } = event.detail
-
-      if (draggable instanceof MinionCard && dropZone === this.playerBoard) {
-        this.playerBoard.removePlaceholder()
-      }
-    })
-
-    // Listen for successful drops to remove cards from hand
-    this.interactionManager.addEventListener('dragend', (event: any) => {
-      const dragEvent = event.detail
-      const draggable = dragEvent.object.userData.owner
-
-      if (draggable instanceof MinionCard) {
-        // Check if the card was successfully dropped on board
-        if (
-          !this.isIntersecting(
-            draggable.getBoundingInfo(),
-            this.playerBoard.getBoundingInfo()
-          )
-        ) {
-          // Revert card position if not dropped on valid zone
-          draggable.revert()
-        }
-      }
-    })
   }
 
   private setupEventListeners(): void {
@@ -271,51 +319,48 @@ class GameRenderer {
     })
 
     this.canvas.addEventListener('mouseup', (event) => {
-      // End targeting if active
-      if (this.isTargeting) {
-        // Raycast to find target under cursor
-        const intersections = this.raycastFromMouse()
-        let targetFound = false
+      if (!this.isTargeting) return
 
-        for (const intersection of intersections) {
-          const owner = intersection.object.userData?.owner
-          if (
-            owner instanceof OpponentMinionBoard ||
-            owner instanceof OpponentPortrait
-          ) {
-            // Extract attacker ID based on source type
-            let attackerID: number
-            if (this.targetingSource instanceof PlayerPortrait) {
-              attackerID = this.targetingSource.hero.id
-            } else if (this.targetingSource instanceof PlayerMinionBoard) {
-              attackerID = this.targetingSource.minion.id
-            } else {
-              break
-            }
-
-            // Extract target ID based on owner type
-            let targetID: number
-            if (owner instanceof OpponentPortrait) {
-              targetID = owner.hero.id
-            } else if (owner instanceof OpponentMinionBoard) {
-              targetID = owner.minion.id
-            } else {
-              break
-            }
-
-            // Trigger attack event
-            triggerWsEvent(EventType.TryAttack, { attackerID, targetID })
-            targetFound = true
+      for (const intersection of this.raycastFromMouse()) {
+        const owner = intersection.object.userData?.owner
+        if (
+          owner instanceof OpponentMinionBoard ||
+          owner instanceof OpponentPortrait
+        ) {
+          // Extract attacker ID based on source type
+          let attackerID: number
+          if (this.targetingSource instanceof PlayerPortrait) {
+            attackerID = this.targetingSource.hero.id
+          } else if (this.targetingSource instanceof PlayerMinionBoard) {
+            attackerID = this.targetingSource.minion.id
+          } else {
             break
           }
-        }
 
-        // Cleanup targeting state
-        this.targetingArrowSystem.endTargeting()
-        this.isTargeting = false
-        this.targetingSource = null
-        this.canvas.style.cursor = Cursor.DEFAULT
+          // Extract target ID based on owner type
+          let targetID: number
+          if (owner instanceof OpponentPortrait) {
+            targetID = owner.hero.id
+          } else if (owner instanceof OpponentMinionBoard) {
+            targetID = owner.minion.id
+          } else {
+            break
+          }
+
+          // Trigger attack event
+          this.networkManager.sendEvent(EventType.TryAttack, {
+            attackerID,
+            targetID,
+          })
+          break
+        }
       }
+
+      // Cleanup targeting state
+      this.targetingArrowSystem.endTargeting()
+      this.isTargeting = false
+      this.targetingSource = null
+      this.canvas.style.cursor = Cursor.DEFAULT
     })
   }
 
@@ -336,239 +381,12 @@ class GameRenderer {
       requestAnimationFrame(animate)
 
       // Use InteractionManager for hover detection
-      const intersections = this.raycastFromMouse()
-      this.interactionManager.updateHoverState(intersections)
+      this.interactionManager.updateHoverState(this.raycastFromMouse())
 
       this.renderer.render(this.scene, this.camera)
     }
     animate()
   }
-
-  loadServerGameState(data: any, success: boolean): void {
-    const minionCardViews: MinionCard[] = []
-    const playerBoardViews: PlayerMinionBoard[] = []
-    const opponentBoardViews: OpponentMinionBoard[] = []
-
-    // Update hero data from server
-    if (data.player1 && data.player1.hero) {
-      this.playerPortrait.hero.updateFromServerData(data.player1.hero)
-    }
-    if (data.player2 && data.player2.hero) {
-      this.opponentPortrait.hero.updateFromServerData(data.player2.hero)
-    }
-
-    data.player1.hand.forEach((card: any) => {
-      const model = new MinionModel(card)
-      const cardView = new MinionCard(this.scene, model)
-      minionCardViews.push(cardView)
-      this.interactionManager.addDraggableObject(cardView.mesh)
-      this.interactionManager.addHoverableObject(cardView.mesh)
-    })
-
-    data.player1.board.forEach((minionData: any) => {
-      const model = new MinionModel(minionData)
-      const boardView = new PlayerMinionBoard(this.scene, model)
-      playerBoardViews.push(boardView)
-    })
-
-    if (data.player2 && data.player2.board) {
-      data.player2.board.forEach((minionData: any) => {
-        const model = new MinionModel(minionData)
-        const boardView = new OpponentMinionBoard(this.scene, model)
-        opponentBoardViews.push(boardView)
-      })
-    }
-
-    this.playerHand.setHandData(minionCardViews)
-    this.playerBoard.setBoardData(playerBoardViews)
-    this.opponentBoard.setBoardData(opponentBoardViews)
-  }
-
-  summonMinion(data: any, success: boolean): void {
-    const model = new MinionModel(data.minionData)
-    const boardView = new PlayerMinionBoard(this.scene, model)
-    this.playerBoard.summonMinion(boardView, data.boardIndex)
-  }
-
-  playCard(data: any, success: boolean): void {
-    const card = this.playerHand.cards.find((c) => c.minion.id === data.cardID)
-    if (success) {
-      if (card) {
-        this.interactionManager.removeDraggableObject(card.mesh)
-        this.interactionManager.removeHoverableObject(card.mesh)
-        this.playerHand.removeCard(card)
-      }
-    } else if (card) {
-      card.revert()
-    }
-  }
-
-  private findCharacterMeshByID(id: number): THREE.Mesh | null {
-    // Check player portrait
-    if (this.playerPortrait.hero.id === id) {
-      return this.playerPortrait.mesh
-    }
-    // Check opponent portrait
-    if (this.opponentPortrait.hero.id === id) {
-      return this.opponentPortrait.mesh
-    }
-    // Check player board minions
-    for (const minion of this.playerBoard.minions) {
-      if (minion.minion.id === id) {
-        return minion.mesh
-      }
-    }
-    // Check opponent board minions
-    for (const minion of this.opponentBoard.minions) {
-      if (minion.minion.id === id) {
-        return minion.mesh
-      }
-    }
-    return null
-  }
-
-  async handleAttackEvent(data: { attackerID: number; targetID: number }) {
-    const attackerMesh = this.findCharacterMeshByID(data.attackerID)
-    const targetMesh = this.findCharacterMeshByID(data.targetID)
-
-    if (!attackerMesh) {
-      console.error(`Could not find attacker mesh for ID ${data.attackerID}`)
-      return
-    }
-    if (!targetMesh) {
-      console.error(`Could not find target mesh for ID ${data.targetID}`)
-      return
-    }
-
-    await this.attackAnimationSystem.animateAttack(attackerMesh, targetMesh)
-  }
-
-  handleDamageEvent(data: {
-    damages: Array<{ targetID: number; amount: number; currentHealth: number }>
-  }) {
-    if (!data.damages) {
-      console.error('No damages data received')
-      return
-    }
-
-    for (const damage of data.damages) {
-      const targetMesh = this.findCharacterMeshByID(damage.targetID)
-
-      if (!targetMesh) {
-        console.error(`Could not find target mesh for ID ${damage.targetID}`)
-        continue
-      }
-
-      // Spawn floating damage text
-      new DamageIndicator(this.scene, targetMesh.position, damage.amount, false)
-
-      // Update health indicators on affected characters
-      // Check if it's a hero portrait
-      if (
-        this.playerPortrait.hero.id === damage.targetID ||
-        this.opponentPortrait.hero.id === damage.targetID
-      ) {
-        const portrait =
-          this.playerPortrait.hero.id === damage.targetID
-            ? this.playerPortrait
-            : this.opponentPortrait
-        portrait.updateHealth(damage.currentHealth)
-      } else {
-        // It's a minion
-        for (const minion of this.playerBoard.minions) {
-          if (minion.minion.id === damage.targetID) {
-            minion.updateHealth(damage.currentHealth)
-            break
-          }
-        }
-        for (const minion of this.opponentBoard.minions) {
-          if (minion.minion.id === damage.targetID) {
-            minion.updateHealth(damage.currentHealth)
-            break
-          }
-        }
-      }
-    }
-  }
 }
 
-let gameRenderer: GameRenderer | null = null
-
-;(async () => {
-  gameRenderer = new GameRenderer('main')
-  await gameRenderer.initialize()
-})()
-
-console.log('Connecting WebSocket...')
-const ws = new WebSocket('ws://localhost:5500')
-setWebSocket(ws)
-ws.onopen = () => {
-  console.log('Connected to WebSocket server')
-
-  console.log('Setting up WebSocket listeners...')
-  wsEventHandler({
-    socket: ws,
-    event: EventType.Load,
-    onSuccess: (data: any) => {
-      if (gameRenderer) {
-        gameRenderer.loadServerGameState(data, true)
-      }
-    },
-    onFailure: (data: any) => {
-      setTimeout(() => {
-        triggerWsEvent(EventType.TryLoad) // retry
-      }, 2 * 1000)
-    },
-  })
-
-  wsEventHandler({
-    socket: ws,
-    event: EventType.PlayCard,
-    onSuccess: (data: any) => {
-      if (gameRenderer) {
-        gameRenderer.playCard(data, true)
-      }
-    },
-    onFailure: (data: any) => {
-      if (gameRenderer) {
-        gameRenderer.playCard(data, false)
-      }
-    },
-  })
-
-  wsEventHandler({
-    socket: ws,
-    event: EventType.SummonMinion,
-    onSuccess: (data: any) => {
-      if (gameRenderer) {
-        gameRenderer.summonMinion(data, true)
-      }
-    },
-  })
-
-  wsEventHandler({
-    socket: ws,
-    event: EventType.Attack,
-    onSuccess: (data: any) => {
-      if (gameRenderer) {
-        gameRenderer.handleAttackEvent(data)
-      }
-    },
-  })
-
-  wsEventHandler({
-    socket: ws,
-    event: EventType.Damage,
-    onSuccess: (data: any) => {
-      if (gameRenderer) {
-        gameRenderer.handleDamageEvent(data)
-      }
-    },
-  })
-
-  console.log('Loading game state...')
-  triggerWsEvent(EventType.TryLoad)
-}
-ws.onclose = () => {
-  console.log('Disconnected from WebSocket server')
-}
+;(async () => await new GameRenderer('main').initialize())()

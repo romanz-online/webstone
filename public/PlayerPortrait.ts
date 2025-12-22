@@ -14,7 +14,6 @@ export default class PlayerPortrait {
   public mesh: THREE.Mesh
   public originalPosition: THREE.Vector3
 
-  private scene: THREE.Scene
   private static readonly PLAYER_Y_POSITION = -2.3
 
   constructor(
@@ -22,19 +21,19 @@ export default class PlayerPortrait {
     heroData: HeroData = {},
     position?: THREE.Vector3
   ) {
-    this.scene = scene
-
     // Create the hero with default positioning
     this.hero = new Hero(scene, heroData)
-    
+
     // Set player-specific positioning
-    const playerPosition = position || new THREE.Vector3(0, PlayerPortrait.PLAYER_Y_POSITION, Layer.HERO)
+    const playerPosition =
+      position ||
+      new THREE.Vector3(0, PlayerPortrait.PLAYER_Y_POSITION, Layer.HERO)
     this.hero.mesh.position.copy(playerPosition)
-    
+
     // Expose the hero's mesh for interaction systems
     this.mesh = this.hero.mesh
     this.mesh.userData = { owner: this }
-    
+
     this.originalPosition = this.mesh.position.clone()
   }
 
