@@ -60,18 +60,77 @@ export default class GameStateManager extends EventTarget {
       minionCardViews.push(cardView)
     })
 
+    // Differential update for player board minions
     data.player1.board.forEach((minionData: any) => {
-      const model = new MinionModel(minionData)
-      const boardView = new PlayerMinionBoard(this.scene, model)
-      playerBoardViews.push(boardView)
+      // Check if minion already exists
+      const existingMinion = this.playerBoard.minions.find(
+        (m) => m.minion.id === minionData.id
+      )
+
+      if (existingMinion) {
+        // Update existing minion
+        existingMinion.minion.attack = minionData.attack
+        existingMinion.minion.health = minionData.health
+        existingMinion.minion.currentHealth = minionData.currentHealth
+        existingMinion.minion.canAttack = minionData.canAttack
+
+        // Update visual indicators
+        existingMinion.updateAttack(minionData.attack)
+        existingMinion.updateHealth(minionData.currentHealth)
+        existingMinion.updateCanAttack(minionData.canAttack)
+
+        playerBoardViews.push(existingMinion)
+      } else {
+        // Create new minion
+        const model = new MinionModel(minionData)
+        const boardView = new PlayerMinionBoard(this.scene, model)
+        playerBoardViews.push(boardView)
+      }
     })
 
+    // Dispose minions that no longer exist
+    const removedPlayerMinions = this.playerBoard.minions.filter(
+      (existing) => !playerBoardViews.includes(existing)
+    )
+    for (const removed of removedPlayerMinions) {
+      removed.dispose()
+    }
+
+    // Differential update for opponent board minions
     if (data.player2 && data.player2.board) {
       data.player2.board.forEach((minionData: any) => {
-        const model = new MinionModel(minionData)
-        const boardView = new OpponentMinionBoard(this.scene, model)
-        opponentBoardViews.push(boardView)
+        // Check if minion already exists
+        const existingMinion = this.opponentBoard.minions.find(
+          (m) => m.minion.id === minionData.id
+        )
+
+        if (existingMinion) {
+          // Update existing minion
+          existingMinion.minion.attack = minionData.attack
+          existingMinion.minion.health = minionData.health
+          existingMinion.minion.currentHealth = minionData.currentHealth
+          existingMinion.minion.canAttack = minionData.canAttack
+
+          // Update visual indicators
+          existingMinion.updateAttack(minionData.attack)
+          existingMinion.updateHealth(minionData.currentHealth)
+
+          opponentBoardViews.push(existingMinion)
+        } else {
+          // Create new minion
+          const model = new MinionModel(minionData)
+          const boardView = new OpponentMinionBoard(this.scene, model)
+          opponentBoardViews.push(boardView)
+        }
       })
+
+      // Dispose minions that no longer exist
+      const removedOpponentMinions = this.opponentBoard.minions.filter(
+        (existing) => !opponentBoardViews.includes(existing)
+      )
+      for (const removed of removedOpponentMinions) {
+        removed.dispose()
+      }
     }
 
     this.playerHand.setHandData(minionCardViews)

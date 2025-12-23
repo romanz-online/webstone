@@ -17,6 +17,7 @@ export default class PlayerMinionBoard {
   private scene: THREE.Scene
   private attackIndicator: AttackIndicator
   private healthIndicator: HealthIndicator
+  private glowMesh: THREE.Mesh | null = null
 
   // For texture loading promises
   private portraitTexture: THREE.Texture | null = null
@@ -231,10 +232,57 @@ export default class PlayerMinionBoard {
     } else {
       oldMaterial.dispose()
     }
+
+    // Create glow effect for attackable state
+    this.createGlowMesh()
+  }
+
+  private createGlowMesh(): void {
+    // Create canvas with radial gradient
+    const canvas = document.createElement('canvas')
+    canvas.width = 256
+    canvas.height = 256
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // Create radial gradient (green, medium prominence)
+    const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128)
+    gradient.addColorStop(0, 'rgba(0, 255, 0, 0.7)') // Center: 70% opacity
+    gradient.addColorStop(0.6, 'rgba(0, 255, 0, 0.35)') // Middle: 35% opacity
+    gradient.addColorStop(1, 'rgba(0, 255, 0, 0)') // Edge: transparent
+
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, 256, 256)
+
+    // Create texture and material
+    const texture = new THREE.CanvasTexture(canvas)
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+    })
+
+    // Create geometry (1.25x minion board size)
+    const glowWidth = MINION_BOARD_WIDTH * 1.25
+    const glowHeight = MINION_BOARD_HEIGHT * 1.25
+    const geometry = new THREE.PlaneGeometry(glowWidth, glowHeight)
+
+    // Create mesh
+    this.glowMesh = new THREE.Mesh(geometry, material)
+    this.glowMesh.position.copy(this.mesh.position)
+    this.glowMesh.position.z = 0.25 // Behind minion board
+    this.glowMesh.visible = this.minion.canAttack // Initial state
+
+    this.scene.add(this.glowMesh)
   }
 
   public setCardDepth(depth: number): void {
     this.mesh.position.z = depth
+
+    // Update glow position to stay behind mesh
+    if (this.glowMesh) {
+      this.glowMesh.position.z = depth - 0.05
+    }
   }
 
   public getBoundingInfo(): { min: THREE.Vector3; max: THREE.Vector3 } {
@@ -252,10 +300,31 @@ export default class PlayerMinionBoard {
     this.compileTextures()
   }
 
+  public updateCanAttack(canAttack: boolean): void {
+    this.minion.canAttack = canAttack
+
+    if (this.glowMesh) {
+      this.glowMesh.visible = canAttack
+    }
+  }
+
   public dispose(): void {
     // Dispose indicator components
     this.attackIndicator.dispose()
     this.healthIndicator.dispose()
+
+    // Dispose glow mesh
+    if (this.glowMesh) {
+      if (this.glowMesh.material instanceof THREE.MeshBasicMaterial) {
+        if (this.glowMesh.material.map) {
+          this.glowMesh.material.map.dispose()
+        }
+        this.glowMesh.material.dispose()
+      }
+      this.glowMesh.geometry.dispose()
+      this.scene.remove(this.glowMesh)
+      this.glowMesh = null
+    }
 
     // Dispose Three.js objects
     this.mesh.traverse((object) => {
